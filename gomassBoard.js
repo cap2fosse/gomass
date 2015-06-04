@@ -7,21 +7,22 @@ var mouvementCarte = new Array();
  *Plateau object
 */
 function Plateau(name, posx, posy) {
-  this.largeur = 0;
-  this.hauteur = 0;
+  this.largeur = 0; // in number of case
+  this.hauteur = 0; // in number of case
   this.name = name;
+  this.posx = posx;
+  this.posy = posy;
   this.visible = false;
   this.cases = [];
   // create all cases and cartes
   this.create = function(largeur, hauteur) {
     this.largeur = largeur;
     this.hauteur = hauteur;
-    gameName = name;
-    id = 0;
-    for (x = 0; x < largeur; x++) {
-      for (y = 0; y < hauteur; y++) {
-      // why var?
-        var caseInstance = new Case(x, y, posx, posy, id);
+    gameName = name; //
+    var id = 0;
+    for (var x = 0; x < largeur; x++) {
+      for (var y = 0; y < hauteur; y++) {
+        var caseInstance = new Case(x, y, this.posx, this.posy, id);
         this.cases[id] = caseInstance;
         document.body.appendChild(caseInstance);
         id++;
@@ -30,7 +31,7 @@ function Plateau(name, posx, posy) {
   };
   // display all cartes
   this.display = function() {
-    for (i = 0; i < (this.largeur*this.hauteur); i++) {
+    for (var i = 0; i < (this.largeur*this.hauteur); i++) {
       this.cases[i].draw();
     }
   };
@@ -54,26 +55,26 @@ function Plateau(name, posx, posy) {
   };
   // clear all cartes
   this.clear = function() {
-    for (i = 0; i < (this.largeur*this.hauteur); i++) {
+    for (var i = 0; i < (this.largeur*this.hauteur); i++) {
       this.cases[i].carte.remove();
       this.cases[i].draw();
     }
   };
   // set visibility of all canvas
   this.setVisibility = function(visible) {
-    for (i = 0; i < (this.largeur*this.hauteur); i++) {
+    for (var i = 0; i < (this.largeur*this.hauteur); i++) {
       this.cases[i].setVisibility(visible);
     }
   };
   this.getId = function(largeur, hauteur) {
-    id = parseInt(largeur) * this.hauteur + parseInt(hauteur);
+    var id = parseInt(largeur) * this.hauteur + parseInt(hauteur);
     console.log(id);
     return id;
   };
   this.toString = function() {
-    plateauString = "Plateau : " + "largeur : " + this.largeur + " - " + "hauteur : " + this.hauteur + "\n";
+    var plateauString = "Plateau : " + "largeur : " + this.largeur + " - " + "hauteur : " + this.hauteur + "\n";
     if (this.cases.length > 0) {
-      for (i = 0; i < (this.largeur*this.hauteur); i++) {
+      for (var i = 0; i < (this.largeur*this.hauteur); i++) {
         plateauString = plateauString + this.cases[i].toString() + "\n";
       }
     }
@@ -83,10 +84,10 @@ function Plateau(name, posx, posy) {
 
 /*
  * Case inherit from Canvas
- * See createAllCases() function.
+ * See Plateau.create() function.
 */
 function Case(casex, casey, posx, posy, id) {
-  canvasCase = document.createElement('canvas');
+  var canvasCase = document.createElement('canvas');
   // new properties
   canvasCase.x = casex;
   canvasCase.y = casey;
@@ -97,7 +98,7 @@ function Case(casex, casey, posx, posy, id) {
   canvasCase.id = id;
   canvasCase.width = 100;
   canvasCase.height = 150;
-  canvasCase.style.zIndex = 8;
+  //canvasCase.style.zIndex = 8;
   canvasCase.style.position = "absolute";
   canvasCase.style.left = casex * canvasCase.width + posx;
   canvasCase.style.top = casey * canvasCase.height + posy;
@@ -114,15 +115,16 @@ function Case(casex, casey, posx, posy, id) {
         console.log("Let's move ! " + "\n" + "Array length : " + mouvementCarte.length + "\n" + "case.id : " + this.id + "\n" + "carte.id : " + this.carte.id);
       }
       else if (!this.carte.visible && mouvementCarte.length > 0) {
-        dstid = this.id; // id du canvas sur lequel on depose la carte
+        var dstid = this.id; // id du canvas sur lequel on depose la carte
         this.carte = mouvementCarte.pop(); // on recupere la carte src
-        srcid = this.carte.id; // id du canvas source
+        var srcid = this.carte.id; // id du canvas source
         this.carte.changeId(dstid);
         this.draw();
         if (mouvementCarte.length == 0 && gameName != '') {
-          movement = srcid + ',' + dstid;
+          var movement = srcid + ',' + dstid;
           // emit to everyone
           socket.emit('move', {
+            player: playerName,
             room: gameName,
             message: movement
           });
@@ -139,7 +141,7 @@ function Case(casex, casey, posx, posy, id) {
     this.ctx.clearRect(0, 0, this.width, this.height);
   };
   canvasCase.draw = function() {
-    carreCote = 12;
+    var carreCote = 12;
     // don't draw if no carte
     if (this.carte.visible) {
       this.ctx.beginPath();
@@ -170,7 +172,7 @@ function Case(casex, casey, posx, posy, id) {
     }
   };
   canvasCase.toString = function() {
-    caseString = "Case :" + "id : " + this.id + " - " + "name : " + this.name + " - " + "x : " + this.x + " - " + "y : " + this.y + " - " + "ctx : " + this.ctx;
+    var caseString = "Case :" + "id : " + this.id + " - " + "name : " + this.name + " - " + "x : " + this.x + " - " + "y : " + this.y + " - " + "ctx : " + this.ctx;
     caseString = caseString + " - " + "width : " + this.width + " - " + "height : " + this.height + " - " + "zIndex : " + this.style.zIndex;
     return caseString + "\n" + this.carte.toString();
   };

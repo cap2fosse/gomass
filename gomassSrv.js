@@ -25,22 +25,18 @@ function Game(name) {
   this.turn = 0;
   this.state = ''; //'create', 'running', 'close'
 }
-// usernames which are currently connected to the chat
 var allUsers = [];
 var allGames = [];
 var allMoves = [];
-function storeMovement(user, srcx, srcy, dstx, dsty) {
-  allMoves.push(new Move(user, srcx, srcy, dstx, dsty));
-}
 var maxRound = Math.floor(Math.random() * 10) + 1;
+
 // default namespace
 io.on('connection', function (socket) {
-  console.log('connection to namespace : ' + io.name);
   console.log('connection to the soket : ' + socket.id);
 
   // when the client emits 'add user', this listens and executes
   socket.on('adduser', function (user) {
-    console.log('received a add user : ' + user.name);
+    console.log('received cmd adduser : ' + user.name);
     // we store the username in the socket session for this client
     socket.username = user.name;
     socket.register = true;
@@ -70,6 +66,7 @@ io.on('connection', function (socket) {
 
   // when the user disconnects.. perform this
   socket.on('disconnect', function (data) {
+    console.log('receveived cmd disconnect');
     if (allUsers.length > 0) {
       // remove the username from global allUsers list
       rmToArray(allUsers, socket.username);
@@ -96,7 +93,7 @@ io.on('connection', function (socket) {
 
   // when the client emits 'newgame'
   socket.on('newgame', function (game) {
-    console.log('create a new game : ' + game.name);
+    console.log('receveived cmd newgame : ' + game.name);
     // check if game exist and add it
     myGame = new Game(game.name);
     idx = addToArray(allGames, myGame);
@@ -132,7 +129,7 @@ io.on('connection', function (socket) {
 
   // when the client emits 'joingame'
   socket.on('joingame', function (game) {
-    console.log('join a game : ' + game.name + ' index : ' + game.idx);
+    console.log('receveived cmd joingame : ' + game.name + ' at index : ' + game.idx);
     // game exist?
     idx = gameExist(game.name);
     if (idx != -1) {
@@ -149,20 +146,26 @@ io.on('connection', function (socket) {
         validated: "You join the game : " + game.name,
         game: game.name,
         index: game.idx,
-        first: firstPlayer
+        first: firstPlayer,
+        player1: allGames[idx].player1,
+        player2: allGames[idx].player2
       });
       socket.emit('startgame', {
         validated: "The game start now. : " + game.name,
         game: game.name,
         index: game.idx,
-        first: firstPlayer
+        first: firstPlayer,
+        player1: allGames[idx].player1,
+        player2: allGames[idx].player2
       });
       // answer in the game
       socket.broadcast.to(game.name).emit('startgame', {
         validated: "The game start now. : " + game.name,
         game: game.name,
         index: game.idx,
-        first: firstPlayer
+        first: firstPlayer,
+        player1: allGames[idx].player1,
+        player2: allGames[idx].player2
       });
       // answer for all other
       socket.broadcast.emit('closegame', {
@@ -174,30 +177,30 @@ io.on('connection', function (socket) {
   });
   // when the client emits 'move'
   socket.on('move', function (data) {
-    console.log('received a move from : ' + data.room);
+    console.log('receveived cmd move from : ' + data.player + ' in room : ' + data.room);
     tempMove = data.message; //srcid, dstid
     tempMove.split(",");
-    storeMovement(socket.username, tempMove[0], tempMove[1]);
-    console.log('emit to room : ' + socket.game);
+    storeMovement(data.player, tempMove[0], tempMove[1]);
     // send only to the requester
     socket.emit('mymove', {
       validated: "Move Ok.",
       move: data.message,
-      player: socket.username
+      player: data.player
     });
     // send to all in the room except requester
     socket.broadcast.to(data.room).emit('hismove', {
       validated: "New move.",
       move: data.message,
-      player: socket.username
+      player: data.player
     });
   });
   // when the client emits 'endturn'
   socket.on('endturn', function (game) {
-    console.log('Receveived endturn : ' + game.name + ' from player : ' + game.player);
+    console.log('receveived cmd endturn from : ' + game.player + ' in room : ' + game.name);
     idx = gameExist(game.name);
     if (idx != 1) {
       allGames[idx].turn++;
+      console.log('next turn is : ' + allGames[idx].turn + ' on : ' + maxRound);
       socket.emit('endturnok', {
         validated: "Your turn is finish.",
         game: game.name,
@@ -213,11 +216,10 @@ io.on('connection', function (socket) {
 
   // when the client emits 'endgame'
   socket.on('endgame', function (game) {
-    console.log('Receveived endgame : ' + game.name + ' from player : ' + game.player);
+    console.log('receveived cmd endgame from : ' + game.player + ' in room : ' + game.name);
     idx = gameExist(game.name);
     if (idx != 1) {
-      console.log('Turn : ' + allGames[idx].turn + ' on : ' + maxRound);
-      if (allGames[idx].turn > maxRound) {
+      if (allGames[idx].turn >= maxRound) {
         console.log('End game : ' + game.name + ' from player : ' + game.player);
         socket.emit('endgameok', {
           validated: "The game is over.",
@@ -251,6 +253,9 @@ function gameExist(gamename) {
     }
   }
   return -1;
+}
+function storeMovement(user, srcx, srcy, dstx, dsty) {
+  allMoves.push(new Move(user, srcx, srcy, dstx, dsty));
 }
 
 function addToArray(myArray, elt) {
