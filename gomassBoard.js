@@ -36,12 +36,16 @@ opponentBoard.onclick = function() {
         selectedCaseId = -1;
         break;
       case 3: // received attack from player board
-        this.selectedCarte = selectedCarte.clone();
-        this.selectedCaseId = selectedCaseId;
-        console.log('Player Board attack Opponent: ' + playerBoard.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
-            'From case : ' + playerBoard.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
+        var attackerBoard  = playerBoard.id;
+        var defenderBoard = this.id;
+        var attackerCaseId = playerBoard.selectedCaseId;
+        var defenderCaseId = selectedCaseId;
+        console.log('Player Board attack Opponent: ' + playerBoard.selectedCarte + '\n' + 'Attack ' + selectedCarte + '\n' + 
+            'From case : ' + playerBoard.selectedCaseId + '\n' + 'To case : ' + selectedCaseId);
         // resolve attack here
-        
+        if (playerBoard.selectedCarte.visible && playerBoard.selectedCarte.active) {
+          resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
+        }
         // end of attack
         // reset
         playerBoard.initSelectedCarte();
@@ -57,6 +61,7 @@ opponentBoard.onclick = function() {
 var playerBoard = new Board('playerBoard', 0, 320, 100, 150);
 playerBoard.create(8, 1, 0);
 document.body.appendChild(playerBoard);
+// pass active all visible cartes in playerBoard
 playerBoard.onclick = function() {
   var onHand = cardOnHand();
   if (!selectedCarte.visible && myTurn) {
@@ -66,10 +71,9 @@ playerBoard.onclick = function() {
       case 1: // player do invocation on board
         if (player.get(0).description == 'invocus') {
           // add new invocation
-          this.add(selectedCaseId, invocusCard.clone());
+          this.addClone(selectedCaseId, invocusCard);
           console.log('Player invocation : ' + this.get(selectedCaseId));
-          var carteId = player.selectedCarte.id;
-          var srcboard = 'player';
+          var srcboard = player.id;
           // emit message
           socket.emit('newcarte', {
             player: playerName,
@@ -88,7 +92,7 @@ playerBoard.onclick = function() {
         selectedCaseId = -1;
         break;
       case 2: // playerHand drop a carte on the board
-        this.add(selectedCaseId, playerHand.selectedCarte);
+        this.addClone(selectedCaseId, playerHand.selectedCarte);
         playerHand.remove(playerHand.selectedCaseId);
         manaBoard.remove(playerHand.selectedCarte.cout);
         console.log('Put a carte on board : ' + this.get(selectedCaseId));
@@ -193,9 +197,16 @@ opponent.onclick = function() {
       console.log('Board attack direct : ' + selectedCarte);
       this.selectedCarte = selectedCarte.clone();
       this.selectedCaseId = selectedCaseId;
-      // resolve attack here
       console.log(playerBoard.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
           'From case : ' + playerBoard.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
+      // resolve attack here
+      var attackerBoard  = playerBoard.id;
+      var defenderBoard = this.id;
+      var attackerCaseId = playerBoard.selectedCaseId;
+      var defenderCaseId = selectedCaseId;
+      if (playerBoard.selectedCarte.visible && playerBoard.selectedCarte.active) {
+        resolveAttack(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
+      }
       // reset
       playerBoard.initSelectedCarte();
       selectedCarte.init();
@@ -306,7 +317,7 @@ playerSelector.fill = function(){
   this.setVisibility(true);
 }
 
-var manaBoard = new ManageMana(960, 460, 10, 1);
+var manaBoard = new ManageMana(960, 440, 10, 1);
 manaBoard.create();
 document.body.appendChild(manaBoard);
 
@@ -350,5 +361,115 @@ function resetAllBoards() {
   player.initCartes();
   playerSelector.initCartes();
   resetDeckBuilder();
+}
+function getBoard(name) {
+  if (name == opponentHand.id) return opponentHand;
+  if (name == playerSelector.id) return playerSelector;
+  if (name == opponentBoard.id) return opponentBoard;
+  if (name == playerBoard.id) return playerBoard;
+  if (name == playerHand.id) return playerHand;
+  if (name == opponent.id) return opponent;
+  if (name == player.id) return player;
+  if (name == allCarte.id) return allCarte;
+  if (name == playerDeck.id) return playerDeck;
+  if (name == playerSelector.id) return playerSelector;
+  return;
+}
+function resolveAttack(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId) {
+  var attBoard = getBoard(attackerBoard);
+  var defBoard = getBoard(defenderBoard);
+  var attCarte = attBoard.get(attackerCaseId);
+  var defCarte = defBoard.get(defenderCaseId);
+  var defLife = defCarte.defense - attCarte.attaque;
+  if (defLife <= 0) {
+    if (defenderBoard == opponent.id) { // the opponent is dead
+      defCarte.init(); // carte is dead
+      attBoard.getCase(attackerCaseId).activate(false); // inactive attack carte
+      // send the end game message
+      socket.emit('endgame', {
+        name: gameName,
+        player: playerName
+      });
+    }
+    else {
+      defCarte.init(); // carte is dead
+      attBoard.getCase(attackerCaseId).activate(false); // inactive attack carte
+      // emit the remove message
+      socket.emit('remove', {
+        player: playerName,
+        game: gameName,
+        board: defenderBoard,
+        caseid: defenderCaseId,
+      });
+    }
+  }
+  else {
+    defCarte.defense = defLife; // not die change is life
+    attBoard.getCase(attackerCaseId).activate(false); // inactive attack carte
+    // emit the change message
+    socket.emit('change', {
+      player: playerName,
+      game: gameName,
+      board: defenderBoard,
+      caseid: defenderCaseId,
+      defense: defLife
+    });
+  }
+  // draw all changes
+  defBoard.getCase(defenderCaseId).draw();
+}
+function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId) {
+  var attBoard = getBoard(attackerBoard);
+  var defBoard = getBoard(defenderBoard);
+  var attCarte = attBoard.get(attackerCaseId);
+  var defCarte = defBoard.get(defenderCaseId);
+  var defLife = defCarte.defense - attCarte.attaque;
+  var attLife = attCarte.defense - defCarte.attaque;
+  if (defLife <= 0) {
+    defCarte.init(); // carte is dead
+    attBoard.getCase(attackerCaseId).activate(false); // inactive attack carte
+    // emit the remove message
+    socket.emit('remove', {
+      player: playerName,
+      game: gameName,
+      board: defenderBoard,
+      caseid: defenderCaseId,
+    });
+  }
+  else {
+    defCarte.defense = defLife; // not die change is life
+    attBoard.getCase(attackerCaseId).activate(false); // inactive attack carte
+    // emit the change message
+    socket.emit('change', {
+      player: playerName,
+      game: gameName,
+      board: defenderBoard,
+      caseid: defenderCaseId,
+      defense: defLife
+    });
+  }
+  if (attLife <= 0) {
+    attCarte.init();
+    socket.emit('remove', {
+      player: playerName,
+      game: gameName,
+      board: attackerBoard,
+      caseid: attackerCaseId,
+    });
+  }
+  else {
+    attCarte.defense = attLife;
+    attBoard.getCase(attackerCaseId).activate(false); // inactive attack carte
+    socket.emit('change', {
+      player: playerName,
+      game: gameName,
+      board: attackerBoard,
+      caseid: attackerCaseId,
+      defense: attLife
+    });
+  }
+  // draw all changes
+  attBoard.getCase(attackerCaseId).draw();
+  defBoard.getCase(defenderCaseId).draw();
 }
 console.log('Finish gomassBoard.js');

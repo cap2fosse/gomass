@@ -14,15 +14,17 @@ function Carte(id, imgid, cout, att, def, titre, desc, visible, active, type) {
   this.active = active;
   this.type = type; // [0=normal, 1=mini, 2=player]
   switch(type) {
-  case 0:
-    this.imagej = allImages[imgid];
-    break;
-  case 1:
-    this.imagej = allImagesMini[imgid];
-    break;
-  case 2:
-    this.imagej = allPlayersImages[imgid];
-    break;
+    case 0:
+      this.imagej = allImages[imgid];
+      break;
+    case 1:
+      this.imagej = allImagesMini[imgid];
+      break;
+    case 2:
+      this.imagej = allPlayersImages[imgid];
+      break;
+    default :
+      this.imagej = allImages[imgid];
   }
   this.clone = function() {
     var copy = this.constructor();

@@ -31,10 +31,8 @@ function Game(name) {
     return " name : " + this.name + " turn : " + this.turn + " state : " + this.state;
   }
   this.addTurn = function() {
-    if (this.turn < maxRound) {
-      this.turn++;
-      console.log('New turn ! ' + this.turn);
-    }
+    this.turn++;
+    console.log('New turn ! ' + this.turn);
   }
   this.whoIsNextPlayer = function() {
     if (this.player1.myTurn == true) {return this.player1.name}
@@ -66,7 +64,6 @@ var allGames = [];
 var allMoves = [];
 var allCartes = [];
 var allAvatars = [];
-var maxRound = 5;
 // load all cartes of the game
 loadCartes();
 loadPlayer();
@@ -162,28 +159,33 @@ io.on('connection', function (socket) {
 
   // when the client emits 'newmessage'
   socket.on('newmessage', function (data) {
+    var msg = data.message;
+    var player = data.player;
+    console.log('receveived cmd newmessage from : ' + player + ' message : ' + msg);
     // we tell the client to execute 'newmessageok'
     socket.broadcast.emit('newmessageok', {
-      username: data.player,
-      message: data.message
+      username: player,
+      message: msg
     });
     socket.emit('newmessageok', {
-      username: data.player,
-      message: data.message
+      username: player,
+      message: msg
     });
   });
 
   // when the client emits 'newgame'
   socket.on('newgame', function (game) {
-    console.log('receveived cmd newgame : ' + game.name + ' from player : ' + game.player);
+    var gameName = game.name;
+    var player = game.player;
+    console.log('receveived cmd newgame from : ' + player + ' in room : ' + gameName);
     // check if game exist and add it
-    var myGame = new Game(game.name);
+    var myGame = new Game(gameName);
     var idx = addToArray(allGames, myGame);
     if (idx != -1) {
-      socket.game = game.name;
-      socket.join(game.name);
+      socket.game = gameName;
+      socket.join(gameName);
       // get id of player
-      var idP = playerExist(game.player);
+      var idP = playerExist(player);
       if (idP != -1) {
         // update game
         allGames[idx].player1 = allPlayers[idP];
@@ -192,13 +194,13 @@ io.on('connection', function (socket) {
         socket.emit('newgameok', {
           validated: "The game is created : " + game.name,
           accepted: true,
-          game: game.name
+          game: gameName
         });
         // send to all other
         socket.broadcast.emit('opengame', {
           validated: "A new game is created : " + game.name,
           accepted: true,
-          game: game.name
+          game: gameName
         });
       }
     }
@@ -207,22 +209,24 @@ io.on('connection', function (socket) {
       socket.emit('newgameok', {
         validated: "The game already exist : " + game.name,
         accepted: false,
-        game: game.name
+        game: gameName
       });
     }
   });
 
   // when the client emits 'joingame'
   socket.on('joingame', function (game) {
-    console.log('receveived cmd joingame : ' + game.name + ' from player : ' + game.player);
+    var gameName = game.name;
+    var player = game.player;
+    console.log('receveived cmd joingame from : ' + player + ' in room : ' + gameName);
     // game exist?
-    var idx = gameExist(game.name);
+    var idx = gameExist(gameName);
     if (idx != -1) {
       // store game and join
-      socket.game = game.name;
-      socket.join(game.name);
+      socket.game = gameName;
+      socket.join(gameName);
       // get id of player
-      var idP = playerExist(game.player);
+      var idP = playerExist(player);
       if (idP != -1) {
         // update game
         allGames[idx].player2 = allPlayers[idP];
@@ -241,20 +245,19 @@ io.on('connection', function (socket) {
         // get hand card
         var theHand1 = allGames[idx].player1.getCarte(3);
         var theHand2 = allGames[idx].player2.getCarte(3);
+        // get game index
+        var idxGame = game.idx;
         // answer to sender player 2
         socket.emit('joingameok', {
-          validated: "You join the game : " + game.name,
-          game: game.name,
-          index: game.idx,
-          first: firstPlayer,
-          player1: allGames[idx].player1.name,
-          player2: allGames[idx].player2.name
+          validated: "You join the game : ",
+          game: gameName,
+          first: firstPlayer
         });
         socket.emit('startgame', {
-          validated: "The game start now. : " + game.name,
-          game: game.name,
-          index: game.idx,
+          validated: "The game start now : ",
+          game: gameName,
           first: firstPlayer,
+          index: idxGame,
           player1: allGames[idx].player1.name,
           player2: allGames[idx].player2.name,
           hand: theHand2,
@@ -262,11 +265,11 @@ io.on('connection', function (socket) {
           imgid2: allGames[idx].player2.imgid
         });
         // answer in the game (player 1)
-        socket.broadcast.to(game.name).emit('startgame', {
-          validated: "The game start now. : " + game.name,
-          game: game.name,
-          index: game.idx,
+        socket.broadcast.to(gameName).emit('startgame', {
+          validated: "The game start now : ",
+          game: gameName,
           first: firstPlayer,
+          index: idxGame,
           player1: allGames[idx].player1.name,
           player2: allGames[idx].player2.name,
           hand: theHand1,
@@ -275,9 +278,9 @@ io.on('connection', function (socket) {
         });
         // answer to all others
         socket.broadcast.emit('closegame', {
-          validated: "The game is closed : " + game.name,
-          game: game.name,
-          index: game.idx
+          validated: "The game is closed : ",
+          game: gameName,
+          index: idxGame
         });
       }
     }
@@ -303,31 +306,38 @@ io.on('connection', function (socket) {
   });
   // when the client emits 'addcarte'
   socket.on('addcarte', function (data) {
-    console.log('receveived cmd addcarte from : ' + data.player + ' in room : ' + data.game);
-    var dstboard = translateBoard(data.dstboard);
-    var srcboard = translateBoard(data.srcboard);
-    var caseId = data.caseId;
-    var carteId = data.carteId;
-    // send only to the requester
-    socket.emit('addcarteok', {
-      message: "Carte add on board.",
-      carteId: carteId,
-      player: data.player
-    });
-    // send to all in the room except requester
-    socket.broadcast.to(data.game).emit('putcarte', {
-      message: "New carte arrived.",
-      srcboard: srcboard,
-      dstboard: dstboard,
-      caseId: caseId,
-      carteId: carteId,
-      player: data.player
-    });
+    var gameName = data.game;
+    var player = data.player;
+    console.log('receveived cmd addcarte from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      var dstboard = translateBoard(data.dstboard);
+      var srcboard = translateBoard(data.srcboard);
+      var caseId = data.caseId;
+      var carteId = data.carteId;
+      // send only to the requester
+      socket.emit('addcarteok', {
+        message: "Carte add on board.",
+        caseId: caseId,
+        player: player
+      });
+      // send to all in the room except requester
+      socket.broadcast.to(gameName).emit('putcarte', {
+        message: "New carte arrived.",
+        srcboard: srcboard,
+        dstboard: dstboard,
+        caseId: caseId,
+        carteId: carteId,
+        player: player
+      });
+    }
   });
   // when the client emits 'newcarte'
   socket.on('newcarte', function (data) {
-    console.log('receveived cmd addcarte from : ' + data.player + ' in room : ' + data.game);
-    var idx = gameExist(data.name);
+    var gameName = data.game;
+    var player = data.player;
+    console.log('receveived cmd newcarte from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
     if (idx != -1) {
       var dstboard = translateBoard(data.dstboard);
       var srcboard = translateBoard(data.srcboard);
@@ -341,26 +351,77 @@ io.on('connection', function (socket) {
       socket.emit('newcarteok', {
         message: "Carte created on board.",
         carte: carte,
-        player: data.player
+        player: player
       });
       // send to all in the room except requester
-      socket.broadcast.to(data.game).emit('insertcarte', {
+      socket.broadcast.to(gameName).emit('insertcarte', {
         message: "New carte inserted.",
         srcboard: srcboard,
         dstboard: dstboard,
         caseId: caseId,
         carte: carte,
-        player: data.player
+        player: player
+      });
+    }
+  });
+  // when the client emits 'remove'
+  socket.on('remove', function (data) {
+    var gameName = data.game;
+    var player = data.player;
+    console.log('receveived cmd remove from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      var clientBoard = data.board;
+      var Transboard = translateBoard(clientBoard);
+      var caseId = data.caseid;
+      socket.emit('removeok', {
+        message: "Carte removed on board : ",
+        caseid: caseId,
+        board: clientBoard
+      });
+      // send to all in the room except requester
+      socket.broadcast.to(gameName).emit('deletecarte', {
+        message: "New carte deleted on board : ",
+        caseid: caseId,
+        board: Transboard
+      });
+    }
+  });
+  // when the client emits 'change'
+  socket.on('change', function (data) {
+    var gameName = data.game;
+    var player = data.player;
+    console.log('receveived cmd change from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      var clientBoard = data.board;
+      var Transboard = translateBoard(clientBoard);
+      var caseId = data.caseid;
+      var newDef = data.defense;
+      // to the emitter
+      socket.emit('changeok', {
+        message: "Carte changed on board : ",
+        caseid: caseId,
+        board: clientBoard,
+        defense: newDef
+      });
+      // send to all in the room except requester
+      socket.broadcast.to(gameName).emit('changecarte', {
+        message: "New carte change on board : ",
+        caseid: caseId,
+        board: Transboard,
+        defense: newDef
       });
     }
   });
   // when the client emits 'endturn'
   socket.on('endturn', function (game) {
-    console.log('receveived cmd endturn from : ' + game.player + ' in room : ' + game.name);
-    var idx = gameExist(game.name);
-    console.log('game exist ? ' + idx);
-    if (idx != 1) {
-      console.log('next turn is : ' + allGames[idx].turn + ' on : ' + maxRound);
+    var gameName = game.name;
+    var player = game.player;
+    console.log('receveived cmd endturn from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      console.log('next turn is : ' + allGames[idx].turn);
       // add one round
       allGames[idx].addTurn();
       var newCarte;
@@ -377,36 +438,41 @@ io.on('connection', function (socket) {
       // to the sender
       socket.emit('endturnok', {
         validated: "Your turn is finish.",
-        game: game.name,
+        game: gameName,
+        player: player
       });
       // to other
       socket.broadcast.to(game.name).emit('newturn', {
         validated: "Your turn start now.",
-        game: game.name,
+        game: gameName,
         mana: mana,
-        carte: newCarte
+        carte: newCarte,
+        player: player
       });
     }
   });
 
   // when the client emits 'endgame'
   socket.on('endgame', function (game) {
-    console.log('receveived cmd endgame from : ' + game.player + ' in room : ' + game.name);
-    var idx = gameExist(game.name);
-    if (idx != 1) {
-      if (allGames[idx].turn >= maxRound) {
-        console.log('End game : ' + game.name + ' from player : ' + game.player);
-        socket.emit('endgameok', {
-          validated: "The game is over.",
-          game: game.name,
-          win: false
-        });
-        socket.broadcast.to(game.name).emit('endgameok', {
-          validated: "The game is over.",
-          game: game.name,
-          win: true
-        });
-      }
+    var gameName = game.name;
+    var player = game.player;
+    console.log('receveived cmd endgame from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      console.log('End game : ' + game.name + ' from player : ' + game.player);
+      // answer to the winner
+      socket.emit('endgameok', {
+        validated: "The game is over.",
+        game: gameName,
+        player: player,
+        win: true
+      });
+      socket.broadcast.to(game.name).emit('endgameok', {
+        validated: "The game is over.",
+        game: gameName,
+        player: player,
+        win: false
+      });
     }
   });
 
@@ -432,6 +498,7 @@ function whoPlayFirst(game) {
 function playerExist(playername) {
   for (var i = 0; i < allPlayers.length; i++) {
     if (allPlayers[i].name == playername) {
+      console.log('Player exist at index : ' + i);
       return i;
     }
   }
@@ -440,6 +507,7 @@ function playerExist(playername) {
 function gameExist(gamename) {
   for (var i = 0; i < allGames.length; i++) {
     if (allGames[i].name == gamename) {
+      console.log('Game exist at index : ' + i);
       return i;
     }
   }
@@ -537,6 +605,15 @@ function translateBoard(board) {
   }
   if (board == 'player') {
     return 'opponent';
+  }
+  if (board == 'opponentBoard') {
+    return 'playerBoard';
+  }
+  if (board == 'opponentHand') {
+    return 'playerHand';
+  }
+  if (board == 'opponent') {
+    return 'player';
   }
   return '';
 }

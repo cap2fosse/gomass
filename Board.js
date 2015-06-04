@@ -61,22 +61,42 @@ function Board(name, posx, posy, caseW, caseH) {
       this.cases[i].draw();
     }
   };
+  // get a carte clone from board 
+  objBoard.getClone = function(caseid) {
+    if (caseid >= 0) {
+      return this.cases[caseid].carte.clone();
+    }
+  };
   // get a carte from board 
   objBoard.get = function(caseid) {
     if (caseid >= 0) {
-      return this.cases[caseid].carte.clone();
+      return this.cases[caseid].carte;
+    }
+  };
+  // get a Case from board 
+  objBoard.getCase = function(caseid) {
+    if (caseid >= 0) {
+      return this.cases[caseid];
     }
   };
   // get all carte from board
   objBoard.getAll = function() {
     var carteArray = [];
     for (var caseid = 0; caseid < this.cases.length; caseid++) {
-      carteArray.push(this.get(caseid));
+      carteArray.push(this.getClone(caseid));
     }
     return carteArray;
   };
   // add a carte to board at position caseid 
   objBoard.add = function(caseid, myCarte) {
+    if (caseid >= 0) {
+      if (this.cases[caseid].add(myCarte)) {
+        this.cases[caseid].draw();
+      }
+    }
+  };
+  // add a carte to board at position caseid 
+  objBoard.addClone = function(caseid, myCarte) {
     if (caseid >= 0) {
       if (this.cases[caseid].add(myCarte.clone())) {
         this.cases[caseid].draw();
@@ -90,8 +110,19 @@ function Board(name, posx, posy, caseW, caseH) {
       caseid++;
     }
     if (caseid < this.cases.length) {
-      if (this.cases[caseid].add(myCarte.clone())) {
+      if (this.cases[caseid].add(myCarte)) {
         this.cases[caseid].draw();
+      }
+    }
+  };
+  // active all visible carte
+  objBoard.activateAll = function() {
+    for (var caseid = 0; caseid < this.cases.length; caseid++) {
+      if (this.cases[caseid].carte.visible) {
+        this.cases[caseid].activate(true);
+      }
+      else {
+        this.cases[caseid].activate(false);
       }
     }
   };
@@ -216,9 +247,12 @@ function Case(casex, casey, id, boardName, width, height) {
     var carreCote = 12;
     // don't draw if no carte
     if (this.carte.visible) {
+      // clear all first
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      // and draw
       this.ctx.beginPath();
       if (this.carte.cout != '') {
-        this.ctx.fillText(this.carte.cout, 0, carreCote-2);
+        this.ctx.fillText(this.carte.cout, 2, carreCote-2);
         this.ctx.rect(0, 0, carreCote, carreCote);//haut gauche
       }
       if (this.carte.titre != '') {
@@ -229,7 +263,7 @@ function Case(casex, casey, id, boardName, width, height) {
         this.ctx.rect(this.width-carreCote, this.height-carreCote, carreCote, carreCote);//bas droite
       }
       if (this.carte.attaque != '') {
-        this.ctx.fillText(this.carte.attaque, 0, this.height-2);
+        this.ctx.fillText(this.carte.attaque, 2, this.height-2);
         this.ctx.rect(0, this.height-carreCote, carreCote, carreCote);// bas gauche
       }
       if (this.carte.description != '') {
@@ -241,6 +275,15 @@ function Case(casex, casey, id, boardName, width, height) {
     else {
       this.clear();
     }
+  };
+  canvasCase.activate = function(on) {
+    if (on) {
+      this.style.border = "1px solid green";
+    }
+    else {
+      this.style.border = "1px solid grey";
+    }
+    this.carte.active = on;
   };
   canvasCase.setVisibility = function(visible) {
     if (visible) {
@@ -286,7 +329,7 @@ function Mana(id, posx, posy) {
   aMana.style.left = 10 * posx;
   aMana.style.top = 10 * posy;
   aMana.style.visibility = "hidden";
-  aMana.img = new Image();
+  aMana.img = new Image(); // must create a new image for each mana
   aMana.img.src = allManaImages[0].src;
   aMana.img.width = 10;
   aMana.img.height = 10;
@@ -324,6 +367,8 @@ function Mana(id, posx, posy) {
 }
 function ManageMana(posx, posy, nbManaX, nbManaY) {
   var allMana = document.createElement("div");
+  allMana.text = document.createElement("p"); 
+  allMana.appendChild(allMana.text);
   allMana.id = posx + posy;
   allMana.style.position = "absolute";
   allMana.style.width = 10 * nbManaX;
@@ -334,6 +379,7 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
   allMana.nbManaX = nbManaX;
   allMana.nbManaY = nbManaY;
   allMana.manas = new Array(10);
+  allMana.max = 0;
   allMana.create = function() {
     var id = 0;
     for (var x = 0; x < this.nbManaX; x++) {
@@ -344,6 +390,10 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
         id++;
       }
     }
+  };
+  allMana.setText = function() {
+    var currentMana = this.getMana();
+    this.text.innerHTML = 'Mana : ' + currentMana + '/' + this.max;
   };
   allMana.visible = function(on) {
     if (on) {
@@ -363,12 +413,16 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
     if (num > this.manas.length) return;
     for (var i = 0; i < num; i++) {
       this.manas[i].activate(true);
+      this.max++;
     }
+    this.setText();
   };
   allMana.reset = function() {
     for (var i = 0; i < this.manas.length; i++) {
       this.manas[i].activate(false);
+      this.max = 0;
     }
+    this.setText();
   };
   allMana.getMana = function() {
     var myMana = 0;
@@ -382,6 +436,7 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
     var newMana = this.getMana() - num;
     this.reset();
     this.add(newMana);
+    this.setText();
   };
   return allMana;
 }
