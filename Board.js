@@ -4,12 +4,13 @@
 var caseWidth = 100;
 var caseHeight = 150;
 /*
- * Global used to store carte begin movement
+ * Store the current selected carte and case id
 */
 var selectedCarte = new Carte();selectedCarte.init();
 var selectedCaseId = -1;
 /*
- *Plateau object
+ * posx : absolute position on x
+ * posy : absolute position on y
 */
 function Board(name, posx, posy) {
   var objBoard = document.createElement("div");
@@ -26,7 +27,9 @@ function Board(name, posx, posy) {
   objBoard.selectedCarte = new Carte();
   objBoard.selectedCarte.init();
   objBoard.selectedCaseId = -1;
-  // create all cases and cartes
+  /* create all cases and cartes
+   * largeur : number of case on x
+   * hauteur : number of case on y */  
   objBoard.create = function(largeur, hauteur) {
     this.nbCasesx = largeur;
     this.nbCasesy = hauteur;
@@ -42,40 +45,41 @@ function Board(name, posx, posy) {
       }
     }
   };
-  // display all cartes
+  /* display all cartes */
   objBoard.display = function() {
     for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
       this.cases[i].draw();
     }
   };
-  // add a carte to board
+  /* get a carte from board */
   objBoard.get = function(caseid) {
     return this.cases[caseid].carte.clone();
   };
-  // add inactive carte to board
+  /* add a carte to board at position caseid */
   objBoard.add = function(caseid, myCarte) {
-    myCarte.active = false;
     this.cases[caseid].add(myCarte.clone());
     this.cases[caseid].draw();
   };
-  // remove a carte to board
+  /* remove a carte to board at position caseid */
   objBoard.remove = function(caseid) {
     this.cases[caseid].remove();
     this.cases[caseid].draw();
   };
-  // initialize all
+  /* initialize all Cartes */
+  objBoard.initCartes = function() {
+    for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
+      this.cases[i].carte.init();
+      this.cases[i].draw();
+    }
+  };
+  /* initialize all Cases */
   objBoard.init = function() {
     for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
       this.cases[i].init();
       this.cases[i].draw();
     }
   };
-  // initialize all
-  objBoard.initSelectedCarte = function() {
-    this.selectedCarte.init();
-    this.selectedCaseId = -1;
-  };
-  // set visibility of objBoard and all canvas
+  /* set visibility of objBoard and all canvas */
   objBoard.setVisibility = function(visible) {
     if (visible) {
       this.style.visibility = "visible";
@@ -86,6 +90,10 @@ function Board(name, posx, posy) {
     for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
       this.cases[i].setVisibility(visible);
     }
+  };
+  objBoard.initSelectedCarte = function() {
+    this.selectedCarte.init();
+    this.selectedCaseId = -1;
   };
   objBoard.getId = function(largeur, hauteur) {
     var id = parseInt(largeur) * this.nbCasesy + parseInt(hauteur);
@@ -122,23 +130,24 @@ function Case(casex, casey, id) {
   canvasCase.width = caseWidth;
   canvasCase.height = caseHeight;
   canvasCase.style.position = "absolute";
-  canvasCase.style.left = casex * canvasCase.width;
-  canvasCase.style.top = casey * canvasCase.height;
+  canvasCase.style.left = casex * caseWidth;
+  canvasCase.style.top = casey * caseHeight;
   canvasCase.style.border = "1px solid grey";
   canvasCase.style.visibility = "hidden";
   // only in case
   canvasCase.init = function() {
     this.x = -1;
     this.y = -1;
-    this.name = "case" + canvasCase.x + "-" + canvasCase.y;
-    this.carte = new Carte();
-    this.ctx = canvasCase.getContext("2d");
+    this.name = "defaultCase";
+    this.carte.init();
     this.id = -1;
     this.width = caseWidth;
     this.height = caseHeight;
     this.style.position = "absolute";
     this.style.border = "1px solid grey";
     this.style.visibility = "hidden";
+    this.style.left = 0;
+    this.style.top = 0;
   };
   // overwrite canvas on click method
   canvasCase.onclick = function() {

@@ -38,6 +38,7 @@ userNameB.onclick = function() {
     });
     userNameB.disabled = true;
     userNameT.disabled = true;
+    disableCommands(false);
   }
 }
 var createT = new gomassButton(850, 50, "text", '');
@@ -80,23 +81,18 @@ endTurnB.onclick = function() {
     });
     endTurnB.disabled = true;
 }
+var deckB = new gomassButton(1000, 355, "button", "my deck");
+deckB.onclick = function() {
+    socket.emit('makedeck', {
+      player: playerName
+    });
+}
 // append IHM game
 document.body.appendChild(opponentBoard);
 document.body.appendChild(playerBoard);
 document.body.appendChild(playerHand);
 document.body.appendChild(opponent);
 document.body.appendChild(player);
-showGame(true);
-/*
-mainBoard.add(4, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(7, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(9, "images/carte5.jpg", "10", "10", "10", "lieutenant", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(12, "images/carte6.jpg", "10", "10", "10", "capitaine", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(14, "images/carte7.jpg", "10", "10", "10", "colonel", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(16, "images/carte8.jpg", "10", "10", "10", "général", "012345678901234"); // add a carte number 3 to plateau and display it
-pile.add(0, "images/carte1.jpg", "", "", "30", "player1", "");
-pile.add(1, "images/carte2.jpg", "", "", "30", "player2", "");
-*/
 // Down area
 var gomassChat = new gomassBox(820, 500, "chatArea");
 var sendT = new gomassButton(820, 580, "text", "talk");
@@ -108,6 +104,10 @@ sendB.onclick = function() {
       player: playerName
     });
 }
+// hide all
+showGame(false);
+disableCommands(true);
+
 //END UI
 //-----------------------------------------------------------
 // socket creation
@@ -304,12 +304,16 @@ function disableCommands(b) {
   createT.disabled = b;
   joinB.disabled = b;
   gomassListGame.disabled = b;
+  deckB.disabled = b;
 }
 function initGlobal() {
   gameName = 'DEFAULT';
   myTurn = false;
   creator = false;
   createT.value = '';
+  opponentBoard.initCartes();
+  playerBoard.initCartes();
+  playerHand.initCartes();
 }
 function showGame(on) {
   opponentBoard.setVisibility(on);

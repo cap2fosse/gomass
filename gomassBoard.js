@@ -112,3 +112,13 @@ playerHand.add(2, new Carte(2, "images/carte8.jpg", "10", "10", "10", "général
 playerBoard.add(3, new Carte(3, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234", true, true));
 playerBoard.add(4, new Carte(4, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234", true, true));
 playerBoard.add(5, new Carte(5, "images/carte5.jpg", "10", "10", "10", "lieutenant", "012345678901234", true, false));
+/*
+mainBoard.add(4, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.add(7, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.add(9, "images/carte5.jpg", "10", "10", "10", "lieutenant", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.add(12, "images/carte6.jpg", "10", "10", "10", "capitaine", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.add(14, "images/carte7.jpg", "10", "10", "10", "colonel", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.add(16, "images/carte8.jpg", "10", "10", "10", "général", "012345678901234"); // add a carte number 3 to plateau and display it
+pile.add(0, "images/carte1.jpg", "", "", "30", "player1", "");
+pile.add(1, "images/carte2.jpg", "", "", "30", "player2", "");
+*/
