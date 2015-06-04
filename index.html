@@ -1,6 +1,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
 <head>
   <meta charset="utf-8">
+  <script type="text/javascript" src="Board.js"></script>
   <script type="text/javascript" src="gomassBoard.js"></script>
   <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
   <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
@@ -8,6 +9,7 @@
   <title>Gomass</title>
 </head>
 <body>
+  
 </body>
 <script>
 //-----------------------------------------------------------
@@ -19,7 +21,7 @@ var playerName = 'DEFAULT';
 var opponentName = 'DEFAULT';
 var creator = false; // if player create the game
 var gameName = 'DEFAULT';
-var myTurn = false;
+var myTurn = true;
 
 // END GLOBAL VAR
 //-----------------------------------------------------------
@@ -78,19 +80,13 @@ endTurnB.onclick = function() {
     });
     endTurnB.disabled = true;
 }
-var mainBoard = new Plateau('mainBoard', 0, 100); // init the gomas Plateau
-mainBoard.create(8, 2); // create all cases
-document.body.appendChild(mainBoard);
-var playerHandBoard = new Plateau('playerHandBoard', 0, 420);
-playerHandBoard.create(8, 1);
-document.body.appendChild(playerHandBoard);
-var opponentBoard = new Plateau('opponentBoard', 850, 140);
-opponentBoard.create(1, 1);
+// append IHM game
 document.body.appendChild(opponentBoard);
-var playerBoard = new Plateau('playerBoard', 850, 320);
-playerBoard.create(1, 1);
 document.body.appendChild(playerBoard);
-showGame(false);
+document.body.appendChild(playerHand);
+document.body.appendChild(opponent);
+document.body.appendChild(player);
+showGame(true);
 /*
 mainBoard.add(4, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234"); // add a carte number 3 to plateau and display it
 mainBoard.add(7, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234"); // add a carte number 3 to plateau and display it
@@ -316,19 +312,20 @@ function initGlobal() {
   createT.value = '';
 }
 function showGame(on) {
-  mainBoard.setVisibility(on);
   opponentBoard.setVisibility(on);
   playerBoard.setVisibility(on);
-  playerHandBoard.setVisibility(on);
+  playerHand.setVisibility(on);
+  opponent.setVisibility(on);
+  player.setVisibility(on);
   endTurnB.disabled = !on;
   if (on) {
-    playerBoard.add(0, "images/carte1.jpg", "", "", "30", playerName, "");
-    opponentBoard.add(0, "images/carte2.jpg", "", "", "30", opponentName, "");
+    player.add(0, new Carte(0, "images/carte1.jpg", "", "", "30", playerName, "", true, true));
+    opponent.add(0, new Carte(0, "images/carte2.jpg", "", "", "30", opponentName, "", true, false));
     endTurnB.style.visibility = "visible";
   }
   else {
-    playerBoard.remove(0);
-    opponentBoard.remove(0);
+    player.remove(0);
+    opponent.remove(0);
     endTurnB.style.visibility = "hidden";
   }
 }
