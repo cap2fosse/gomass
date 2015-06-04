@@ -13,6 +13,8 @@ socket.on('login', function(message) {
     createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes);
     //show all avatars
     playerSelector.fill();
+    //set all cartes
+    allCarte.setAll(allGameCartes);
   }
   else {
     console.log('Received login : login already exist : ' + message.player);
@@ -47,7 +49,11 @@ socket.on('avatarok', function(message) {
     deckB.disabled = false;
     // hide avatar board
     playerSelector.setVisibility(false);
-    // add avatar carte to player board
+    // change info
+    infoTxt = '<h2>3 - Deck selection</h2><p>Choose your Deck : </p>'+
+    '<p>Click on the <b>.deck.</b> button and choose your card.</p>'+
+    '<p>Click on <b>finish</b> button to finish selection</p>';
+    infoDiv.setText(infoTxt);
     console.log('Received avatarok : ' + message.accepted);
   }
   else {
@@ -99,6 +105,8 @@ socket.on('startgame', function(message) {
   var srvCardPl;
   // remove the game from the list
   gomassListGame.remove(message.index);
+  // hide the info
+  infoDiv.visible(false);
   // who is opponent ?
   if (creator) {
     opponentName = message.player2; // set the name
@@ -150,8 +158,8 @@ socket.on('addcarteok', function(data) {
 socket.on('putcarte', function(data) {
   console.log('Received putcarte : ' + data.message + 'at ' + data.caseId + ' from player : ' + data.player);
   if (data.dstboard == 'opponentBoard' && data.srcboard == 'opponentHand') {
-    var putCarte = allCarte.getClone(data.carteId);
-    opponentBoard.add(data.caseId, putCarte);
+    var putCarte = allCarte.getByCarteId(data.carteId);
+    opponentBoard.addClone(data.caseId, putCarte);
     opponentHand.removeLast();
   }
 })
@@ -223,16 +231,19 @@ socket.on('endgameok', function(message) {
   console.log('Received endgameok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
   // win the game?
   if (message.win) {
-    console.log('You win the game : ' + message.game + ' you are the boss ' + message.player);
+    infoTxt = '<h2>6 - End of game</h2><p>You win the game : ' + message.game + ' you are the boss ' + playerName + '</p>';
   }
   else {
-    console.log('You loose the game : ' + message.game + ' may be next time ' + message.player);
+    infoTxt = '<h2>6 - End of game</h2><p>You loose the game : ' + message.game + ' may be next time ' + playerName + '</p>';
   }
+  // game is finish
   endTurnB.disabled = true;
-  deckB.disabled = false;
-  // go to create a new game
-  loadNewGame();
+  // hide all
   showGameBoards(false);
+  // display info of end of game
+  infoDiv.setText(infoTxt);
+  infoDiv.setButton();
+  infoDiv.visible(true);
 })
 //END GAME
 

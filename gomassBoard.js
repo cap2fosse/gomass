@@ -316,13 +316,14 @@ player.onclick = function() {
   selectedCaseId = -1;
 }
 
-var allCarte = new Board('allCarte', 0, 0, 100, 150);
-allCarte.create(6, 14, 0);
+var allCarte = new Board('allCarte', 100, 0, 100, 150);
+allCarte.create(5, 2, 0);
 document.body.appendChild(allCarte);
 allCarte.onclick = function() {
-  if (selectedCarte.visible && !selectedCarte.selected) {
+  if (selectedCarte.visible && !selectedCarte.selected) { // player select a carte to put on deck
     this.selectedCarte = selectedCarte.clone();
     this.get(selectedCaseId).selected = true; // force to selected
+    this.getByCarteId(selectedCarte.id).selected = true; // force to selected
     var myMini = new Carte(selectedCarte.id, 'Mini', selectedCarte.type, selectedCarte.imgid, selectedCarte.visible,
     selectedCarte.cout, selectedCarte.attaque, selectedCarte.defense, selectedCarte.titre, 
     selectedCarte.description, selectedCarte.active,
@@ -333,15 +334,25 @@ allCarte.onclick = function() {
   selectedCarte.init();
   selectedCaseId = -1;
 }
-// fill the cartes array from server
-allCarte.fill = function(){
+// fill the cartes array from server bye page start to 0
+allCarte.fill = function(page){
   var theCard;
-  for (var id = 0; id < allGameCartes.length; id++) {
-    theCard = allGameCartes[id];
-    this.addClone(id, theCard);
+  var idC = 0;
+  for (var id = page*10; id < (page*10)+10 ; id++) {
+    theCard = this.cartes[id];
+    this.add(idC, theCard);
+    idC++;
   }
 }
-
+var pageBoard = new manageCoutButton(200, 500, 10, 1);
+pageBoard.create();
+document.body.appendChild(pageBoard);
+pageBoard.onclick = function() {
+  if (selectedButton > 0 && selectedButton <= 8) {
+    allCarte.fill(selectedButton-1);
+  }
+  selectedButton = 0;
+}
 var playerDeck = new Board('playerDeck', 650, 50, 100, 20);
 playerDeck.create(1, maxDeckCarte, 1);
 document.body.appendChild(playerDeck);
@@ -416,10 +427,12 @@ function cardOnHand() {
 function showDeckBuilder(on) {
   allCarte.setVisibility(on);
   playerDeck.setVisibility(on);
-  finishDeckB.hide(!on);
+  pageBoard.visible(on);
   deckB.hide(on);
+  finishDeckB.hide(!on);
+  clearB.hide(!on);
   if (on) {
-    allCarte.fill();
+    allCarte.fill(0);
   }
 }
 function resetDeckBuilder() {
@@ -443,7 +456,7 @@ function resetAllBoards() {
   manaBoard.reset();
   opponent.initCartes();
   player.initCartes();
-  playerSelector.initCartes();
+  //playerSelector.initCartes();
   //resetDeckBuilder();
 }
 function getBoard(name) {
@@ -471,7 +484,7 @@ function doHealOn(board, caseId, heal) {
     game: gameName,
     board: board,
     caseid: caseId,
-    defense: life
+    carte: theCarte
   });
   // draw all changes
   theBoard.getCase(caseId).draw();

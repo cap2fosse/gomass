@@ -2,13 +2,14 @@
 console.log('Start Board.js');
 // default empty carte (empty = -1)
 var emptyCarte = new Carte(-1, 'White');
-var emptyMiniCarte = new Carte(-1, 'White');
+var emptyMiniCarte = new Carte(-1, 'Mini', '', 0);
 var backCard = new Carte(-1, 'Black', '', 0, true);
 // the current selected carte
 var selectedCarte = emptyCarte;
 // store all cartes send by server
 var allGameCartes = [];
 var allAvatarsCartes = [];
+var selectedButton = 0; // id of the clicked button
 // create a new Board at posx, posy absolute position
 function Board(name, posx, posy, caseW, caseH) {
   var objBoard = document.createElement("div");
@@ -24,12 +25,13 @@ function Board(name, posx, posy, caseW, caseH) {
   objBoard.nbCasesx = 0;
   objBoard.nbCasesy = 0;
   objBoard.cases = [];
+  objBoard.cartes = [];
   objBoard.selectedCarte = selectedCarte;
   objBoard.selectedCaseId = selectedCaseId;
   /* create all cases and cartes
    * largeur : number of case on x
    * hauteur : number of case on y 
-   * type : type of case normal=0, small=1 */
+   * type : type of case normal=0, small=1, all=2*/
   objBoard.create = function(largeur, hauteur, type) {
     this.nbCasesx = largeur;
     this.nbCasesy = hauteur;
@@ -49,9 +51,16 @@ function Board(name, posx, posy, caseW, caseH) {
           return;
         }
         this.cases[id] = caseInstance;
+        this.cartes[id] = caseInstance.carte;
         this.appendChild(caseInstance);
         id++;
       }
+    }
+  };
+  // set all cartes 
+  objBoard.setAll = function(cardArray) {
+    for (var i = 0; i < cardArray.length; i++) {
+      this.cartes[i] = cardArray[i];
     }
   };
   // display all cartes 
@@ -60,31 +69,42 @@ function Board(name, posx, posy, caseW, caseH) {
       this.cases[i].draw();
     }
   };
+  // clear all cartes 
+  objBoard.clearAll = function() {
+    for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
+      this.cases[i].clear();
+    }
+  };
+  // unselect all cartes 
+  objBoard.unselectAll = function() {
+    for (var i = 0; i < this.cartes.length; i++) {
+      this.cartes[i].selected = false;
+    }
+  };
   // get a carte clone from board 
   objBoard.getClone = function(caseid) {
-    if (caseid >= 0) {
+    if (caseid >= 0 && caseid < this.cases.length) {
       return this.cases[caseid].carte.clone();
     }
   };
-  
-  // get a random carte not selected and visible from board
+  // get a random carte not selected and visible from board on array of carte
   objBoard.getRandom = function() {
     var tryTime = 0;
     while (tryTime < 1000) {
-      var rand = Math.floor(Math.random() * this.cases.length);
-      if (this.cases[rand].carte.visible && !this.cases[rand].carte.selected) {
-        return this.cases[rand].carte;
+      var rand = Math.floor(Math.random() * this.cartes.length);
+      if (this.cartes[rand].visible && !this.cartes[rand].selected) {
+        return this.cartes[rand];
       }
       tryTime++;
     }
   };
-  // get a carte from board 
+  // get a carte from array of carte 
   objBoard.getByCarteId = function(carteid) {
     var i = 0;
-    while (this.cases[i].carte.id != carteid && i < this.cases.length) {
+    while (this.cartes[i].id != carteid && i < this.cartes.length) {
       i++;
     }
-    return this.cases[i].carte;
+    return this.cartes[i];
   };
   // get a carte from board 
   objBoard.get = function(caseid) {
@@ -98,11 +118,11 @@ function Board(name, posx, posy, caseW, caseH) {
       return this.cases[caseid];
     }
   };
-  // get all carte from board
+  // get all cartes on board
   objBoard.getAll = function() {
     var carteArray = [];
     for (var caseid = 0; caseid < this.cases.length; caseid++) {
-      carteArray.push(this.getClone(caseid));
+      carteArray.push(this.get(caseid));
     }
     return carteArray;
   };
@@ -454,7 +474,7 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
   var allMana = document.createElement("div");
   allMana.text = document.createElement("p"); 
   allMana.appendChild(allMana.text);
-  allMana.id = posx + posy;
+  allMana.id = 'ManageMana';
   allMana.style.position = "absolute";
   allMana.style.width = 10 * nbManaX;
   allMana.style.height = 10 * nbManaY;
@@ -536,4 +556,69 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
   };
   return allMana;
 }
+function coutButton(x, y, type, val) {
+  var element = document.createElement("input");
+  element.type = type;
+  element.value = val;
+  element.id = val;
+  element.style.position = "absolute";
+  element.style.left = x;
+  element.style.top = y;
+  element.disabled = false;
+  element.hide = function(on) {
+    this.disabled = on;
+    if (on) {
+      this.style.visibility = "hidden";
+    }
+    else {
+      this.style.visibility = "visible";
+    }
+  };
+  element.onclick = function() {
+    selectedButton = this.id;
+    //this.disabled = !this.disabled;
+  };
+  return element;
+}
+function manageCoutButton(posx, posy, nbButtonX, nbButtonY) {
+  var allCoutB = document.createElement("div");
+  allCoutB.id = 'ManageCoutButton';
+  allCoutB.style.position = "absolute";
+  allCoutB.style.width = 10 * nbButtonX;
+  allCoutB.style.height = 10 * nbButtonY;
+  allCoutB.style.left = posx;
+  allCoutB.style.top = posy;
+  allCoutB.style.visibility = "hidden";
+  allCoutB.nbButtonX = nbButtonX;
+  allCoutB.nbButtonY = nbButtonY;
+  allCoutB.buttons = new Array(10);
+  allCoutB.create = function() {
+    var id = 0;
+    for (var x = 0; x < this.nbButtonX; x++) {
+      for (var y = 0; y < this.nbButtonY; y++) {
+        var b = new coutButton(x+(30*id), y, 'button', id+1);
+        this.buttons[id] = b;
+        this.appendChild(b);
+        id++;
+      }
+    }
+  };
+  allCoutB.visible = function(on) {
+    if (on) {
+      this.style.visibility = "visible";
+      for (var i = 0; i < this.buttons.length; i++) {
+        this.buttons[i].hide(false);
+      }
+    }
+    else {
+      this.style.visibility = "hidden";
+      for (var i = 0; i < this.buttons.length; i++) {
+        this.buttons[i].hide(true);
+      }
+    }
+  };
+
+  return allCoutB;
+}
+
 console.log('Finish Board.js');

@@ -75,7 +75,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, titre, desc, a
             + " - " + "type : " + this.type + " - " + "image : " + this.imagej.src + '||' + this.effet.toString() + '||' + this.etat.toString();
   };
   this.equal = function(other) {
-    if (this.id == other.id && this.imagej.src == other.imagej.src) return true;
+    if (this.id == other.id && this.imgid == other.imgid && this.typeimg == other.typeimg && this.type == other.type) return true;
     else return false;
   };
   this.init = function() {

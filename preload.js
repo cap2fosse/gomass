@@ -1,7 +1,7 @@
 "use strict";
 console.log('Start preload.js');
 // BEGIN GLOBAL VAR
-var rootUrl = 'http://localhost:3000/'; // URL
+var rootUrl = 'http://localhost:3333/'; // URL
 var playerName = 'DEFAULT';
 var opponentName = 'DEFAULT';
 var creator = false; // if player create the game

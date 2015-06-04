@@ -23,6 +23,9 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 //-----------------------------------------------------------
 // BEGIN UI
+var infoDiv = new gomassInfo(150, 250, 'info');
+var infoTxt = '<h2>1 - Connect to Gomass Game</h2><p>To begin, choose a name and click <b>connect</b> button.</p>';
+infoDiv.setText(infoTxt);
 // Up area
 var userNameT = new gomassButton(850, 10, "text", '');
 var userNameB = new gomassButton(1000, 10, "button", "connect");
@@ -35,6 +38,12 @@ userNameB.onclick = function() {
     });
     userNameB.disabled = true;
     userNameT.disabled = true;
+    // change info
+    infoTxt = '<h2>2 - Avatar selection</h2><p>Choose your Avatar : <ul>'+
+    '<li>Invocus : Put a new card on player board for 2 mana</li>'+
+    '<li>Spellus : Attack a card or a player for 2 mana</li>'+
+    '<li>Healus : Add one life to a card on player board</li></ul></p>';
+    infoDiv.setText(infoTxt);
   }
 }
 var createT = new gomassButton(850, 50, "text", '');
@@ -49,6 +58,9 @@ createB.onclick = function(game) {
       name: gameName,
       player: playerName
     });
+    // show info
+    infoTxt = '<h2>5 - Wait until someone join the game</h2>';
+    infoDiv.setText(infoTxt);
     console.log('create game : ' + createT.value);
   }
 }
@@ -79,6 +91,9 @@ endTurnB.onclick = function() {
 }
 var deckB = new gomassButton(1000, 355, "button", ".deck.");
 deckB.onclick = function() {
+  // hide info
+  infoDiv.visible(false);
+  // show deck ui
   showDeckBuilder(true);
   disableCommands(true);
 }
@@ -97,7 +112,22 @@ finishDeckB.onclick = function() {
     player: playerName,
     deck: myDeck
   });
+  // hide finish and clear buttons
   this.hide(true);
+  clearB.hide(true);
+  // show info
+  infoTxt = '<h2>4 - Create or Join a game</h2>'+
+  '<ul><li>Choose a game name and click on <b>.create.</b> button.</li>'+
+  '<li>Or select a game and click on <b>.join.</b> button.</li>'+
+  '<li>You can also modify your deck with the <b>.deck.</b> button.</li>';
+  infoDiv.setText(infoTxt);
+  infoDiv.visible(true);
+}
+var clearB = new gomassButton(1000, 425, "button", ".clear.");
+clearB.style.visibility = "hidden";
+clearB.onclick = function() {
+  playerDeck.clearAll();
+  allCarte.unselectAll();
 }
 // Down area
 var gomassChat = new gomassBox(820, 500, "chatArea");
@@ -152,6 +182,44 @@ function gomassBox(x, y, val) {
   document.body.appendChild(element);
   return element;
 }
+function gomassInfo(x, y, id) {
+  var element = document.createElement("div");
+  element.id = id;
+  element.readonly = true;
+  element.style.position = "absolute";
+  element.style.left = x;
+  element.style.top = y;
+  element.style.width = 500;
+  element.style.height = 200;
+  //element.style.border = "1px solid grey";
+  element.disabled = false;
+  element.setText = function(info) {
+    this.innerHTML = info;
+  };
+  element.setButton = function() {
+    var b = document.createElement("input");
+    b.type = "button";
+    b.value = ".end.";
+    b.id = ".end."; 
+    this.appendChild(b);
+    b.onclick = function() {
+      // create a new game
+      loadNewGame();
+      showGameBoards(false);
+    };
+  };
+  element.visible = function(on) {
+    this.disabled = on;
+    if (on) {
+      this.style.visibility = "visible";
+    }
+    else {
+      this.style.visibility = "hidden";
+    }
+  };
+  document.body.appendChild(element);
+  return element;
+}
 function gomassCombo(x, y, val) {
   var element = document.createElement("select");
   element.id = val;
@@ -180,12 +248,22 @@ function disableCommands(b) {
   deckB.disabled = b;
 }
 function loadNewGame() {
+  // reset all
   gameName = 'DEFAULT';
   myTurn = false;
   creator = false;
   createT.value = '';
   endTurnB.hide(true);
   resetAllBoards();
+  // choose a new avatar
+  playerSelector.setVisibility(true);
+  // change info
+  infoTxt = '<h2>2 - Avatar selection</h2><p>Choose your Avatar : <ul>'+
+  '<li>Invocus : Put a new card on player board for 2 mana</li>'+
+  '<li>Spellus : Attack a card or a player for 2 mana</li>'+
+  '<li>Healus : Add one life to a card on player board</li></ul></p>';
+  infoDiv.setText(infoTxt);
+  //infoDiv.visible(true);
 }
 console.log('Finish index.js');
 //-----------------------------------------------------------
