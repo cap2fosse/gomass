@@ -44,6 +44,7 @@ opponentBoard.onclick = function() {
             else if (selectedCarte.etat.provoke) { // attack provoke
               resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
             }
+            else {console.log('Provocation on board!');}
           }
         // reset
         player.inactivateAll();
@@ -332,6 +333,7 @@ opponent.onclick = function() {
           else if (selectedCarte.etat.provoke) { // attack provoke
             resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
           }
+          else {console.log('Provocation on board!');}
         }
       // reset
       player.inactivateAll();
@@ -373,6 +375,7 @@ opponent.onclick = function() {
         else if (selectedCarte.etat.provoke) { // attack provoke
           resolveAttackOpponent(attackerBoard, attackerCaseId);
         }
+        else {console.log('Provocation on board!');}
       }
       // reset
       playerBoard.initSelectedCarte();

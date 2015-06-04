@@ -132,7 +132,6 @@ socket.on('startgame', function(message) {
   // who play in first ?
   if (message.first == playerName) {
     myTurn = true;
-    //endTurnB.disabled  = false;
     manaBoard.set(1); // give one mana
     playerPower.activateAll();
     opponentPower.inactivateAll();
@@ -142,7 +141,6 @@ socket.on('startgame', function(message) {
   }
   else {
     myTurn = false;
-    //endTurnB.disabled  = true;
     playerPower.inactivateAll();
     opponentPower.activateAll();
     player.inactivateAll();
@@ -178,7 +176,7 @@ socket.on('showgame', function(data) {
   console.log('Received showgame : ' + data.message + data.game + ' from player : ' + data.player);
   // hide the info
   infoDiv.visible(false);
-  // set myturn button
+  // set my turn button
   endTurnB.style.visibility = "visible";
   if (myTurn) {endTurnB.disabled  = false;}
   else {endTurnB.disabled  = true;}
