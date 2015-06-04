@@ -58,6 +58,7 @@ io.on('connection', function (socket) {
         numUsers: allUsers.length
       });
     }
+    // user name already exist
     else {
       socket.emit('login', {
         accepted: false,
@@ -80,9 +81,9 @@ io.on('connection', function (socket) {
     }
   });
 
-  // when the client emits 'new message', this listens and executes
+  // when the client emits 'newmessage'
   socket.on('newmessage', function (data) {
-    // we tell the client to execute 'new message'
+    // we tell the client to execute 'newmessageok'
     socket.broadcast.emit('newmessageok', {
       username: data.player,
       message: data.message
@@ -93,27 +94,7 @@ io.on('connection', function (socket) {
     });
   });
 
-  // when the client emits 'move', we broadcast it to others
-  socket.on('move', function (data) {
-    console.log('received a move from : ' + data.room);
-    tempMove = data.message; //srcid, dstid
-    tempMove.split(",");
-    storeMovement(socket.username, tempMove[0], tempMove[1]);
-    console.log('emit to room : ' + socket.game);
-    // send only to the requester
-    socket.emit('mymove', {
-      validated: "Move Ok.",
-      move: data.message,
-      player: socket.username
-    });
-    // send to all in the room except requester
-    socket.broadcast.to(data.room).emit('hismove', {
-      validated: "New move.",
-      move: data.message,
-      player: socket.username
-    });
-  });
-
+  // when the client emits 'newgame'
   socket.on('newgame', function (game) {
     console.log('create a new game : ' + game.name);
     // check if game exist and add it
@@ -149,8 +130,9 @@ io.on('connection', function (socket) {
     }
   });
 
+  // when the client emits 'joingame'
   socket.on('joingame', function (game) {
-    console.log('join a game : ' + game.name);
+    console.log('join a game : ' + game.name + ' index : ' + game.idx);
     // game exist?
     idx = gameExist(game.name);
     if (idx != -1) {
@@ -166,27 +148,51 @@ io.on('connection', function (socket) {
       socket.emit('joingameok', {
         validated: "You join the game : " + game.name,
         game: game.name,
+        index: game.idx,
         first: firstPlayer
       });
       socket.emit('startgame', {
         validated: "The game start now. : " + game.name,
         game: game.name,
+        index: game.idx,
         first: firstPlayer
       });
       // answer in the game
       socket.broadcast.to(game.name).emit('startgame', {
         validated: "The game start now. : " + game.name,
         game: game.name,
+        index: game.idx,
         first: firstPlayer
       });
       // answer for all other
       socket.broadcast.emit('closegame', {
         validated: "The game is closed : " + game.name,
-        game: game.name
+        game: game.name,
+        index: game.idx
       });
     }
   });
-  // end turn
+  // when the client emits 'move'
+  socket.on('move', function (data) {
+    console.log('received a move from : ' + data.room);
+    tempMove = data.message; //srcid, dstid
+    tempMove.split(",");
+    storeMovement(socket.username, tempMove[0], tempMove[1]);
+    console.log('emit to room : ' + socket.game);
+    // send only to the requester
+    socket.emit('mymove', {
+      validated: "Move Ok.",
+      move: data.message,
+      player: socket.username
+    });
+    // send to all in the room except requester
+    socket.broadcast.to(data.room).emit('hismove', {
+      validated: "New move.",
+      move: data.message,
+      player: socket.username
+    });
+  });
+  // when the client emits 'endturn'
   socket.on('endturn', function (game) {
     console.log('Receveived endturn : ' + game.name + ' from player : ' + game.player);
     idx = gameExist(game.name);
@@ -205,6 +211,7 @@ io.on('connection', function (socket) {
     }
   });
 
+  // when the client emits 'endgame'
   socket.on('endgame', function (game) {
     console.log('Receveived endgame : ' + game.name + ' from player : ' + game.player);
     idx = gameExist(game.name);

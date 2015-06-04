@@ -13,11 +13,12 @@
 //-----------------------------------------------------------
 ////////////////////////////////MAIN/////////////////////////
 //-----------------------------------------------------------
+// BEGIN GLOBAL VAR
 var rootUrl = 'http://localhost:3000';
 var gameName = 'DEFAULT';
 var playerName = 'DEFAULT';
 var myTurn = false;
-var pile;var mainBoard;
+// END GLOBAL VAR
 //-----------------------------------------------------------
 // BEGIN UI
 // Up area
@@ -52,15 +53,28 @@ var gomassListGame = new gomassCombo(820, 90, "gameList");
 var joinB = new gomassButton(980, 90, "button", ".join.");
 joinB.onclick = function(game) {
   if (gomassListGame.value != '') {
+    index = gomassListGame.selectedIndex;
     disableButton(true);
     socket.emit('joingame', {
       name: gomassListGame.value,
+      idx: index
     });
+    console.log('join game : ' + gomassListGame.value);
   }
-  console.log('join game : ' + gomassListGame.value);
 }
 
 // Middle area
+var pile = new Plateau(gameName, 820, 150);
+pile.create(1, 2);
+pile.add(0, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234");
+//console.log(pile.toString()); // to display log
+var mainBoard = new Plateau(gameName, 0, 0); // init the gomas Plateau
+mainBoard.create(8, 4); // create all cases
+mainBoard.add(3, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.add(4, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.add(16, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
+mainBoard.setVisibility(false);
+//console.log(mainBoard.toString()); // to display log
 var endTurnB = new gomassButton(820,460, "button", "end turn");
 endTurnB.style.visibility = "hidden";
 endTurnB.onclick = function() {
@@ -81,24 +95,6 @@ sendB.onclick = function() {
       message: sendT.value,
       player: playerName
     });
-}
-function createGame() {
-  if (gameName != 'DEFAULT') {
-    console.log('Create or Join the game : ' + gameName);
-    // la pile de carte
-    pile = new Plateau(gameName, 820, 150);
-      pile.create(1, 2);
-      pile.add(0, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234");
-      //console.log(pile.toString()); // to display log
-    // le plateau de jeu
-    mainBoard = new Plateau(gameName, 0, 0); // init the gomas Plateau
-      mainBoard.create(8, 4); // create all cases
-      mainBoard.add(3, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
-      mainBoard.add(4, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
-      mainBoard.add(16, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
-      //console.log(mainBoard.toString()); // to display log
-    // le bouton de fin de tour
-  }
 }
 //END UI
 //-----------------------------------------------------------
@@ -149,6 +145,7 @@ socket.on('newgameok', function(message) {
 })
 socket.on('joingameok', function(message) {
   gameName = message.game;
+  createT.value = gameName;
   disableButton(true);
   console.log('Received joingameok : ' + message.validated);
 })
@@ -157,14 +154,36 @@ socket.on('opengame', function(message) {
   console.log('Received openGame : ' + message.validated);
 })
 socket.on('closegame', function(message) {
-  // TODO : Remove the game from the combo
-  //gomassListGame.value -= message.game;
+  // remove the game from the list
+  gomassListGame.remove(message.index);
   console.log('Received closeGame : ' + message.validated);
 })
 //END CREATE GAME
 //-----------------------------------------------------------
 
 //BEGIN GAME
+socket.on('startgame', function(message) {
+  console.log('Received startgame : ' + message.validated);
+  // remove the game from the list
+  gomassListGame.remove(message.index);
+  // play in first
+  if (message.first == playerName) {
+    myTurn = true;
+    mainBoard.setVisibility(true);
+    pile.setVisibility(true);
+    endTurnB.style.visibility = "visible";
+    endTurnB.disabled = false;
+    console.log('You start the game : ' + message.game);
+  }
+  else {
+    myTurn = false;
+    mainBoard.setVisibility(true);
+    pile.setVisibility(true);
+    endTurnB.style.visibility = "visible";
+    endTurnB.disabled = true;
+    console.log('You wait in the game : ' + message.game);
+  }
+})
 socket.on('mymove', function(message) {
   console.log('Received mymove : ' + message.validated);
 })
@@ -173,24 +192,6 @@ socket.on('hismove', function(message) {
   tempMove = message.move.split(",");
   console.log('move : '+ tempMove[0] +' : '+ tempMove[1]);
   mainBoard.move(tempMove[0], tempMove[1]);
-})
-socket.on('startgame', function(message) {
-  console.log('Received startgame : ' + message.validated);
-  if (message.first == playerName) {
-    myTurn = true;
-    createGame();
-    endTurnB.style.visibility = "visible";//hidden
-    endTurnB.disabled = false;
-    console.log('You start the game : ' + message.game);
-  }
-  else {
-    myTurn = false;
-    gameName = gomassListGame.value;
-    createGame();
-    endTurnB.style.visibility = "visible";//hidden
-    endTurnB.disabled = true;
-    console.log('You wait in the game : ' + message.game);
-  }
 })
 socket.on('endturnok', function(message) {
   console.log('Received endturnok : ' + message.validated);
@@ -222,6 +223,7 @@ socket.on('endgameok', function(message) {
     myTurn = false;
     endTurnB.disabled = true;
   }
+  newGame();
 })
 //END GAME
 
@@ -288,6 +290,15 @@ function disableButton(b) {
   createT.disabled = b;
   joinB.disabled = b;
   gomassListGame.disabled = b;
+}
+function newGame() {
+  gameName = 'DEFAULT';
+  myTurn = false;
+  disableButton(false);
+  endTurnB.style.visibility = "hidden";
+  mainBoard.setVisibility(false);
+  pile.setVisibility(false);
+  createT.value = '';
 }
 //-----------------------------------------------------------
 

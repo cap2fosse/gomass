@@ -10,6 +10,7 @@ function Plateau(name, posx, posy) {
   this.largeur = 0;
   this.hauteur = 0;
   this.name = name;
+  this.visible = false;
   this.cases = [];
   // create all cases and cartes
   this.create = function(largeur, hauteur) {
@@ -58,6 +59,12 @@ function Plateau(name, posx, posy) {
       this.cases[i].draw();
     }
   };
+  // set visibility of all canvas
+  this.setVisibility = function(visible) {
+    for (i = 0; i < (this.largeur*this.hauteur); i++) {
+      this.cases[i].setVisibility(visible);
+    }
+  };
   this.getId = function(largeur, hauteur) {
     id = parseInt(largeur) * this.hauteur + parseInt(hauteur);
     console.log(id);
@@ -95,6 +102,7 @@ function Case(casex, casey, posx, posy, id) {
   canvasCase.style.left = casex * canvasCase.width + posx;
   canvasCase.style.top = casey * canvasCase.height + posy;
   canvasCase.style.border = "1px solid grey";
+  canvasCase.style.visibility = "hidden";
   // overwrite canvas on click method
   canvasCase.onclick = function() {
     if (myTurn) {
@@ -150,6 +158,15 @@ function Case(casex, casey, posx, posy, id) {
     }
     else {
       this.clear();
+    }
+  };
+  canvasCase.setVisibility = function(visible) {
+    if (visible) {
+      this.style.visibility = "visible";
+    }
+    else {
+      this.style.visibility = "hidden";
+      //canvasCase.style.visibility = "collapse";
     }
   };
   canvasCase.toString = function() {
