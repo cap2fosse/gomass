@@ -67,6 +67,7 @@ var allGames = [];
 var allMoves = [];
 var allCartes = [];
 var allAvatars = [];
+var allPowers = [];
 // load all cartes of the game
 loadCartes();
 loadPlayer();
@@ -92,7 +93,8 @@ io.on('connection', function (socket) {
         player: user.name,
         numUsers: allUsers.length,
         cartes: allCartes,
-        avatar: allAvatars
+        avatar: allAvatars,
+        power: allPowers
       });
       // echo globally (all clients) that a person has connected
       socket.broadcast.emit('userjoined', {
@@ -364,7 +366,6 @@ io.on('connection', function (socket) {
     var idx = gameExist(gameName);
     if (idx != -1) {
       var dstboard = translateBoard(data.dstboard);
-      var srcboard = translateBoard(data.srcboard);
       var caseId = data.caseId;
       var carte = data.carte;
       // set up id and type
@@ -380,7 +381,6 @@ io.on('connection', function (socket) {
       // send to all in the room except requester
       socket.broadcast.to(gameName).emit('insertcarte', {
         message: "New carte inserted.",
-        srcboard: srcboard,
         dstboard: dstboard,
         caseId: caseId,
         carte: carte,
@@ -612,22 +612,39 @@ function rmToArray(myArray, elt) {
 
 function loadPlayer() {
     var invocus = new Carte(0, 'Normal', 'Player', 0, true, 2, 0, 0, 30, 'invocus', 'Invocation');
-    var spellus = new Carte(1, 'Normal', 'Player', 1, true, 2, 0, 0, 30, 'spellus', '');
+    var invocusSpell = new Carte(0, 'Normal', 'PlayerSpell', 0, true, 2, 1, 0, 1, 'invocusSpell');
+    var spellus = new Carte(1, 'Normal', 'Player', 1, true, 2, 0, 0, 30, 'spellus');
     spellus.effet.id = 1;
     spellus.effet.zone = 'Single';
-    spellus.effet.impact = 'opponentBoard';
+    spellus.effet.impact = 'any';
     spellus.effet.declencheur = 'Immediat';
     spellus.effet.modifVie = -1;
     spellus.setDescription();
-    var healus = new Carte(2, 'Normal', 'Player', 2, true, 2, 0, 0, 30, 'healus', '');
+    var spellusSpell = new Carte(1, 'Normal', 'PlayerSpell', 1, true, 2, 0, 0, 0, 'spellusSpell');
+    spellusSpell.effet.id = 1;
+    spellusSpell.effet.zone = 'Single';
+    spellusSpell.effet.impact = 'any';
+    spellusSpell.effet.declencheur = 'Immediat';
+    spellusSpell.effet.modifVie = -1;
+    spellusSpell.setDescription();
+    var healus = new Carte(2, 'Normal', 'Player', 2, true, 2, 0, 0, 30, 'healus');
     healus.effet.id = 2;
     healus.effet.zone = 'Single';
-    healus.effet.impact = 'playerBoard';
+    healus.effet.impact = 'any';
     healus.effet.declencheur = 'Immediat';
     healus.effet.modifVie = 1;
     healus.setDescription();
+    var healusSpell = new Carte(2, 'Normal', 'PlayerSpell', 2, true, 2, 0, 0, 0, 'healusSpell');
+    healusSpell.effet.id = 2;
+    healusSpell.effet.zone = 'Single';
+    healusSpell.effet.impact = 'any';
+    healusSpell.effet.declencheur = 'Immediat';
+    healusSpell.effet.modifVie = 1;
+    healusSpell.setDescription();
     allAvatars = [invocus, spellus, healus];
+    allPowers = [invocusSpell, spellusSpell, healusSpell];
     console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus);
+    console.log('AvatarSpell 1 : ' + invocusSpell + ' AvatarSpell 2 : ' + spellusSpell + ' AvatarSpell 3 : ' + healusSpell);
 }
 
 function loadCartes() {
@@ -770,8 +787,11 @@ function doEffet(carte) {
     else if (impact < 40) {spell.impact = 'playerBoard';}
     else if (impact < 60) {spell.impact = 'opponent';}
     else if (impact < 80) {spell.impact = 'player';}
-    else {spell.impact = 'every';}
-    if (declencheur < 50) {spell.declencheur = 'Attack';}
+    else {spell.impact = 'any';}
+    if (declencheur < 20) {spell.declencheur = 'Attack';}
+    else if (declencheur < 40) {spell.declencheur = 'Defense';}
+    else if (declencheur < 60) {spell.declencheur = 'Activated';}
+    else if (declencheur < 80) {spell.declencheur = 'Played';}
     else {spell.declencheur = 'Die';}
     if (typeModif < 33) { // Attack
       malus(-1, 0, 0);
@@ -787,7 +807,7 @@ function doEffet(carte) {
         else {bonusTab = calculBonus(multiBonus, 'attack');}
         applyBonus(bonusTab, false);
       }
-      // bonus for every
+      // bonus for any
       else {
         if (spell.zone == 'Single') {bonusTab = calculBonus(singleBonus, 'attack');}
         else {bonusTab = calculBonus(multiBonus, 'attack');}
@@ -808,7 +828,7 @@ function doEffet(carte) {
         else {bonusTab = calculBonus(multiBonus, 'defence');}
         applyBonus(bonusTab, false);
       }
-      // bonus for every
+      // bonus for any
       else {
         if (spell.zone == 'Single') {bonusTab = calculBonus(singleBonus, 'defence');}
         else {bonusTab = calculBonus(multiBonus, 'defence');}
@@ -829,7 +849,7 @@ function doEffet(carte) {
         else {bonusTab = calculBonus(multiBonus, 'life');}
         applyBonus(bonusTab, false);
       }
-      // bonus for every
+      // bonus for any
       else {
         if (spell.zone == 'Single') {bonusTab = calculBonus(singleBonus, 'life');}
         else {bonusTab = calculBonus(multiBonus, 'life');}
@@ -849,7 +869,7 @@ function doEffet(carte) {
     else if (impact < 40) {spell.impact = 'playerBoard';}
     else if (impact < 60) {spell.impact = 'opponent';}
     else if (impact < 80) {spell.impact = 'player';}
-    else {spell.impact = 'every';}
+    else {spell.impact = 'any';}
     // choose bonus categories
     if (typeModif < 33) { // Attack
       // bonus for player
@@ -864,7 +884,7 @@ function doEffet(carte) {
         else {bonusTab = calculBonus(multiBonus, 'attack');}
         applyBonus(bonusTab, false);
       }
-      // bonus for every
+      // bonus for any
       else {
         if (spell.zone == 'Single') {bonusTab = calculBonus(singleBonus, 'attack');}
         else {bonusTab = calculBonus(multiBonus, 'attack');}
@@ -884,7 +904,7 @@ function doEffet(carte) {
         else {bonusTab = calculBonus(multiBonus, 'defence');}
         applyBonus(bonusTab, false);
       }
-      // bonus for every
+      // bonus for any
       else {
         if (spell.zone == 'Single') {bonusTab = calculBonus(singleBonus, 'defence');}
         else {bonusTab = calculBonus(multiBonus, 'defence');}
@@ -904,14 +924,16 @@ function doEffet(carte) {
         else {bonusTab = calculBonus(multiBonus, 'life');}
         applyBonus(bonusTab, false);
       }
-      // bonus for every
+      // bonus for any
       else {
         if (spell.zone == 'Single') {bonusTab = calculBonus(singleBonus, 'life');}
         else {bonusTab = calculBonus(multiBonus, 'life');}
         applyBonus(bonusTab, true);
       }
     }
+    // all spell are immediate and any
     spell.declencheur = 'Immediat';
+    spell.impact = 'any';
     carte.attaque = spell.modifAttack;
     carte.defense = spell.modifDefense;
     carte.vie = spell.modifVie;
@@ -1000,6 +1022,9 @@ function translateBoard(board) {
   }
   if (board == 'opponent') {
     return 'player';
+  }
+  if (board == 'playerPower') {
+    return 'opponentPower';
   }
   return '';
 }

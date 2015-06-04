@@ -147,7 +147,7 @@ sendB.onclick = function() {
 */
 // disable all buttons
 disableCommands(true);
-resetAllBoards();
+resetGameBoards();
 //-----------------------------------------------------------
 ////////////////////////////////USEFULL//////////////////////
 //-----------------------------------------------------------
@@ -283,7 +283,7 @@ function loadNewGame() {
   creator = false;
   createT.value = '';
   endTurnB.hide(true);
-  resetAllBoards();
+  resetGameBoards();
   // choose a new avatar
   playerSelector.setVisibility(true);
   // change info

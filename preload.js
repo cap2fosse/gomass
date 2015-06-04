@@ -13,9 +13,6 @@ var selectedCaseId = -1;
 var maxDeckCarte = 30;
 // max number of cartes
 var maxCartes = 80;
-// specials cartes
-var playerAvatar;
-var opponentAvatar;
 // END GLOBAL VAR
 // preload images
 var allPlayersImages = [];
@@ -24,6 +21,8 @@ var allSpellImages = [];
 var allEquipmentImages = [];
 var allImagesMini = [];
 var allManaImages = [];
+var allPlayerSpellImagesOn = [];
+var allPlayerSpellImagesOff = [];
 var whiteImage = new Image();
 var blackImage = new Image();
 function loadImages() {
@@ -33,6 +32,7 @@ function loadImages() {
   var maxImageMini = 8;
   var maxImagePlayer = 3;
   var maxImageMana = 2;
+  var maxImagePlayerSpell = 3;
   // InvocationImage images
   for (var i = 0; i < maxInvocationImage; i++) {
     var img = new Image();
@@ -68,6 +68,15 @@ function loadImages() {
     var eimg = new Image();
     eimg.src = 'images/mana'+i+'.png';
     allManaImages[i] = eimg;
+  }
+  // player spell images
+  for (var i = 0; i < maxImagePlayerSpell; i++) {
+    var eimgon = new Image();
+    eimgon.src = 'images/playerSpellOn'+i+'.png';
+    var eimgoff = new Image();
+    eimgoff.src = 'images/playerSpellOff'+i+'.png';
+    allPlayerSpellImagesOn[i] = eimgon;
+    allPlayerSpellImagesOff[i] = eimgoff;
   }
   // default images
   whiteImage.src = 'images/white.png';

@@ -2,13 +2,16 @@
 console.log('Start Board.js');
 // default empty carte (empty = -1)
 var emptyCarte = new Carte(-1, 'White');
+var emptyEffet = new Effet();
 var emptyMiniCarte = new Carte(-1, 'Mini', '', 0);
 var backCard = new Carte(-1, 'Black', '', 0, true);
+var invocusCard = new Carte(200, 'Normal', 'Invocation', 0, true, 2, 1, 0, 1, 'invocusSpell');
 // the current selected carte
 var selectedCarte = emptyCarte;
 // store all cartes send by server
 var allGameCartes = [];
 var allAvatarsCartes = [];
+var allPowerCartes = [];
 var selectedButton = 0; // id of the clicked button
 // create a new Board at posx, posy absolute position
 function Board(name, posx, posy, caseW, caseH) {
@@ -31,7 +34,7 @@ function Board(name, posx, posy, caseW, caseH) {
   /* create all cases and cartes
    * largeur : number of case on x
    * hauteur : number of case on y 
-   * type : type of case normal=0, small=1, all=2*/
+   * type : type of case normal=0, small=1, spell=2*/
   objBoard.create = function(largeur, hauteur, type) {
     this.nbCasesx = largeur;
     this.nbCasesy = hauteur;
@@ -45,6 +48,9 @@ function Board(name, posx, posy, caseW, caseH) {
         }
         else if (type == 1) {
           var caseInstance = new MiniCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
+        }
+        else if (type == 2) {
+          var caseInstance = new SpellCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
         }
         else {
           console.log('not a correct case type!');
@@ -303,7 +309,7 @@ function Case(casex, casey, id, boardName, width, height) {
     }
   };
   canvasCase.remove = function() {
-      this.carte.init();
+    this.carte.init();
   };
   canvasCase.draw = function() {
     // don't draw if no carte
@@ -312,7 +318,7 @@ function Case(casex, casey, id, boardName, width, height) {
       this.ctx.clearRect(0, 0, this.width, this.height);
       // and draw
       this.ctx.beginPath();
-      this.ctx.drawImage(this.carte.imagej, 4, 4);
+      this.ctx.drawImage(this.carte.image1, 4, 4);
       this.ctx.shadowOffsetX = 2;
       this.ctx.shadowOffsetY = 2;
       this.ctx.shadowBlur = 2;
@@ -417,7 +423,7 @@ function MiniCase(casex, casey, id, boardName, width, height) {
       if (this.carte.cout != '') {
         //this.clear();
         this.ctx.beginPath();
-        this.ctx.drawImage(this.carte.imagej, 0, 0);
+        this.ctx.drawImage(this.carte.image1, 0, 0);
         this.ctx.fillStyle = "rgb(255,255,0)";
         this.ctx.fillText(this.carte.cout, 5, 15);
         this.ctx.stroke();
@@ -433,7 +439,35 @@ function MiniCase(casex, casey, id, boardName, width, height) {
   };
   return miniCaz;
 }
-
+function SpellCase(casex, casey, id, boardName, width, height) {
+  var spellCaz = new Case(casex, casey, id, boardName, width, height);
+  spellCaz.carte = emptyCarte;
+  spellCaz.draw = function() {
+    var lineW = 4;
+    if (this.carte.visible) {
+      this.ctx.font = "12px serif";
+      this.ctx.shadowOffsetX = 1;
+      this.ctx.shadowOffsetY = 1;
+      this.ctx.shadowBlur = 2;
+      this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      this.ctx.beginPath();
+      this.ctx.fillStyle = "rgb(255,255,0)";
+      if (this.carte.active) {
+        this.ctx.drawImage(this.carte.image1, 0, 0);
+        this.ctx.fillText(this.carte.cout, 5, 30);
+      }
+      else {
+        this.ctx.drawImage(this.carte.image2, 0, 0);
+        this.ctx.fillText(this.carte.cout, 5, 30);
+      }
+      this.ctx.stroke();
+    }
+    else {
+      this.clear();
+    }
+  };
+  return spellCaz;
+}
 function Mana(id, posx, posy) {
   var aMana = document.createElement("div");
   aMana.id = id;

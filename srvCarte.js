@@ -6,7 +6,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
   else {this.imgid = Carte.prototype.imgid;}
-  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player') {this.type = type;}
+  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player' || type == 'PlayerSpell') {this.type = type;}
   else {this.type = Carte.prototype.type;}
   if (cout != undefined){this.cout = cout;}
   else {this.cout = Carte.prototype.cout;}
@@ -66,18 +66,32 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     }
   };
   this.setDescription = function() {
-    if (this.type == 'Invocation' || this.type == 'Player') {
-     if (this.effet.zone == 'Single') {this.description = 'Single';}
-     if (this.effet.zone == 'Multi') {this.description = 'Multi';}
-     if (this.effet.declencheur == 'Attack') {this.description += ' OnAttack';}
-     if (this.effet.declencheur == 'Die') {this.description += ' OnDie';}
-     if (this.effet.modifAttack != 0) {this.description += ' A:' + this.effet.modifAttack;}
-     if (this.effet.modifDefense != 0) {this.description += ' D:' + this.effet.modifDefense;}
-     if (this.effet.modifVie != 0) {this.description += ' V:' + this.effet.modifVie;}
+    if (this.type == 'Invocation') {
+      if (this.effet.zone == 'Single') {this.description = 'Single';}
+      if (this.effet.zone == 'Multi') {this.description = 'Multi';}
+      if (this.effet.impact == 'playerBoard') {this.description += ' PB';}
+      if (this.effet.impact == 'opponentBoard') {this.description += ' OB';}
+      if (this.effet.impact == 'player') {this.description += ' P';}
+      if (this.effet.impact == 'opponent') {this.description += ' O';}
+      if (this.effet.impact == 'any') {this.description += ' A';}
+      if (this.effet.declencheur == 'Attack') {this.description += ' OnAtk';}
+      if (this.effet.declencheur == 'Die') {this.description += ' OnDie';}
+      if (this.effet.declencheur == 'Defense') {this.description += ' OnDef';}
+      if (this.effet.declencheur == 'Activated') {this.description += ' OnAct';}
+      if (this.effet.declencheur == 'Played') {this.description += ' OnPlay';}
+      if (this.effet.modifAttack != 0) {this.description += ' A:' + this.effet.modifAttack;}
+      if (this.effet.modifDefense != 0) {this.description += ' D:' + this.effet.modifDefense;}
+      if (this.effet.modifVie != 0) {this.description += ' V:' + this.effet.modifVie;}
     }
     if (this.type == 'Spell') {
-     if (this.effet.zone == 'Single') {this.description = 'Single Immediate';}
-     if (this.effet.zone == 'Multi') {this.description = 'Multi Immediate';}
+      if (this.effet.zone == 'Single') {this.description = 'Single';}
+      if (this.effet.zone == 'Multi') {this.description = 'Multi';}
+      if (this.effet.impact == 'playerBoard') {this.description += ' PB';}
+      if (this.effet.impact == 'opponentBoard') {this.description += ' OB';}
+      if (this.effet.impact == 'player') {this.description += ' P';}
+      if (this.effet.impact == 'opponent') {this.description += ' O';}
+      if (this.effet.impact == 'any') {this.description += ' A';}
+      if (this.effet.declencheur == 'Immediat') {this.description += ' Imdt';}
     }      
   };
 }
@@ -106,9 +120,9 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
   if (zone == 'Single' || zone == 'Multi') {this.zone = zone;}
   else {this.zone = Effet.prototype.zone;}
   if (impact == 'opponentBoard' || impact == 'playerBoard' || 
-      impact == 'opponent' || impact == 'player' || impact == 'every') {this.impact = impact;}
+      impact == 'opponent' || impact == 'player' || impact == 'any') {this.impact = impact;}
   else {this.impact = Effet.prototype.impact;}
-  if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Die') {this.declencheur = declencheur;}
+  if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Defense' || declencheur == 'Played' || declencheur == 'Activated' || declencheur == 'Die') {this.declencheur = declencheur;}
   else {this.declencheur = Effet.prototype.declencheur;}
   if (attack != undefined) {this.modifAttack = attack;} // An integer to do attack buff
   else {this.modifAttack = Effet.prototype.modifAttack;} // if > 0 add attack else remove attack
@@ -142,8 +156,8 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
 Effet.prototype = {
   id : -1,
   zone : '', // 'Single' | 'Multi'
-  impact : '', // 'opponentBoard' | 'playerBoard' | 'every' | 'opponent' | 'player'
-  declencheur : '', // 'Immediat' | 'Attack' | 'Die'
+  impact : '', // 'opponentBoard' | 'playerBoard' | 'any' | 'opponent' | 'player'
+  declencheur : '', // 'Immediat' | 'Attack' | 'Die' | 'Defense' | Played | Activated
   modifAttack : 0, // An integer
   modifDefense : 0,
   modifVie : 0,

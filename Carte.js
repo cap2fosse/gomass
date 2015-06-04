@@ -6,7 +6,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
   else {this.imgid = Carte.prototype.imgid;}
-  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player') {this.type = type;}
+  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player' || type == 'PlayerSpell') {this.type = type;}
   else {this.type = Carte.prototype.type;}
   if (cout != undefined){this.cout = cout;}
   else {this.cout = Carte.prototype.cout;}
@@ -32,31 +32,46 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.effet = new Effet();}
   if (etat != undefined){this.etat = etat;}
   else {this.etat = new Etat();}
-  if (typeImg == 'Normal' || typeImg == 'Mini' || typeImg == 'Black' || typeImg == 'White') { // Normal | Mini | Black
+  if (typeImg == 'Normal' || typeImg == 'Mini' ||
+      typeImg == 'Black' || typeImg == 'White') {
     this.typeimg = typeImg;
     if (typeImg == 'Normal') {
       if (this.type == 'Invocation') {
-        this.imagej = allInvocationImages[this.imgid];
+        this.image1 = allInvocationImages[this.imgid];
+        this.image2 = allInvocationImages[this.imgid];
       }
       else if (this.type == 'Spell') {
-        this.imagej = allSpellImages[this.imgid];
+        this.image1 = allSpellImages[this.imgid];
+        this.image2 = allSpellImages[this.imgid];
       }
       else if (this.type == 'Equipment') {
-        this.imagej = allEquipmentImages[this.imgid];
+        this.image1 = allEquipmentImages[this.imgid];
+        this.image2 = allEquipmentImages[this.imgid];
       }
       else if (this.type == 'Player') {
-        this.imagej = allPlayersImages[imgid];
+        this.image1 = allPlayersImages[this.imgid];
+        this.image2 = allPlayersImages[this.imgid];
       }
-      else {this.imagej = Carte.prototype.imagej}
+      else if (this.type == 'PlayerSpell') {
+        this.image1 = allPlayerSpellImagesOn[this.imgid];
+        this.image2 = allPlayerSpellImagesOff[this.imgid];
+      }
+      else {
+        this.image1 = Carte.prototype.image1;
+        this.image2 = Carte.prototype.image2;
+      }
     }
     else if (typeImg == 'Mini') {
-      this.imagej = allImagesMini[imgid];
+      this.image1 = allImagesMini[this.imgid];
+      this.image2 = allImagesMini[this.imgid];
     }
     else if (typeImg == 'Black') {
-      this.imagej = blackImage;
+      this.image1 = blackImage;
+      this.image2 = blackImage;
     }
     else if (typeImg == 'White') {
-      this.imagej = whiteImage;
+      this.image1 = whiteImage;
+      this.image2 = whiteImage;
     }
   }
   else {this.typeimg = Carte.prototype.typeimg;}
@@ -74,7 +89,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     return "Carte : " + "id : " + this.id + " - " + "cout : " + this.cout + " - " + "attaque: " + this.attaque
             + " - " + "defense: " + this.defense + " - " + "titre: " + this.titre + " - " + "description: " + this.description
             + " - " + "visible: " + this.visible  + " - " + "active: " + this.active  + " - " + "typeimg: " + this.typeimg
-            + " - " + "type : " + this.type + " - " + "image : " + this.imagej.src + '|| ' + this.effet.toString() + '|| ' + this.etat.toString();
+            + " - " + "type : " + this.type + " - " + "image : " + this.image1.src + '|| ' + this.effet.toString() + '|| ' + this.etat.toString();
   };
   this.equal = function(other) {
     if (this.id == other.id && this.imgid == other.imgid && this.typeimg == other.typeimg && this.type == other.type) return true;
@@ -83,10 +98,11 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   this.init = function() {
     this.id = -1;
     this.visible = false;
-    this.imagej = whiteImage;
+    this.image1 = whiteImage;
+    this.image2 = whiteImage;
     this.imgid = 0;
     this.typeimg = 'Normal'; // Normal | Mini
-    this.type = ''; // 'Invocation' | 'Spell' | 'Equipment' | 'Player'
+    this.type = ''; // 'Invocation' | 'Spell' | 'Equipment' | 'Player' | PlayerSpell
     this.cout = 0;
     this.attaque = 0;
     this.defense = 0;
@@ -104,34 +120,54 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     if (on && this.etat.maxfury > 0) {
       this.etat.fury = this.etat.maxfury;
     }
+    if (on && this.effet.declencheur == 'Activated') {
+      this.applyEffect(this.effet);
+    }
   };
   this.toMini = function() {
     this.typeimg = 'Mini';
-    this.imagej = allImagesMini[this.imgid];
+    this.image1 = allImagesMini[this.imgid];
+    this.image2 = allImagesMini[this.imgid];
   };
   this.applyEffect = function(effect) {
     this.attaque += effect.modifAttack;
     if (this.attaque < 0) {this.attaque = 0;}
     this.defense += effect.modifDefense;
     if (this.defense < 0) {this.defense = 0;}
-    this.vie += effect.modifVie;
-    if (this.vie < 0) {this.vie = 0;}
+    if (effect.modifVie < 0) {
+      var defense = this.defense + effect.modifVie;
+      var life = this.vie + defense;
+      if (defense > 0) {this.defense = defense;}
+      else {this.defense = 0;}
+      if (life > 0) {this.vie = life;}
+      else {this.vie = 0;}
+    }
+    else {
+      this.vie += effect.modifVie;
+    }
   };
   this.toNormal = function() {
     this.typeimg = 'Normal';
     if (this.type == 'Invocation') {
-      this.imagej = allInvocationImages[this.imgid];
+      this.image1 = allInvocationImages[this.imgid];
+      this.image2 = allInvocationImages[this.imgid];
     }
     else if (this.type == 'Spell') {
-      this.imagej = allSpellImages[this.imgid];
+      this.image1 = allSpellImages[this.imgid];
+      this.image2 = allSpellImages[this.imgid];
     }
     else if (this.type == 'Equipment') {
-      this.imagej = allEquipmentImages[this.imgid];
+      this.image1 = allEquipmentImages[this.imgid];
+      this.image2 = allEquipmentImages[this.imgid];
     }
     else if (this.type == 'Player') {
-      this.imagej = allPlayersImages[imgid];
+      this.image1 = allPlayersImages[imgid];
+      this.image2 = allPlayersImages[imgid];
     }
-    else {this.imagej = Carte.prototype.imagej}
+    else {
+      this.image1 = Carte.prototype.image1;
+      this.image2 = Carte.prototype.image2;
+    }
   };
   this.isNull = function() {
     if (this.id == -1 && !visible) {return true;}
@@ -141,16 +177,30 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     if (this.type == 'Invocation') {
       if (this.effet.zone == 'Single') {this.description = 'Single';}
       if (this.effet.zone == 'Multi') {this.description = 'Multi';}
-      if (this.effet.declencheur == 'Attack') {this.description += ' OnAttack';}
+      if (this.effet.impact == 'playerBoard') {this.description += ' PB';}
+      if (this.effet.impact == 'opponentBoard') {this.description += ' OB';}
+      if (this.effet.impact == 'player') {this.description += ' P';}
+      if (this.effet.impact == 'opponent') {this.description += ' O';}
+      if (this.effet.impact == 'any') {this.description += ' E';}
+      if (this.effet.declencheur == 'Attack') {this.description += ' OnAtk';}
       if (this.effet.declencheur == 'Die') {this.description += ' OnDie';}
+      if (this.effet.declencheur == 'Defense') {this.description += ' OnDef';}
+      if (this.effet.declencheur == 'Activated') {this.description += ' OnAct';}
+      if (this.effet.declencheur == 'Played') {this.description += ' OnPlay';}
       if (this.effet.modifAttack != 0) {this.description += ' A:' + this.effet.modifAttack;}
       if (this.effet.modifDefense != 0) {this.description += ' D:' + this.effet.modifDefense;}
       if (this.effet.modifVie != 0) {this.description += ' V:' + this.effet.modifVie;}
     }
     if (this.type == 'Spell') {
-     if (this.effet.zone == 'Single') {this.description = 'Single';}
-     if (this.effet.zone == 'Multi') {this.description = 'Multi';}
-    }      
+      if (this.effet.zone == 'Single') {this.description = 'Single';}
+      if (this.effet.zone == 'Multi') {this.description = 'Multi';}
+      if (this.effet.impact == 'playerBoard') {this.description += ' PB';}
+      if (this.effet.impact == 'opponentBoard') {this.description += ' OB';}
+      if (this.effet.impact == 'player') {this.description += ' P';}
+      if (this.effet.impact == 'opponent') {this.description += ' O';}
+      if (this.effet.impact == 'any') {this.description += ' A';}
+      if (this.effet.declencheur == 'Immediat') {this.description += ' Imdt';}
+    }
   };
   this.isPlayable = function() {
     if (this.cout > 0) {
@@ -161,7 +211,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
 }
 Carte.prototype = {
   id : -1,
-  imagej : whiteImage,
+  image1 : whiteImage,
+  image2 : whiteImage,
   imgid : 0,
   type : '',
   typeimg : 'Normal',
@@ -226,8 +277,8 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
   if (zone == 'Single' || zone == 'Multi') {this.zone = zone;}
   else {this.zone = Effet.prototype.zone;}
   if (impact == 'opponentBoard' || impact == 'playerBoard' || 
-      impact == 'opponent' || impact == 'player' || impact == 'every') {this.impact = impact;}
-  if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Die') {this.declencheur = declencheur;}
+      impact == 'opponent' || impact == 'player' || impact == 'any') {this.impact = impact;}
+  if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Defense' || declencheur == 'Played' || declencheur == 'Activated' || declencheur == 'Die') {this.declencheur = declencheur;}
   else {this.declencheur = Effet.prototype.declencheur;}
   if (attack != undefined) {this.modifAttack = attack;} // An integer
   else {this.modifAttack = Effet.prototype.modifAttack;}  // if > 0 add attack else remove attack
@@ -271,8 +322,8 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
 Effet.prototype = {
   id : -1,
   zone : '', // 'Single' | 'Multi'
-  impact : '', // 'opponentBoard' | 'playerBoard' | 'every' | 'opponent' | 'player'
-  declencheur : '', // 'Immediat' | 'Attack' | 'Die'
+  impact : '', // 'opponentBoard' | 'playerBoard' | 'any' | 'opponent' | 'player'
+  declencheur : '', // 'Immediat' | 'Attack' | 'Die' | 'Defense' | 'Activated' | Played
   modifAttack : 0, // An integer
   modifDefense : 0,
   modifVie : 0,
