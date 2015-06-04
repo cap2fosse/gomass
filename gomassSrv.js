@@ -116,9 +116,9 @@ io.on('connection', function (socket) {
     // get id of player
     var idP = playerExist(message.player);
     if (idP != -1) {
-      // store the deck
+      // store the player image
       allPlayers[idP].imgid = message.id;
-      console.log('imgid : '+message.id);
+      console.log('imgid : ' + message.id);
       socket.emit('avatarok', {
         accepted: true,
         player: message.player,
@@ -399,20 +399,20 @@ io.on('connection', function (socket) {
       var clientBoard = data.board;
       var Transboard = translateBoard(clientBoard);
       var caseId = data.caseid;
-      var newDef = data.defense;
+      var cltCard = data.carte;
       // to the emitter
       socket.emit('changeok', {
         message: "Carte changed on board : ",
         caseid: caseId,
         board: clientBoard,
-        defense: newDef
+        carte: cltCard
       });
       // send to all in the room except requester
       socket.broadcast.to(gameName).emit('changecarte', {
         message: "New carte change on board : ",
         caseid: caseId,
         board: Transboard,
-        defense: newDef
+        carte: cltCard
       });
     }
   });
@@ -559,9 +559,9 @@ function rmToArray(myArray, elt) {
 }
 
 function loadPlayer() {
-    var invocus = new Carte(0, 0, '2', '1', '1', '', 'invocus', true, false, 2);
-    var spellus = new Carte(1, 1, '2', '1', '', '', 'spellus', true, false, 2);
-    var healus = new Carte(2, 2, '2', '', '1', '', 'healus', true, false, 2);
+    var invocus = new Carte(0, 'Normal', 'Player', 0, true, '2', '1', '1', '', 'invocus');
+    var spellus = new Carte(1, 'Normal', 'Player', 1, true, '2', '1', '', '', 'spellus');
+    var healus = new Carte(2, 'Normal', 'Player', 2, true, '2', '', '1', '', 'healus');
     allAvatars = [invocus, spellus, healus];
     console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus);
 }
@@ -570,34 +570,57 @@ function loadCartes() {
   var c;
   for (var id = 0; id < maxCartes; id++) {
     if (id >= 0 && id < 10) {
-      c = new Carte(id, 1, "1", "1", "1", "soldat", "soldat"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 0, true, "1", "1", "1", "soldat", "soldat"+id);
     }
     if (id >= 10 && id < 20) {
-      c = new Carte(id, 2, "2", "2", "2", "sergent", "sergent"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 1, true, "2", "2", "2", "sergent", "sergent"+id);
     }
     if (id >= 20 && id < 30) {
-      c = new Carte(id, 3, "3", "3", "3", "adjudant", "adjudant"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 2, true,"3", "3", "3", "adjudant", "adjudant"+id);
     }
     if (id >= 30 && id < 40) {
-      c = new Carte(id, 4, "4", "4", "4", "lieutenant", "lieutenant"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 3, true, "4", "4", "4", "lieutenant", "lieutenant"+id);
     }
     if (id >= 40 && id < 50) {
-      c = new Carte(id, 5, "5", "5", "5", "capitaine", "capitaine"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 4, true, "5", "5", "5", "capitaine", "capitaine"+id);
     }
     if (id >= 50 && id < 60) {
-      c = new Carte(id, 6, "6", "6", "6", "commandant", "commandant"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 5, true, "6", "6", "6", "commandant", "commandant"+id);
     }
     if (id >= 60 && id < 70) {
-      c = new Carte(id, 7, "7", "7", "7", "colonel", "colonel"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 6, true, "7", "7", "7", "colonel", "colonel"+id);
     }
     if (id >= 70 && id < 80) {
-      c = new Carte(id, 8, "8", "8", "8", "général", "général"+id, true, false, 0);
+      c = new Carte(id, 'Normal', 'Invocation', 7, true, "8", "8", "8", "général", "général"+id);
     }
+    doEtat(c);
     allCartes.push(c);
     console.log('push a new carte : '+ c);
   }
 }
-
+function doEtat(carte) {
+  var hasard = Math.floor(Math.random() * 100) + 1;
+  if (hasard < 10) {
+    carte.special = 'Provocate';
+    carte.etat.provocator = true;
+  }
+  if (hasard >= 10 && hasard < 20) {
+    carte.special = 'Furie';
+    carte.etat.furie = true;
+  }
+  if (hasard >= 20 && hasard < 30) {
+    carte.special = 'Divin';
+    carte.etat.divin = true;
+  }
+  if (hasard >= 30 && hasard < 40) {
+    carte.special = 'Hide';
+    carte.etat.hide = true;
+  }
+  if (hasard >= 40 && hasard < 50) {
+    carte.special = 'Charge';
+    carte.etat.charge = true;
+  }
+}
 function translateBoard(board) {
   if (board == 'playerBoard') {
     return 'opponentBoard';
@@ -621,13 +644,13 @@ function translateBoard(board) {
 }
 
 function randomDeck(deck) {
-  for (var position=deck.length-1; position>=1; position--){
+  for (var position = deck.length-1; position >= 1; position--){
     //hasard reçoit un nombre entier aléatoire entre 0 et position
-    var hasard=Math.floor(Math.random()*(position+1));
+    var hasard = Math.floor(Math.random() * (position + 1));
     //Echange
-    var sauve=deck[position];
-    deck[position]=deck[hasard];
-    deck[hasard]=sauve;
+    var sauve = deck[position];
+    deck[position] = deck[hasard];
+    deck[hasard] = sauve;
   }
   return deck;
 }

@@ -89,7 +89,8 @@ finishDeckB.onclick = function() {
   if (!playerDeck.isComplete()) {
     playerDeck.fill();
   }
-  var myDeck = playerDeck.getAll();
+  // get all and change type img
+  var myDeck = playerDeck.changeImgType('Normal');
   console.log(myDeck);
   // send deck to server
   socket.emit('deck', {

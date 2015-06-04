@@ -9,8 +9,8 @@ socket.on('login', function(message) {
     // fill array of carte and avatar
     var srvAllGameCartes = message.cartes;
     var srvAllAvatarsCartes = message.avatar;
-    createArrayCarte(srvAllGameCartes, allGameCartes, 0);
-    createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes, 2);
+    createArrayCarte(srvAllGameCartes, allGameCartes);
+    createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes);
     //show all avatars
     playerSelector.fill();
   }
@@ -111,9 +111,11 @@ socket.on('startgame', function(message) {
     srvCardPl = allAvatarsCartes[message.imgid2];
   }
   // add avatar to the board
-  opponentAvatar = new Carte(srvCardOp.id, srvCardOp.imgid, '2', '', '30', opponentName, srvCardOp.description, srvCardOp.visible, srvCardOp.active, srvCardOp.type);
+  opponentAvatar = new Carte(srvCardOp.id, srvCardOp.typeimg, srvCardOp.type, srvCardOp.imgid, 
+  srvCardOp.visible, '2', '', '30', opponentName, srvCardOp.description);
   opponent.add(0, opponentAvatar);
-  playerAvatar = new Carte(srvCardPl.id, srvCardPl.imgid, '2', '', '30', playerName, srvCardPl.description, srvCardPl.visible, srvCardPl.active, srvCardPl.type);
+  playerAvatar = new Carte(srvCardPl.id, srvCardPl.typeimg, srvCardOp.type, srvCardPl.imgid, 
+  srvCardPl.visible, '2', '', '30', playerName, srvCardPl.description);
   player.add(0, playerAvatar);
   endTurnB.style.visibility = "visible";
   // who play in first ?
@@ -131,7 +133,9 @@ socket.on('startgame', function(message) {
   // get my hand
   for (var i = 0; i < message.hand.length; i++) {
     var srvCard = message.hand[i];
-    var pcarte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 0);
+    var pcarte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible, 
+    srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
+    srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
     playerHand.add(i, pcarte);
     // set hiding opponent hand
     opponentHand.addClone(i, backCard);
@@ -155,9 +159,12 @@ socket.on('newcarteok', function(data) {
   console.log('Received newcarteok : ' + data.message);
 })
 socket.on('insertcarte', function(data) {
+  console.log('Received insertcarte : ' + data.message + data.dstboard + ' on case : ' + data.caseId);
   if (data.srcboard == 'opponent' && data.dstboard == 'opponentBoard') {
     var srvCard = data.carte;
-    var newCarte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
+    var newCarte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
+    srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
+    srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
     opponentBoard.add(data.caseId, newCarte);
   }
 })
@@ -177,10 +184,13 @@ socket.on('changeok', function(data) {
 socket.on('changecarte', function(data) {
   var theBoard = data.board;
   var caseId = data.caseid;
-  var newdef = data.defense;
+  var srvCard = data.carte;
   console.log('Received changecarte : ' + data.message + data.board + ' on case : ' + data.caseid);
+  var carte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
+  srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
+  srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
   var remBoard = getBoard(theBoard);
-  remBoard.getCase(caseId).carte.defense = newdef;
+  remBoard.getCase(caseId).carte = carte;
   remBoard.getCase(caseId).draw();
 })
 
@@ -201,7 +211,9 @@ socket.on('newturn', function(message) {
   manaBoard.set(message.mana);
   // get new carte 
   var srvCard = message.carte[0];
-  var carte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 0);
+  var carte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
+  srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
+  srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
   playerHand.addLast(carte);
   // activate carte from playerBord
   playerBoard.activateAll();
@@ -224,10 +236,12 @@ socket.on('endgameok', function(message) {
 })
 //END GAME
 
-function createArrayCarte(srvCarteArray, cltCarteArray, type) {
+function createArrayCarte(srvCarteArray, cltCarteArray) {
   for (var i = 0; i < srvCarteArray.length; i++) {
     var srvCard = srvCarteArray[i];
-    var cltCard = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, type);
+    var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
+    srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.active, 
+    srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
     cltCarteArray.push(cltCard);
   }
 }

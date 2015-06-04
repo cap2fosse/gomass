@@ -1,12 +1,9 @@
 "use strict";
 console.log('Start Board.js');
-// default empty carte (empty = carte 0)
-var emptyCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 0);
-var emptyMiniCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 1);
-var emptyAvatar = new Carte(-1, 0, '', '', '', '', '', false, false, 2);
-var backCard = new Carte(100, 9, '', '', '', 'back', '', true, false, 0);
-//var invocusCard = new Carte(200, 0, '2', '1', '1', 'invocus', '', true, false, 2);
-var spellusEffect = new Effet(200, 'Single', 'Tous', 'Immediat', 1, 0, 'basic Spellus attack');
+// default empty carte (empty = -1)
+var emptyCarte = new Carte(-1, 'White');
+var emptyMiniCarte = new Carte(-1, 'White');
+var backCard = new Carte(-1, 'Black', '', 0, true);
 // the current selected carte
 var selectedCarte = emptyCarte;
 // store all cartes send by server
@@ -72,11 +69,13 @@ function Board(name, posx, posy, caseW, caseH) {
   
   // get a random carte not selected and visible from board
   objBoard.getRandom = function() {
-    while (true) {
+    var tryTime = 0;
+    while (tryTime < 1000) {
       var rand = Math.floor(Math.random() * this.cases.length);
       if (this.cases[rand].carte.visible && !this.cases[rand].carte.selected) {
         return this.cases[rand].carte;
       }
+      tryTime++;
     }
   };
   // get a carte from board 
@@ -89,13 +88,13 @@ function Board(name, posx, posy, caseW, caseH) {
   };
   // get a carte from board 
   objBoard.get = function(caseid) {
-    if (caseid >= 0) {
+    if (caseid >= 0 && caseid < this.cases.length) {
       return this.cases[caseid].carte;
     }
   };
   // get a Case from board 
   objBoard.getCase = function(caseid) {
-    if (caseid >= 0) {
+    if (caseid >= 0 && caseid < this.cases.length) {
       return this.cases[caseid];
     }
   };
@@ -107,9 +106,23 @@ function Board(name, posx, posy, caseW, caseH) {
     }
     return carteArray;
   };
+  // change typeimg on all carte from board 'Normal' | 'Mini'
+  objBoard.changeImgType = function(typeimg) {
+    var originalArray = this.getAll();
+    if (typeimg == 'Normal' || typeimg == 'Mini') {
+      var tmpCarte;
+      var finalArray = [];
+      for (var caseid = 0; caseid < originalArray.length; caseid++) {
+        tmpCarte = this.get(caseid);
+        tmpCarte.typeimg = typeimg;
+        finalArray.push(tmpCarte);
+      }
+    }
+    return finalArray;
+  };
   // add a carte to board at position caseid 
   objBoard.add = function(caseid, myCarte) {
-    if (caseid >= 0) {
+    if (caseid >= 0 && caseid < this.cases.length) {
       if (this.cases[caseid].add(myCarte)) {
         this.cases[caseid].draw();
       }
@@ -117,7 +130,7 @@ function Board(name, posx, posy, caseW, caseH) {
   };
   // add a carte to board at position caseid 
   objBoard.addClone = function(caseid, myCarte) {
-    if (caseid >= 0) {
+    if (caseid >= 0 && caseid < this.cases.length) {
       if (this.cases[caseid].add(myCarte.clone())) {
         this.cases[caseid].draw();
       }
@@ -139,11 +152,12 @@ function Board(name, posx, posy, caseW, caseH) {
   objBoard.activateAll = function() {
     for (var caseid = 0; caseid < this.cases.length; caseid++) {
       if (this.cases[caseid].carte.visible) {
-        this.cases[caseid].activate(true);
+        this.cases[caseid].carte.active = true;
       }
       else {
-        this.cases[caseid].activate(false);
+        this.cases[caseid].carte.active = false;
       }
+      this.cases[caseid].draw();
     }
   };
   // check if deck is complete
@@ -239,7 +253,7 @@ function Case(casex, casey, id, boardName, width, height) {
   canvasCase.style.position = "absolute";
   canvasCase.style.left = casex * width;
   canvasCase.style.top = casey * height;
-  canvasCase.style.border = "1px solid grey";
+  //canvasCase.style.border = "1px solid grey";
   canvasCase.style.visibility = "hidden";
   // overwrite canvas on click method
   canvasCase.onclick = function() {
@@ -264,47 +278,86 @@ function Case(casex, casey, id, boardName, width, height) {
       this.carte.init();
   };
   canvasCase.draw = function() {
-    var carreCote = 15;
     // don't draw if no carte
     if (this.carte.visible) {
       // clear all first
       this.ctx.clearRect(0, 0, this.width, this.height);
       // and draw
       this.ctx.beginPath();
-      this.ctx.drawImage(this.carte.imagej, 0, 0);
+      this.ctx.drawImage(this.carte.imagej, 4, 4);
+      this.ctx.shadowOffsetX = 2;
+      this.ctx.shadowOffsetY = 2;
+      this.ctx.shadowBlur = 2;
+      this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
       if (this.carte.cout != '') {
-        this.ctx.fillText(this.carte.cout, 2, carreCote-3);
-        this.ctx.rect(0, 0, carreCote, carreCote);//haut gauche
+        this.ctx.font = "16px serif";
+        this.ctx.fillStyle = "rgb(255,255,0)";
+        this.ctx.fillText(this.carte.cout, 8, 20);
       }
       if (this.carte.titre != '') {
-        this.ctx.fillText(this.carte.titre, carreCote+2, carreCote-3);
+        this.ctx.font = "14px serif";
+        this.ctx.fillStyle = "rgb(77,77,77)";
+        this.ctx.fillText(this.carte.titre, 20, 20);
       }
       if (this.carte.defense != '') {
-        this.ctx.fillText(this.carte.defense, this.width-carreCote+2, this.height-3);
-        this.ctx.rect(this.width-carreCote, this.height-carreCote, carreCote, carreCote);//bas droite
+        this.ctx.font = "16px serif";
+        this.ctx.fillStyle = "rgb(255,51,51)";
+        this.ctx.fillText(this.carte.defense, this.width-20, this.height-8);
       }
       if (this.carte.attaque != '') {
-        this.ctx.fillText(this.carte.attaque, 2, this.height-3);
-        this.ctx.rect(0, this.height-carreCote, carreCote, carreCote);// bas gauche
+        this.ctx.font = "16px serif";
+        this.ctx.fillStyle = "rgb(128,255,0)";
+        this.ctx.fillText(this.carte.attaque, 8, this.height-8);
       }
       if (this.carte.description != '') {
-        this.ctx.fillText(this.carte.description, carreCote/2, this.height-(carreCote+10));
+        this.ctx.font = "12px serif";
+        this.ctx.fillStyle = "rgb(77,77,77)";
+        this.ctx.fillText(this.carte.description, 12, this.height-30);
       }
-      //this.ctx.drawImage(this.carte.imagej, carreCote+2, carreCote+2, this.width-2*(carreCote+2), this.height-3*(carreCote+2));
+      if (this.carte.special != '') {
+        this.ctx.font = "12px serif";
+        this.ctx.fillStyle = "rgb(77,77,77)";
+        this.ctx.fillText(this.carte.special, 20, this.height-8);
+      }
+      this.fillBorder();
       this.ctx.stroke();
     }
     else {
       this.clear();
     }
   };
-  canvasCase.activate = function(on) {
-    if (on) {
-      this.style.border = "1px solid green";
+  canvasCase.fillBorder = function() {
+    var lineW = 4;
+    if (this.carte.active) {
+      this.ctx.strokeStyle = "rgb(45,255,45)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
     }
-    else {
-      this.style.border = "1px solid grey";
+    else if (this.carte.etat.provocator) {
+      this.ctx.strokeStyle = "rgb(44,35,218)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
     }
-    this.carte.active = on;
+    else if (this.carte.etat.charge) {
+      this.ctx.strokeStyle = "rgb(210,35,210)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+    }
+    else if (this.carte.etat.furie) {
+      this.ctx.strokeStyle = "rgb(207,27,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+    }
+    else if (this.carte.etat.divin) {
+      this.ctx.strokeStyle = "rgb(205,205,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+    }
+    else if (this.carte.etat.hide) {
+      this.ctx.strokeStyle = "rgb(20,33,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+    }
   };
   canvasCase.setVisibility = function(visible) {
     if (visible) {
@@ -327,11 +380,22 @@ function MiniCase(casex, casey, id, boardName, width, height) {
   miniCaz.carte = emptyMiniCarte;
   miniCaz.draw = function() {
     if (this.carte.visible) {
+      this.ctx.font = "12px serif";
+      this.ctx.shadowOffsetX = 1;
+      this.ctx.shadowOffsetY = 1;
+      this.ctx.shadowBlur = 2;
+      this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
       if (this.carte.cout != '') {
+        //this.clear();
         this.ctx.beginPath();
-        this.ctx.fillText(this.carte.cout, 0, 10);
-        this.ctx.drawImage(this.carte.imagej, 10, 0, 100, 20);
+        this.ctx.drawImage(this.carte.imagej, 0, 0);
+        this.ctx.fillStyle = "rgb(255,255,0)";
+        this.ctx.fillText(this.carte.cout, 5, 15);
         this.ctx.stroke();
+      }
+      if (this.carte.titre != '') {
+        this.ctx.fillStyle = "rgb(77,77,77)";
+        this.ctx.fillText(this.carte.titre, 15, 15);
       }
     }
     else {

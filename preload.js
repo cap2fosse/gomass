@@ -19,24 +19,42 @@ var opponentAvatar;
 // END GLOBAL VAR
 // preload images
 var allPlayersImages = [];
-var allImages = [];
+var allInvocationImages = [];
+var allSpellImages = [];
+var allEquipmentImages = [];
 var allImagesMini = [];
 var allManaImages = [];
+var whiteImage = new Image();
+var blackImage = new Image();
 function loadImages() {
-  var maxImage = 10;
-  var maxImageMini = 10;
+  var maxInvocationImage = 8;
+  var maxSpellImage = 8;
+  var maxEquipmentImage = 8;
+  var maxImageMini = 8;
   var maxImagePlayer = 3;
   var maxImageMana = 2;
-  // normal images
-  for (var i = 0; i < maxImage; i++) {
+  // InvocationImage images
+  for (var i = 0; i < maxInvocationImage; i++) {
     var img = new Image();
-    img.src = 'images/carte'+i+'.png';
-    allImages[i] = img;
+    img.src = 'images/invocation'+i+'.png';
+    allInvocationImages[i] = img;
+  }
+  // SpellImages images
+  for (var i = 0; i < maxSpellImage; i++) {
+    var img = new Image();
+    img.src = 'images/spell'+i+'.png';
+    allSpellImages[i] = img;
+  }
+  // EquipmentImages images
+  for (var i = 0; i < maxEquipmentImage; i++) {
+    var img = new Image();
+    img.src = 'images/equipment'+i+'.png';
+    allEquipmentImages[i] = img;
   }
   // small images
   for (var i = 0; i < maxImageMini; i++) {
     var img = new Image();
-    img.src = 'images/miniCarte'+i+'.png';
+    img.src = 'images/mini'+i+'.png';
     allImagesMini[i] = img;
   }
   // players images
@@ -51,6 +69,9 @@ function loadImages() {
     eimg.src = 'images/mana'+i+'.png';
     allManaImages[i] = eimg;
   }
+  // default images
+  whiteImage.src = 'images/white.png';
+  blackImage.src = 'images/black.png';
 }
 loadImages();
 console.log('Finish preload.js');
