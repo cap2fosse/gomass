@@ -19,6 +19,7 @@ function Plateau(name, posx, posy) {
     id = 0;
     for (x = 0; x < largeur; x++) {
       for (y = 0; y < hauteur; y++) {
+      // why var?
         var caseInstance = new Case(x, y, posx, posy, id);
         this.cases[id] = caseInstance;
         document.body.appendChild(caseInstance);
@@ -96,31 +97,33 @@ function Case(casex, casey, posx, posy, id) {
   canvasCase.style.border = "1px solid grey";
   // overwrite canvas on click method
   canvasCase.onclick = function() {
-    if (this.carte.visible) {
-      carteToPush = this.carte.clone();
-      mouvementCarte.push(carteToPush);
-      this.carte.remove();
-      this.draw();
-      console.log("Let's move ! " + "\n" + "Array length : " + mouvementCarte.length + "\n" + "case.id : " + this.id + "\n" + "carte.id : " + this.carte.id);
-    }
-    else if (!this.carte.visible && mouvementCarte.length > 0) {
-      dstid = this.id; // id du canvas sur lequel on depose la carte
-      this.carte = mouvementCarte.pop(); // on recupere la carte src
-      srcid = this.carte.id; // id du canvas source
-      this.carte.changeId(dstid);
-      this.draw();
-      if (mouvementCarte.length == 0 && gameName != '') {
-        movement = srcid + ',' + dstid;
-        // emit to everyone
-        socket.emit('move', {
-          room: gameName,
-          message: movement
-        });
-        console.log('Send move :' + movement);
+    if (myTurn) {
+      if (this.carte.visible) {
+        carteToPush = this.carte.clone();
+        mouvementCarte.push(carteToPush);
+        this.carte.remove();
+        this.draw();
+        console.log("Let's move ! " + "\n" + "Array length : " + mouvementCarte.length + "\n" + "case.id : " + this.id + "\n" + "carte.id : " + this.carte.id);
       }
-    }
-    else {
-      console.log("Impossible to move ! " + "\n" + "Array length : " + mouvementCarte.length + "\n" + "case.id : " + this.id + "\n" + "carte.id : " + this.carte.id);
+      else if (!this.carte.visible && mouvementCarte.length > 0) {
+        dstid = this.id; // id du canvas sur lequel on depose la carte
+        this.carte = mouvementCarte.pop(); // on recupere la carte src
+        srcid = this.carte.id; // id du canvas source
+        this.carte.changeId(dstid);
+        this.draw();
+        if (mouvementCarte.length == 0 && gameName != '') {
+          movement = srcid + ',' + dstid;
+          // emit to everyone
+          socket.emit('move', {
+            room: gameName,
+            message: movement
+          });
+          console.log('Send move :' + movement);
+        }
+      }
+      else {
+        console.log("Impossible to move ! " + "\n" + "Array length : " + mouvementCarte.length + "\n" + "case.id : " + this.id + "\n" + "carte.id : " + this.carte.id);
+      }
     }
   };
   canvasCase.clear = function() {

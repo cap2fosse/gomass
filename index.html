@@ -15,65 +15,97 @@
 //-----------------------------------------------------------
 var rootUrl = 'http://localhost:3000';
 var gameName = 'DEFAULT';
+var playerName = 'DEFAULT';
+var myTurn = false;
 var pile;var mainBoard;
 //-----------------------------------------------------------
 // BEGIN UI
 // Up area
-var userNameT = new gomassButton(820, 10, "text", "pseudo");
+var userNameT = new gomassButton(820, 10, "text", '');
 var userNameB = new gomassButton(980, 10, "button", "connect");
 userNameB.onclick = function() {
   if (userNameT.value != '') {
-    socket.emit('add user', userNameT.value);
+    // init playerName
+    playerName = userNameT.value;
+    socket.emit('adduser', {
+      name: playerName,
+    });
     userNameB.disabled = true;
     userNameT.disabled = true;
   }
 }
-var createT = new gomassButton(820, 50, "text", "game");
+var createT = new gomassButton(820, 50, "text", '');
 var createB = new gomassButton(980, 50, "button", ".create.");
-createB.onclick = function() {
-  socket.emit('newGame', createT.value);
-  console.log('create game : ' + createT.value);
+createB.onclick = function(game) {
+  if (createT.value != '') {
+    // init gameName
+    gameName = createT.value;
+    disableButton(true);
+    socket.emit('newgame', {
+      name: gameName,
+    });
+    console.log('create game : ' + createT.value);
+  }
 }
 var gomassListGame = new gomassCombo(820, 90, "gameList");
 //var joinT = new gomassButton(820, 90, "text", "game");
 var joinB = new gomassButton(980, 90, "button", ".join.");
-joinB.onclick = function() {
-  socket.emit('joinGame', gomassListGame.value);
+joinB.onclick = function(game) {
+  if (gomassListGame.value != '') {
+    disableButton(true);
+    socket.emit('joingame', {
+      name: gomassListGame.value,
+    });
+  }
   console.log('join game : ' + gomassListGame.value);
 }
 
 // Middle area
+var endTurnB = new gomassButton(820,460, "button", "end turn");
+endTurnB.style.visibility = "hidden";
+endTurnB.onclick = function() {
+    socket.emit('endturn', {
+      name: gameName,
+      player: playerName
+    });
+    endTurnB.disabled = true;
+}
 
 // Down area
 var gomassChat = new gomassBox(820, 500, "chatArea");
-var talkT = new gomassButton(820, 580, "text", "talk");
-talkT.size = 20;talkT.value = '';
-var talkB = new gomassButton(980, 580, "button", "send");
-talkB.onclick = function() {
-  socket.emit('new message', talkT.value);
+var sendT = new gomassButton(820, 580, "text", "talk");
+sendT.size = 20;sendT.value = '';
+var sendB = new gomassButton(980, 580, "button", "send");
+sendB.onclick = function() {
+  socket.emit('newmessage', {
+      message: sendT.value,
+      player: playerName
+    });
 }
 function createGame() {
   if (gameName != 'DEFAULT') {
     console.log('Create or Join the game : ' + gameName);
+    // la pile de carte
     pile = new Plateau(gameName, 820, 150);
       pile.create(1, 2);
       pile.add(0, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234");
       //console.log(pile.toString()); // to display log
+    // le plateau de jeu
     mainBoard = new Plateau(gameName, 0, 0); // init the gomas Plateau
       mainBoard.create(8, 4); // create all cases
       mainBoard.add(3, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
       mainBoard.add(4, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
       mainBoard.add(16, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
       //console.log(mainBoard.toString()); // to display log
+    // le bouton de fin de tour
   }
 }
 //END UI
 //-----------------------------------------------------------
-
-//BEGIN CHAT
+// socket creation
 var socket = io.connect(rootUrl);
 
-// reponse du serveur a la connection quand c'est toi
+//BEGIN CONNECTION
 socket.on('login', function(message) {
   if (message.accepted) {
     console.log('Received login : you are accepted : ' + message.player);
@@ -84,67 +116,114 @@ socket.on('login', function(message) {
     userNameT.disabled = false;
   }
 })
-// quand c'est pas toi
-socket.on('user joined', function(message) {
+socket.on('userjoined', function(message) {
   if (message.accepted) {
     console.log('Received user joined : ' + message.player);
   }
 })
-// quand t'envoie un message
-socket.on('new message', function(message) {
-  gomassChat.value += message.username + ' : ' + message.message + '\n';
-  //console.log(message.username + ' : ' + message.message);
-})
-// quand un user se déco
-socket.on('user left', function(message) {
+socket.on('userleft', function(message) {
   gomassChat.value += message.username + ' : leave the game!' + '\n';
   console.log('Received user left : ' + message.username + ' : ' + message.message);
 })
+//END CONNECTION
+//-----------------------------------------------------------
 
+//BEGIN CHAT
+socket.on('newmessageok', function(message) {
+  gomassChat.value += message.username + ' : ' + message.message + '\n';
+  sendT.value = '';
+})
 //END CHAT
 //-----------------------------------------------------------
 
 //BEGIN CREATE GAME
-socket.on('newGameOk', function(message) {
+socket.on('newgameok', function(message) {
   if (message.accepted) {
-    gameName = createT.value;
-    createGame();
+    gameName = message.game;
     disableButton(true);
-    console.log('Received newGameOk : ' + message.validated);
+    console.log('Received newgameok : ' + message.validated);
   }
   else {
-    console.log('Received newGameOk : ' + message.validated);
+    console.log('Received newgameok : ' + message.validated);
   }
 })
-socket.on('joinGameOk', function(message) {
-  gameName = gomassListGame.value;
-  createGame();
+socket.on('joingameok', function(message) {
+  gameName = message.game;
   disableButton(true);
-  console.log('Received joinGameOk : ' + message.validated);
+  console.log('Received joingameok : ' + message.validated);
 })
-socket.on('openGame', function(message) {
+socket.on('opengame', function(message) {
   gomassListGame.addOpt(message.game);
   console.log('Received openGame : ' + message.validated);
 })
-socket.on('closeGame', function(message) {
+socket.on('closegame', function(message) {
+  // TODO : Remove the game from the combo
   //gomassListGame.value -= message.game;
   console.log('Received closeGame : ' + message.validated);
 })
-
 //END CREATE GAME
 //-----------------------------------------------------------
 
-//BEGIN MOVE
-socket.on('myMove', function(message) {
-  console.log('Received myMove : ' + message.validated);
+//BEGIN GAME
+socket.on('mymove', function(message) {
+  console.log('Received mymove : ' + message.validated);
 })
-socket.on('hisMove', function(message) {
-  console.log('Received hisMove : ' + message.validated);
+socket.on('hismove', function(message) {
+  console.log('Received hismove : ' + message.validated);
   tempMove = message.move.split(",");
   console.log('move : '+ tempMove[0] +' : '+ tempMove[1]);
   mainBoard.move(tempMove[0], tempMove[1]);
 })
-//END MOVE
+socket.on('startgame', function(message) {
+  console.log('Received startgame : ' + message.validated);
+  if (message.first == playerName) {
+    myTurn = true;
+    createGame();
+    endTurnB.style.visibility = "visible";//hidden
+    endTurnB.disabled = false;
+    console.log('You start the game : ' + message.game);
+  }
+  else {
+    myTurn = false;
+    gameName = gomassListGame.value;
+    createGame();
+    endTurnB.style.visibility = "visible";//hidden
+    endTurnB.disabled = true;
+    console.log('You wait in the game : ' + message.game);
+  }
+})
+socket.on('endturnok', function(message) {
+  console.log('Received endturnok : ' + message.validated);
+  // my turn?
+  if (message.first) {
+    myTurn = true;
+    endTurnB.disabled = false;
+    // ask is it the end of game
+    socket.emit('endgame', {
+      name: gameName,
+      player: playerName
+    });
+  }
+  else {
+    myTurn = false;
+    endTurnB.disabled = true;
+  }
+})
+socket.on('endgameok', function(message) {
+  console.log('Received endgameok : ' + message.validated);
+  // win the game?
+  if (message.win) {
+    console.log('You win the game : ' + message.game);
+    myTurn = false;
+    endTurnB.disabled = true;
+  }
+  else {
+    console.log('You loose the game : ' + message.game);
+    myTurn = false;
+    endTurnB.disabled = true;
+  }
+})
+//END GAME
 
 //-----------------------------------------------------------
 ////////////////////////////////USEFULL//////////////////////

@@ -9,11 +9,6 @@ server.listen(port, function () {
   console.log('Server listening at port %d', port);
 });
 // Routing
-/*
-app.get('/', function(req, res){
-  res.send('hello world');
-});
-*/
 app.use(express.static(__dirname));
 // Movement
 function Move(user, srcx, srcy, dstx, dsty) {
@@ -24,7 +19,10 @@ function Move(user, srcx, srcy, dstx, dsty) {
   this.dsty = dsty;
 }
 function Game(name) {
+  this.player1 = '';
+  this.player2 = '';
   this.name = name;
+  this.turn = 0;
   this.state = ''; //'create', 'running', 'close'
 }
 // usernames which are currently connected to the chat
@@ -34,51 +32,64 @@ var allMoves = [];
 function storeMovement(user, srcx, srcy, dstx, dsty) {
   allMoves.push(new Move(user, srcx, srcy, dstx, dsty));
 }
-
+var maxRound = Math.floor(Math.random() * 10) + 1;
 // default namespace
 io.on('connection', function (socket) {
   console.log('connection to namespace : ' + io.name);
   console.log('connection to the soket : ' + socket.id);
 
   // when the client emits 'add user', this listens and executes
-  socket.on('add user', function (username) {
-    console.log('received a add user : ' + username);
+  socket.on('adduser', function (user) {
+    console.log('received a add user : ' + user.name);
     // we store the username in the socket session for this client
-    socket.username = username;
+    socket.username = user.name;
     socket.register = true;
     // add the client's username to the global list
-    if (addToArray(allUsers, username)) {
+    if (addToArray(allUsers, user.name)) {
       socket.emit('login', {
         accepted: true,
-        player: username,
+        player: user.name,
         numUsers: allUsers.length
       });
       // echo globally (all clients) that a person has connected
-      socket.broadcast.emit('user joined', {
+      socket.broadcast.emit('userjoined', {
         accepted: true,
-        player: username,
+        player: user.name,
         numUsers: allUsers.length
       });
     }
     else {
       socket.emit('login', {
         accepted: false,
-        player: username,
+        player: user.name,
+        numUsers: allUsers.length
+      });
+    }
+  });
+
+  // when the user disconnects.. perform this
+  socket.on('disconnect', function (data) {
+    if (allUsers.length > 0) {
+      // remove the username from global allUsers list
+      rmToArray(allUsers, socket.username);
+      // echo globally that this client has left
+      socket.broadcast.emit('userleft', {
+        username: socket.username,
         numUsers: allUsers.length
       });
     }
   });
 
   // when the client emits 'new message', this listens and executes
-  socket.on('new message', function (data) {
+  socket.on('newmessage', function (data) {
     // we tell the client to execute 'new message'
-    socket.broadcast.emit('new message', {
-      username: socket.username,
-      message: data
+    socket.broadcast.emit('newmessageok', {
+      username: data.player,
+      message: data.message
     });
-    socket.emit('new message', {
-      username: socket.username,
-      message: data
+    socket.emit('newmessageok', {
+      username: data.player,
+      message: data.message
     });
   });
 
@@ -90,80 +101,151 @@ io.on('connection', function (socket) {
     storeMovement(socket.username, tempMove[0], tempMove[1]);
     console.log('emit to room : ' + socket.game);
     // send only to the requester
-    socket.emit('myMove', {
+    socket.emit('mymove', {
       validated: "Move Ok.",
       move: data.message,
       player: socket.username
     });
     // send to all in the room except requester
-    socket.broadcast.to(data.room).emit('hisMove', {
+    socket.broadcast.to(data.room).emit('hismove', {
       validated: "New move.",
       move: data.message,
       player: socket.username
     });
   });
 
-  // when the user disconnects.. perform this
-  socket.on('disconnect', function (data) {
-    console.log('disconnect1 : ' + data);
-    if (allUsers.length > 0) {
-      // remove the username from global allUsers list
-      rmToArray(allUsers, socket.username);
-      console.log('disconnect2 : ' + data);
-      // echo globally that this client has left
-      socket.broadcast.emit('user left', {
-        username: socket.username,
-        numUsers: allUsers.length
-      });
-    }
-  });
-
-  socket.on('newGame', function (gameName) {
-    console.log('create a new game : ' + gameName);
-    socket.game = gameName;
-    // check if game exist
-    if (addToArray(allGames, gameName)) {
-      socket.join(gameName);
+  socket.on('newgame', function (game) {
+    console.log('create a new game : ' + game.name);
+    // check if game exist and add it
+    myGame = new Game(game.name);
+    idx = addToArray(allGames, myGame);
+    if (idx != -1) {
+      console.log('idx = ' + idx);
+      socket.game = game.name;
+      socket.join(game.name);
+      // update game
+      allGames[idx].player1 = socket.username;
+      allGames[idx].state = 'create';
       // reply to the requester
-      socket.emit('newGameOk', {
-        validated: "The game is created : " + gameName,
+      socket.emit('newgameok', {
+        validated: "The game is created : " + game.name,
         accepted: true,
-        game: gameName
+        game: game.name
       });
       // send to all other
-      socket.broadcast.emit('openGame', {
-        validated: "A new game is created : " + gameName,
+      socket.broadcast.emit('opengame', {
+        validated: "A new game is created : " + game.name,
         accepted: true,
-        game: gameName
+        game: game.name
       });
     }
     else {
       // reply to the requester
-      socket.emit('newGameOk', {
-        validated: "The game already exist : " + gameName,
+      socket.emit('newgameok', {
+        validated: "The game already exist : " + game.name,
         accepted: false,
-        game: gameName
+        game: game.name
       });
     }
   });
 
-  socket.on('joinGame', function (gameName) {
-    console.log('join a game : ' + gameName);
-    socket.game = gameName;
-    socket.join(gameName);
-    socket.emit('joinGameOk', {
-      validated: "You join the game : " + gameName,
-      game: gameName
-    });
-    socket.broadcast.emit('closeGame', {
-      validated: "The game is closed : " + gameName,
-      game: gameName
-    });
+  socket.on('joingame', function (game) {
+    console.log('join a game : ' + game.name);
+    // game exist?
+    idx = gameExist(game.name);
+    if (idx != -1) {
+      // store game and join
+      socket.game = game.name;
+      socket.join(game.name);
+      // update game
+      allGames[idx].player2 = socket.username;
+      allGames[idx].state = 'running';
+      // who play first?
+      firstPlayer = whoPlayFirst(allGames[idx]);
+      // answer to sender
+      socket.emit('joingameok', {
+        validated: "You join the game : " + game.name,
+        game: game.name,
+        first: firstPlayer
+      });
+      socket.emit('startgame', {
+        validated: "The game start now. : " + game.name,
+        game: game.name,
+        first: firstPlayer
+      });
+      // answer in the game
+      socket.broadcast.to(game.name).emit('startgame', {
+        validated: "The game start now. : " + game.name,
+        game: game.name,
+        first: firstPlayer
+      });
+      // answer for all other
+      socket.broadcast.emit('closegame', {
+        validated: "The game is closed : " + game.name,
+        game: game.name
+      });
+    }
   });
-  
+  // end turn
+  socket.on('endturn', function (game) {
+    console.log('Receveived endturn : ' + game.name + ' from player : ' + game.player);
+    idx = gameExist(game.name);
+    if (idx != 1) {
+      allGames[idx].turn++;
+      socket.emit('endturnok', {
+        validated: "Your turn is finish.",
+        game: game.name,
+        first: false
+      });
+      socket.broadcast.to(game.name).emit('endturnok', {
+        validated: "Your turn start now.",
+        game: game.name,
+        first: true
+      });
+    }
+  });
+
+  socket.on('endgame', function (game) {
+    console.log('Receveived endgame : ' + game.name + ' from player : ' + game.player);
+    idx = gameExist(game.name);
+    if (idx != 1) {
+      console.log('Turn : ' + allGames[idx].turn + ' on : ' + maxRound);
+      if (allGames[idx].turn > maxRound) {
+        console.log('End game : ' + game.name + ' from player : ' + game.player);
+        socket.emit('endgameok', {
+          validated: "The game is over.",
+          game: game.name,
+          win: false
+        });
+        socket.broadcast.to(game.name).emit('endgameok', {
+          validated: "The game is over.",
+          game: game.name,
+          win: true
+        });
+      }
+    }
+  });
+
 });
 
 //OUTSIDE SOCKET//
+
+// return index of the winner
+function whoPlayFirst(game) {
+  secret = (game.player1 + game.player2).length;
+  first = Math.pow((-1), secret);
+  if (first) return game.player1; // player 1 win
+  return game.player2;
+}
+function gameExist(gamename) {
+  for (i = 0; i < allGames.length; i++) {
+    if (allGames[i].name == gamename) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 function addToArray(myArray, elt) {
   res = myArray.every(function(element, index, array) {
     //console.log('element :', element);
@@ -176,11 +258,11 @@ function addToArray(myArray, elt) {
   if (res) {
     //console.log('add elt : ' + elt);
     myArray[myArray.length] = elt;
-    return true;
+    return myArray.length-1;
   }
   else {
     //console.log("don't add elt : " + elt);
-    return false;
+    return -1;
   }
 }
 function rmToArray(myArray, elt) {
