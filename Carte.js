@@ -39,7 +39,7 @@ function Carte(id, imgid, cout, att, def, titre, desc, visible, active, type) {
             + " - " + "image: " + this.imagej.src  + " - " + "visible: " + this.visible  + " - " + "active: " + this.active  + " - " + "type: " + this.type;
   };
   this.equal = function(other) {
-    if (this.id == other.id) return true;
+    if (this.id == other.id && this.imagej.src == other.imagej.src) return true;
     else return false;
   };
   this.init = function() {

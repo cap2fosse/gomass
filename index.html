@@ -25,6 +25,7 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 // BEGIN UI
 // Up area
+
 var userNameT = new gomassButton(850, 10, "text", '');
 userNameB = new gomassButton(1000, 10, "button", "connect");
 userNameB.onclick = function() {
@@ -73,13 +74,15 @@ endTurnB.style.visibility = "hidden";
 endTurnB.onclick = function() {
     socket.emit('endturn', {
       name: gameName,
-      player: playerName
+      player: playerName,
+      opponent: opponentName
     });
     endTurnB.disabled = true;
 }
 var deckB = new gomassButton(1000, 355, "button", ".deck.");
 deckB.onclick = function() {
   showDeckBuilder(true);
+  disableCommands(true);
 }
 var finishDeckB = new gomassButton(1000, 395, "button", "finish");
 finishDeckB.style.visibility = "hidden";
@@ -111,6 +114,7 @@ sendB.onclick = function() {
 }
 // disable all buttons
 disableCommands(true);
+resetAllBoards();
 //-----------------------------------------------------------
 ////////////////////////////////USEFULL//////////////////////
 //-----------------------------------------------------------
@@ -176,16 +180,13 @@ function disableCommands(b) {
   gomassListGame.disabled = b;
   deckB.disabled = b;
 }
-function initGlobal() {
+function loadNewGame() {
   gameName = 'DEFAULT';
   myTurn = false;
   creator = false;
   createT.value = '';
-  resetGameBoards();
-}
-function showGame(on) {
-  showGameBoards(on);
-  endTurnB.hide(!on);
+  endTurnB.hide(true);
+  resetAllBoards();
 }
 console.log('Finish index.js');
 //-----------------------------------------------------------

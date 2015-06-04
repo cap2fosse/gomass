@@ -1,12 +1,12 @@
 console.log('Start gomasBoard.js');
-var opponentHand = new Board('opponentHand', 0, 0);
-opponentHand.create(8, 1);
+var opponentHand = new Board('opponentHand', 0, 0, 100, 150);
+opponentHand.create(8, 1, 0);
 document.body.appendChild(opponentHand);
 opponentHand.onclick = function() { 
   console.log("Can't select carte!");
 }
-var opponentBoard = new Board('opponentBoard', 0, 170);
-opponentBoard.create(8, 1);
+var opponentBoard = new Board('opponentBoard', 0, 170, 100, 150);
+opponentBoard.create(8, 1, 0);
 document.body.appendChild(opponentBoard);
 opponentBoard.onclick = function() {
   if (selectedCarte.visible && myTurn) {
@@ -54,8 +54,8 @@ opponentBoard.onclick = function() {
   }
 }
 
-var playerBoard = new Board('playerBoard', 0, 320);
-playerBoard.create(8, 1);
+var playerBoard = new Board('playerBoard', 0, 320, 100, 150);
+playerBoard.create(8, 1, 0);
 document.body.appendChild(playerBoard);
 playerBoard.onclick = function() {
   var onHand = cardOnHand();
@@ -65,7 +65,8 @@ playerBoard.onclick = function() {
     switch (onHand) {
       case 1: // player do invocation on board
         if (player.get(0).description == 'invocus') {
-          this.add(selectedCaseId, player.selectedCarte.clone());
+          // add new invocation
+          this.add(selectedCaseId, invocusCard.clone());
           console.log('Player invocation : ' + this.get(selectedCaseId));
           var carteId = player.selectedCarte.id;
           var srcboard = 'player';
@@ -75,10 +76,12 @@ playerBoard.onclick = function() {
             srcboard: srcboard,
             dstboard: dstboard,
             caseId: caseId,
-            carte: allAvatarsCartes[0],
+            carte: invocusCard,
             game: gameName
           });
         }
+        // remove mana
+        manaBoard.remove(invocusCard.cout);
         // reset
         player.initSelectedCarte();
         selectedCarte.init();
@@ -87,6 +90,7 @@ playerBoard.onclick = function() {
       case 2: // playerHand drop a carte on the board
         this.add(selectedCaseId, playerHand.selectedCarte);
         playerHand.remove(playerHand.selectedCaseId);
+        manaBoard.remove(playerHand.selectedCarte.cout);
         console.log('Put a carte on board : ' + this.get(selectedCaseId));
         var carteId = playerHand.selectedCarte.id;
         var srcboard = 'playerHand';
@@ -127,34 +131,34 @@ playerBoard.onclick = function() {
   }
 }
 
-var playerHand = new Board('playerHand', 0, 490);
-playerHand.create(8, 1);
+var playerHand = new Board('playerHand', 0, 490, 100, 150);
+playerHand.create(8, 1, 0);
 document.body.appendChild(playerHand);
 playerHand.onclick = function() {
   if (selectedCarte.visible && myTurn) {
     var onHand = cardOnHand();
     switch (onHand) {
-    case 0: // select a carte from hand
-      this.selectedCarte = selectedCarte.clone();
-      this.selectedCaseId = selectedCaseId;
-      
-      selectedCarte.init();
-      selectedCaseId = -1;
-      console.log('Select a Carte in Hand : ' + this.selectedCarte);
+      case 0: // select a carte from hand
+      // there is enough mana?
+      if (manaBoard.getMana() >= selectedCarte.cout) {
+        this.selectedCarte = selectedCarte.clone();
+        this.selectedCaseId = selectedCaseId;
+        console.log('Select a Carte in Hand : ' + this.selectedCarte);
+      }
       break;
-    default:
+      default:
       if (selectedCarte.equal(this.selectedCarte)) {
         this.initSelectedCarte();
         console.log('Unselected carte in Hand : ' + selectedCarte);
       }
     }
   }
-  else {
-    console.log("Can't select carte!");
-  }
+  else console.log("Can't select carte!");
+  selectedCarte.init();
+  selectedCaseId = -1;
 }
-var opponent = new Board('opponent', 850, 140);
-opponent.create(1, 1);
+var opponent = new Board('opponent', 850, 140, 100, 150);
+opponent.create(1, 1, 0);
 document.body.appendChild(opponent);
 opponent.onclick = function() {
   if (selectedCarte.visible && myTurn) {
@@ -203,18 +207,21 @@ opponent.onclick = function() {
   }
 }
 
-var player = new Board('player', 850, 320);
-player.create(1, 1);
+var player = new Board('player', 850, 320, 100, 150);
+player.create(1, 1, 0);
 document.body.appendChild(player);
 player.onclick = function() {
   if (selectedCarte.visible && myTurn) {
     var onHand = cardOnHand();
     switch (onHand) {
-    case 0: // select a carte from player
-      this.selectedCarte = selectedCarte.clone();
-      console.log('Selected player : ' + selectedCarte);
+      case 0: // select a carte from player
+      if (manaBoard.getMana() >= selectedCarte.cout) {
+        this.selectedCarte = selectedCarte.clone();
+        this.selectedCaseId = selectedCaseId;
+        console.log('Selected player : ' + selectedCarte);
+      }
       break;
-    default:
+      default:
       console.log("Can't select carte!");
     }
   }
@@ -222,13 +229,13 @@ player.onclick = function() {
   selectedCaseId = -1;
 }
 
-var allCarte = new Board('allCarte', 0, 0);
-allCarte.create(6, 14);
+var allCarte = new Board('allCarte', 0, 0, 100, 150);
+allCarte.create(6, 14, 0);
 document.body.appendChild(allCarte);
 allCarte.onclick = function() {
   if (selectedCarte.visible) {
     var myMini = new Carte(selectedCarte.id, selectedCarte.imgid, selectedCarte.cout, selectedCarte.attaque, selectedCarte.defense, selectedCarte.titre, selectedCarte.description, selectedCarte.visible, selectedCarte.active, 1);
-    playerDeck.add(myMini);
+    playerDeck.addLast(myMini);
     console.log("Select carte : " + selectedCarte);
   }
   selectedCarte.init();
@@ -245,19 +252,37 @@ allCarte.fill = function(){
   }
 }
 
-var playerDeck = new MiniBoard('playerDeck', 650, 50);
-playerDeck.create(1, maxDeckCarte);
+var playerDeck = new Board('playerDeck', 650, 50, 100, 20);
+playerDeck.create(1, maxDeckCarte, 1);
 document.body.appendChild(playerDeck);
 playerDeck.onclick = function() {
   if (selectedCarte.visible) {
+    this.remove(selectedCaseId);
     console.log("Select carte : " + selectedCarte);
   }
   selectedCarte.init();
   selectedCaseId = -1;
 }
+// fill the deck randomly
+playerDeck.fill = function() {
+  var fid = 0;
+  var idxCard;
+  var srvCard;
+  var miniCard;
+  while (fid < this.cases.length) {
+    if (!this.cases[fid].carte.visible) {
+      // get a random carte from allCarte
+      idxCard = Math.floor((Math.random() * maxCartes));
+      srvCard = allGameCartes[idxCard];
+      miniCard = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 1);
+      this.addLast(miniCard);
+    }
+    fid++;
+  }
+}
 
-var playerSelector = new Board('playerSelector', 200, 20);
-playerSelector.create(3, 1);
+var playerSelector = new Board('playerSelector', 200, 20, 100, 150);
+playerSelector.create(3, 1, 0);
 document.body.appendChild(playerSelector);
 playerSelector.onclick = function() {
   if (selectedCarte.visible) {
@@ -265,9 +290,6 @@ playerSelector.onclick = function() {
       player: playerName,
       id: selectedCarte.imgid
     });
-    var srvCard = allAvatarsCartes[selectedCaseId];
-    playerAvatar = new Carte(srvCard.id, srvCard.imgid, '', '', '', playerName, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
-    player.add(0, playerAvatar);
     console.log("Select avatar : " + selectedCarte);
   }
   selectedCarte.init();
@@ -283,6 +305,12 @@ playerSelector.fill = function(){
   }
   this.setVisibility(true);
 }
+
+var manaBoard = new ManageMana(960, 460, 10, 1);
+manaBoard.create();
+document.body.appendChild(manaBoard);
+
+//////////////////////////////Usefull fonctions////////////////////////////
 // return 0 if no card on hand
 function cardOnHand() {
   if (player.selectedCarte.visible) return 1;
@@ -291,11 +319,13 @@ function cardOnHand() {
   else return 0;
 }
 function showDeckBuilder(on) {
-  allCarte.fill();
   allCarte.setVisibility(on);
   playerDeck.setVisibility(on);
   finishDeckB.hide(!on);
   deckB.hide(on);
+  if (on) {
+    allCarte.fill();
+  }
 }
 function resetDeckBuilder() {
   allCarte.initCartes();
@@ -308,13 +338,17 @@ function showGameBoards(on) {
   playerHand.setVisibility(on);
   opponent.setVisibility(on);
   player.setVisibility(on);
+  manaBoard.visible(on);
 }
-function resetGameBoards() {
+function resetAllBoards() {
   opponentHand.initCartes();
   opponentBoard.initCartes();
   playerBoard.initCartes();
   playerHand.initCartes();
+  manaBoard.reset();
   opponent.initCartes();
   player.initCartes();
+  playerSelector.initCartes();
+  resetDeckBuilder();
 }
 console.log('Finish gomassBoard.js');

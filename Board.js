@@ -3,13 +3,15 @@ console.log('Start Board.js');
 var emptyCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 0);
 var emptyMiniCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 1);
 var emptyAvatar = new Carte(-1, 0, '', '', '', '', '', false, false, 2);
+var backCard = new Carte(100, 9, '', '', '', 'back', '', true, false, 0);
+var invocusCard = new Carte(200, 0, '2', '1', '1', 'invocus', '', true, false, 2);
 // the current selected carte
 var selectedCarte = emptyCarte;
 // store all cartes send by server
 var allGameCartes = [];
 var allAvatarsCartes = [];
 // create a new Board at posx, posy absolute position
-function Board(name, posx, posy) {
+function Board(name, posx, posy, caseW, caseH) {
   var objBoard = document.createElement("div");
   objBoard.id = name;
   objBoard.style.position = "absolute";
@@ -18,8 +20,8 @@ function Board(name, posx, posy) {
   objBoard.style.left = posx;
   objBoard.style.top = posy;
   objBoard.style.visibility = "hidden";
-  objBoard.caseWidth = 100;
-  objBoard.caseHeight = 150;
+  objBoard.caseWidth = caseW;
+  objBoard.caseHeight = caseH;
   objBoard.nbCasesx = 0;
   objBoard.nbCasesy = 0;
   objBoard.cases = [];
@@ -27,8 +29,9 @@ function Board(name, posx, posy) {
   objBoard.selectedCaseId = selectedCaseId;
   /* create all cases and cartes
    * largeur : number of case on x
-   * hauteur : number of case on y */
-  objBoard.create = function(largeur, hauteur) {
+   * hauteur : number of case on y 
+   * type : type of case normal=0, small=1 */
+  objBoard.create = function(largeur, hauteur, type) {
     this.nbCasesx = largeur;
     this.nbCasesy = hauteur;
     this.style.width = largeur * this.caseWidth;
@@ -36,7 +39,16 @@ function Board(name, posx, posy) {
     var id = 0;
     for (var x = 0; x < largeur; x++) {
       for (var y = 0; y < hauteur; y++) {
-        var caseInstance = new Case(x, y, id, this.id, this.caseWidth, this.caseHeight);
+        if (type == 0) {
+          var caseInstance = new Case(x, y, id, this.id, this.caseWidth, this.caseHeight);
+        }
+        else if (type == 1) {
+          var caseInstance = new MiniCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
+        }
+        else {
+          console.log('not a correct case type!');
+          return;
+        }
         this.cases[id] = caseInstance;
         this.appendChild(caseInstance);
         id++;
@@ -66,8 +78,42 @@ function Board(name, posx, posy) {
   // add a carte to board at position caseid 
   objBoard.add = function(caseid, myCarte) {
     if (caseid >= 0) {
-      this.cases[caseid].add(myCarte.clone());
-      this.cases[caseid].draw();
+      if (this.cases[caseid].add(myCarte.clone())) {
+        this.cases[caseid].draw();
+      }
+    }
+  };
+  // add carte in first empty carte
+  objBoard.addLast = function(myCarte) {
+    var caseid = 0;
+    while (caseid < this.cases.length && this.cases[caseid].carte.visible) {
+      caseid++;
+    }
+    if (caseid < this.cases.length) {
+      if (this.cases[caseid].add(myCarte.clone())) {
+        this.cases[caseid].draw();
+      }
+    }
+  };
+  // check if deck is complete
+  objBoard.isComplete = function() {
+    var cid = 0;
+    while (cid < this.cases.length && this.cases[cid].carte.visible) {
+      cid++;
+    }
+    if (cid == this.cases.length) {
+      return true;
+    }
+    return false;
+  };
+  // return and remove the last carte
+  objBoard.removeLast = function() {
+    var rid = this.cases.length - 1;
+    while (rid >= 0 && !this.cases[rid].carte.visible) {
+      rid--;
+    }
+    if (rid >= 0) {
+      this.remove(rid);
     }
   };
   // remove a carte to board at position caseid 
@@ -123,70 +169,6 @@ function Board(name, posx, posy) {
   };
   return objBoard;
 }
-function MiniBoard(name, posx, posy) {
-  var miniBoar = new Board(name, posx, posy);
-  miniBoar.id = name;
-  miniBoar.maxCarte = 0;
-  miniBoar.caseWidth = 100;
-  miniBoar.caseHeight = 20;
-  miniBoar.create = function(largeur, hauteur) {
-    this.nbCasesx = largeur;
-    this.nbCasesy = hauteur;
-    this.style.width = largeur * this.caseWidth;
-    this.style.height = hauteur * this.caseHeight;
-    var id = 0;
-    for (var x = 0; x < largeur; x++) {
-      for (var y = 0; y < hauteur; y++) {
-        var caseInstance = new MiniCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
-        this.cases[id] = caseInstance;
-        this.appendChild(caseInstance);
-        id++;
-      }
-    }
-    this.maxCarte = id;
-  };
-  // add carte in first empty carte
-  miniBoar.add = function(myCarte) {
-    var caseid = 0;
-    while (caseid < this.cases.length && this.cases[caseid].carte.visible) {
-      caseid++;
-    }
-    if (caseid < this.cases.length) {
-      this.cases[caseid].add(myCarte.clone());
-      this.cases[caseid].draw();
-    }
-  };
-  // check if deck is complete
-  miniBoar.isComplete = function() {
-    var cid = 0;
-    while (cid < this.cases.length && this.cases[cid].carte.visible) {
-      cid++;
-    }
-    if (cid == this.cases.length) {
-      return true;
-    }
-    return false;
-  };
-  // fill the deck randomly
-  miniBoar.fill = function() {
-    var fid = 0;
-    var idxCard;
-    var srvCard;
-    var miniCard;
-    while (fid < this.cases.length) {
-      if (!this.cases[fid].carte.visible) {
-        // get a random carte from allCarte
-        idxCard = Math.floor((Math.random() * maxCartes));
-        srvCard = allGameCartes[idxCard];
-        miniCard = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 1);
-        this.add(miniCard);
-      }
-      fid++;
-    }
-  }
-  // return object
-  return miniBoar;
-}
 /*
  * Case inherit from Canvas
  * See Plateau.create() function.
@@ -217,8 +199,15 @@ function Case(casex, casey, id, boardName, width, height) {
     this.remove();
     this.ctx.clearRect(0, 0, this.width, this.height);
   };
+  // try to add carte
   canvasCase.add = function(carte) {
+    if (!this.carte.equal(carte)) {
       this.carte = carte;
+      return true;
+    }
+    else {
+      return false;
+    }
   };
   canvasCase.remove = function() {
       this.carte.init();
@@ -274,14 +263,126 @@ function MiniCase(casex, casey, id, boardName, width, height) {
   miniCaz.carte = emptyMiniCarte;
   miniCaz.draw = function() {
     if (this.carte.visible) {
-      this.ctx.beginPath();
       if (this.carte.cout != '') {
+        this.ctx.beginPath();
         this.ctx.fillText(this.carte.cout, 0, 10);
         this.ctx.drawImage(this.carte.imagej, 10, 0, 100, 20);
         this.ctx.stroke();
       }
     }
+    else {
+      this.clear();
+    }
   };
   return miniCaz;
+}
+
+function Mana(id, posx, posy) {
+  var aMana = document.createElement("div");
+  aMana.id = id;
+  aMana.style.position = "absolute";
+  aMana.style.width = 10;
+  aMana.style.height = 10;
+  aMana.style.left = 10 * posx;
+  aMana.style.top = 10 * posy;
+  aMana.style.visibility = "hidden";
+  aMana.img = new Image();
+  aMana.img.src = allManaImages[0].src;
+  aMana.img.width = 10;
+  aMana.img.height = 10;
+  aMana.active = 0;
+  aMana.appendChild(aMana.img);
+  aMana.visible = function(on) {
+    if (on) {
+      this.style.visibility = "visible";
+    }
+    else {
+      this.style.visibility = "hidden";
+    }
+  }
+  aMana.change = function() {
+    if (this.img.src == allManaImages[0].src) {
+      this.img.src = allManaImages[1].src;
+      console.log(this.id + " is on");
+    }
+    else {
+      this.img.src = allManaImages[0].src;
+      console.log(this.id + " is off");
+    }
+  };
+  aMana.activate = function(on) {
+    if (on) {
+      this.img.src = allManaImages[1].src;
+      this.active = 1;
+    }
+    else {
+      this.img.src = allManaImages[0].src;
+      this.active = 0;
+    }
+  };
+  return aMana;
+}
+function ManageMana(posx, posy, nbManaX, nbManaY) {
+  var allMana = document.createElement("div");
+  allMana.id = posx + posy;
+  allMana.style.position = "absolute";
+  allMana.style.width = 10 * nbManaX;
+  allMana.style.height = 10 * nbManaY;
+  allMana.style.left = posx;
+  allMana.style.top = posy;
+  allMana.style.visibility = "hidden";
+  allMana.nbManaX = nbManaX;
+  allMana.nbManaY = nbManaY;
+  allMana.manas = new Array(10);
+  allMana.create = function() {
+    var id = 0;
+    for (var x = 0; x < this.nbManaX; x++) {
+      for (var y = 0; y < this.nbManaY; y++) {
+        var m = new Mana(id, x, y);
+        this.manas[id] = m;
+        this.appendChild(m);
+        id++;
+      }
+    }
+  };
+  allMana.visible = function(on) {
+    if (on) {
+      this.style.visibility = "visible";
+      for (var i = 0; i < this.manas.length; i++) {
+        this.manas[i].visible(true);
+      }
+    }
+    else {
+      this.style.visibility = "hidden";
+      for (var i = 0; i < this.manas.length; i++) {
+        this.manas[i].visible(false);
+      }
+    }
+  };
+  allMana.add = function(num) {
+    if (num > this.manas.length) return;
+    for (var i = 0; i < num; i++) {
+      this.manas[i].activate(true);
+    }
+  };
+  allMana.reset = function() {
+    for (var i = 0; i < this.manas.length; i++) {
+      this.manas[i].activate(false);
+    }
+  };
+  allMana.getMana = function() {
+    var myMana = 0;
+    for (var i = 0; i < this.manas.length; i++) {
+      myMana += this.manas[i].active;
+    }
+    return myMana;
+  };
+  allMana.remove = function(num) {
+    if (num > this.manas.length) return;
+    var newMana = this.getMana() - num;
+    this.reset();
+    this.add(newMana);
+  };
+  return allMana;
 }
 console.log('Finish Board.js');

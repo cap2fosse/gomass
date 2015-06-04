@@ -45,6 +45,7 @@ socket.on('avatarok', function(message) {
     deckB.disabled = false;
     // hide avatar board
     playerSelector.setVisibility(false);
+    // add avatar carte to player board
     console.log('Received avatarok : ' + message.accepted);
   }
   else {
@@ -92,40 +93,51 @@ socket.on('closegame', function(message) {
 //BEGIN GAME
 socket.on('startgame', function(message) {
   console.log('Received startgame : ' + message.validated);
-  var srvCard;
+  var srvCardOp;
+  var srvCardPl;
   // remove the game from the list
   gomassListGame.remove(message.index);
   // who is opponent ?
   if (creator) {
-    opponentName = message.player2;
-    srvCard = allAvatarsCartes[message.imgid2];
+    opponentName = message.player2; // set the name
+    srvCardOp = allAvatarsCartes[message.imgid2]; // set the carte
+    srvCardPl = allAvatarsCartes[message.imgid1];
   }
   else {
     opponentName = message.player1;
-    srvCard = allAvatarsCartes[message.imgid1];
+    srvCardOp = allAvatarsCartes[message.imgid1];
+    srvCardPl = allAvatarsCartes[message.imgid2];
   }
-  // add it to the board
-  opponentAvatar = new Carte(srvCard.id, srvCard.imgid, '', '', '', opponentName, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
+  // add avatar to the board
+  opponentAvatar = new Carte(srvCardOp.id, srvCardOp.imgid, '2', '', '30', opponentName, srvCardOp.description, srvCardOp.visible, srvCardOp.active, srvCardOp.type);
   opponent.add(0, opponentAvatar);
+  playerAvatar = new Carte(srvCardPl.id, srvCardPl.imgid, '2', '', '30', opponentName, srvCardPl.description, srvCardPl.visible, srvCardPl.active, srvCardPl.type);
+  player.add(0, playerAvatar);
+  endTurnB.style.visibility = "visible";
   // who play in first ?
   if (message.first == playerName) {
     myTurn = true;
-    endTurnB.hide(false);
+    endTurnB.disabled  = false;
     console.log('You start the game : ' + message.game);
   }
   else {
     myTurn = false;
-    endTurnB.hide(true);
+    endTurnB.disabled  = true;
     console.log('You wait your turn : ' + message.game);
   }
   // get my hand
   for (var i = 0; i < message.hand.length; i++) {
     var srvCard = message.hand[i];
-    var carte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 0);
-    playerHand.add(i, carte);
+    var pcarte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 0);
+    playerHand.add(i, pcarte);
+    // set hiding opponent hand
+    var ocarte = backCard.clone();
+    opponentHand.add(i, ocarte);
   }
+  // give one mana to all
+  manaBoard.add(1);
   // show the game
-  showGame(true);
+  showGameBoards(true);
 })
 
 socket.on('addcarteok', function(data) {
@@ -136,6 +148,7 @@ socket.on('putcarte', function(data) {
   if (data.dstboard == 'opponentBoard' && data.srcboard == 'opponentHand') {
     var putCarte = allCarte.get(data.carteId);
     opponentBoard.add(data.caseId, putCarte);
+    opponentHand.removeLast();
   }
 })
 socket.on('newcarteok', function(data) {
@@ -144,44 +157,50 @@ socket.on('newcarteok', function(data) {
 socket.on('insertcarte', function(data) {
   if (data.srcboard == 'opponent' && data.dstboard == 'opponentBoard') {
     var srvCard = data.carte;
-    var newCarte = new Carte(srvCard.id, srvCard.imgid, '', '', '', opponentName, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
+    var newCarte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
     opponentBoard.add(data.caseId, newCarte);
   }
 })
 
 socket.on('endturnok', function(message) {
   console.log('Received endturnok : ' + message.validated);
-  // my turn?
-  if (message.first) {
-    myTurn = true;
-    endTurnB.disabled = false;
-    // ask is it the end of game
-    socket.emit('endgame', {
-      name: gameName,
-      player: playerName
-    });
-  }
-  else {
-    myTurn = false;
-    endTurnB.disabled = true;
-  }
+  myTurn = false;
+  endTurnB.disabled = true;
+  manaBoard.reset();
+  // set hiding opponent hand
+  var ocarte = backCard.clone();
+  opponentHand.addLast(ocarte);
+  // ask is it the end of game
+  socket.emit('endgame', {
+    name: gameName,
+    player: playerName
+  });
 })
+socket.on('newturn', function(message) {
+  console.log('Received newturn : ' + message.validated);
+  myTurn = true;
+  endTurnB.disabled = false;
+  // get mana
+  manaBoard.add(message.mana);
+  // get new carte 
+  var srvCard = message.carte[0];
+  var carte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 0);
+  playerHand.addLast(carte);
+})
+
 socket.on('endgameok', function(message) {
   console.log('Received endgameok : ' + message.validated);
   // win the game?
   if (message.win) {
     console.log('You win the game : ' + message.game);
-    myTurn = false;
-    endTurnB.disabled = true;
   }
   else {
     console.log('You loose the game : ' + message.game);
-    myTurn = false;
-    endTurnB.disabled = true;
   }
+  endTurnB.disabled = true;
+  deckB.disabled = false;
   // go to create a new game
-  disableCommands(false);
-  initGlobal();
-  showGame(false);
+  loadNewGame();
+  showGameBoards(false);
 })
 //END GAME

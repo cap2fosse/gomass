@@ -25,14 +25,26 @@ function Game(name) {
   this.player1; // create the game
   this.player2; // join the game
   this.turn = 0;
+  this.gameCard = []; // new carte created in the game
   this.state = ''; //'create', 'running', 'close'
   this.toString = function() {
     return " name : " + this.name + " turn : " + this.turn + " state : " + this.state;
+  }
+  this.addTurn = function() {
+    if (this.turn < maxRound) {
+      this.turn++;
+      console.log('New turn ! ' + this.turn);
+    }
+  }
+  this.whoIsNextPlayer = function() {
+    if (this.player1.myTurn == true) {return this.player1.name}
+    else {return this.player2.name}
   }
 }
 function Player(name) {
   this.name = name;
   this.isFirst = false;
+  this.myTurn = false;
   this.deck = [];
   this.imgid = 0;
   this.getCarte = function(nbCarte) {
@@ -40,7 +52,7 @@ function Player(name) {
     if (this.deck.length > 0) {
       for (var i = 0; i < nbCarte; i++) {
         carte[i] = this.deck.pop();
-        console.log('get carte : ' + carte[i] + '\n');
+        console.log('it left ' + this.deck.length + ' on player : ' + this.name + ' hand.\n');
       }
     }
     return carte;
@@ -54,7 +66,7 @@ var allGames = [];
 var allMoves = [];
 var allCartes = [];
 var allAvatars = [];
-var maxRound = Math.floor(Math.random() * 10) + 1;
+var maxRound = 5;
 // load all cartes of the game
 loadCartes();
 loadPlayer();
@@ -70,7 +82,8 @@ io.on('connection', function (socket) {
     socket.register = true;
     // add the client's username to the global list
     // and send all cards of the game
-    if (addToArray(allUsers, user.name)) {
+    var idx = addToArray(allUsers, user.name);
+    if (idx != -1) {
       // store new player
       allPlayers.push(new Player(user.name));
       //emit welcome
@@ -109,7 +122,8 @@ io.on('connection', function (socket) {
       console.log('imgid : '+message.id);
       socket.emit('avatarok', {
         accepted: true,
-        player: message.player
+        player: message.player,
+        imgid: message.id
       });
     }
   });
@@ -120,9 +134,11 @@ io.on('connection', function (socket) {
     // get id of player
     var idP = playerExist(theDeck.player);
     if (idP != -1) {
-      // store the deck
-      allPlayers[idP].deck = theDeck.deck;
-      console.log('Deck : '+theDeck.deck);
+      // store the randomize deck
+      var randomize = randomDeck(theDeck.deck);
+      allPlayers[idP].deck = randomize;
+      console.log('original Deck : ' + theDeck.deck);
+      console.log('random Deck : ' + randomize);
       socket.emit('deckok', {
         accepted: true,
         player: theDeck.player
@@ -161,8 +177,8 @@ io.on('connection', function (socket) {
   socket.on('newgame', function (game) {
     console.log('receveived cmd newgame : ' + game.name + ' from player : ' + game.player);
     // check if game exist and add it
-    myGame = new Game(game.name);
-    idx = addToArray(allGames, myGame);
+    var myGame = new Game(game.name);
+    var idx = addToArray(allGames, myGame);
     if (idx != -1) {
       socket.game = game.name;
       socket.join(game.name);
@@ -211,8 +227,17 @@ io.on('connection', function (socket) {
         // update game
         allGames[idx].player2 = allPlayers[idP];
         allGames[idx].state = 'running';
+        allGames[idx].addTurn();
         // who play first, update Player isFirst property
         var firstPlayer = whoPlayFirst(allGames[idx]);
+        if (firstPlayer == allGames[idx].player1.name) {
+          allGames[idx].player1.myTurn = true;
+          allGames[idx].player2.myTurn = false;
+        }
+        else {
+          allGames[idx].player1.myTurn = false;
+          allGames[idx].player2.myTurn = true;
+        }
         // get hand card
         var theHand1 = allGames[idx].player1.getCarte(3);
         var theHand2 = allGames[idx].player2.getCarte(3);
@@ -302,46 +327,64 @@ io.on('connection', function (socket) {
   // when the client emits 'newcarte'
   socket.on('newcarte', function (data) {
     console.log('receveived cmd addcarte from : ' + data.player + ' in room : ' + data.game);
-    var dstboard = translateBoard(data.dstboard);
-    var srcboard = translateBoard(data.srcboard);
-    var caseId = data.caseId;
-    var carte = data.carte;
-    // set up id and type
-    carte.id = allCartes.length;
-    // add the new Carte to allCartes
-    allCartes.push(carte);
-    // send only to the requester
-    socket.emit('newcarteok', {
-      message: "Carte created on board.",
-      carte: carte,
-      player: data.player
-    });
-    // send to all in the room except requester
-    socket.broadcast.to(data.game).emit('insertcarte', {
-      message: "New carte inserted.",
-      srcboard: srcboard,
-      dstboard: dstboard,
-      caseId: caseId,
-      carte: carte,
-      player: data.player
-    });
+    var idx = gameExist(data.name);
+    if (idx != -1) {
+      var dstboard = translateBoard(data.dstboard);
+      var srcboard = translateBoard(data.srcboard);
+      var caseId = data.caseId;
+      var carte = data.carte;
+      // set up id and type
+      carte.id = allCartes.length;
+      // add the new Carte to card game
+      allGames[idx].gameCard.push(carte);
+      // send only to the requester
+      socket.emit('newcarteok', {
+        message: "Carte created on board.",
+        carte: carte,
+        player: data.player
+      });
+      // send to all in the room except requester
+      socket.broadcast.to(data.game).emit('insertcarte', {
+        message: "New carte inserted.",
+        srcboard: srcboard,
+        dstboard: dstboard,
+        caseId: caseId,
+        carte: carte,
+        player: data.player
+      });
+    }
   });
   // when the client emits 'endturn'
   socket.on('endturn', function (game) {
     console.log('receveived cmd endturn from : ' + game.player + ' in room : ' + game.name);
-    idx = gameExist(game.name);
+    var idx = gameExist(game.name);
+    console.log('game exist ? ' + idx);
     if (idx != 1) {
-      allGames[idx].turn++;
       console.log('next turn is : ' + allGames[idx].turn + ' on : ' + maxRound);
+      // add one round
+      allGames[idx].addTurn();
+      var newCarte;
+      // get next player carte
+      if (game.opponent == allGames[idx].player1.name) {
+        newCarte = allGames[idx].player1.getCarte(1);
+      }
+      else {
+        newCarte = allGames[idx].player2.getCarte(1);
+      }
+      // get mana
+      var mana = Math.round(allGames[idx].turn/2);
+      if (mana > 10) {mana = 10;}
+      // to the sender
       socket.emit('endturnok', {
         validated: "Your turn is finish.",
         game: game.name,
-        first: false
       });
-      socket.broadcast.to(game.name).emit('endturnok', {
+      // to other
+      socket.broadcast.to(game.name).emit('newturn', {
         validated: "Your turn start now.",
         game: game.name,
-        first: true
+        mana: mana,
+        carte: newCarte
       });
     }
   });
@@ -349,7 +392,7 @@ io.on('connection', function (socket) {
   // when the client emits 'endgame'
   socket.on('endgame', function (game) {
     console.log('receveived cmd endgame from : ' + game.player + ' in room : ' + game.name);
-    idx = gameExist(game.name);
+    var idx = gameExist(game.name);
     if (idx != 1) {
       if (allGames[idx].turn >= maxRound) {
         console.log('End game : ' + game.name + ' from player : ' + game.player);
@@ -405,7 +448,6 @@ function gameExist(gamename) {
 function storeMovement(user, srcx, srcy, dstx, dsty) {
   allMoves.push(new Move(user, srcx, srcy, dstx, dsty));
 }
-
 function addToArray(myArray, elt) {
   var res = myArray.every(function(element, index, array) {
     //console.log('element :', element);
@@ -417,7 +459,7 @@ function addToArray(myArray, elt) {
   // if no exist
   if (res) {
     //console.log('add elt : ' + elt);
-    myArray[myArray.length] = elt;
+    myArray.push(elt);
     return myArray.length-1;
   }
   else {
@@ -436,7 +478,7 @@ function rmToArray(myArray, elt) {
   // if exist
   if (!res) {
     //console.log('rm elt : ' + elt);
-    ind = myArray.indexOf(elt);
+    var ind = myArray.indexOf(elt);
     delete myArray[ind];
     return true;
   }
@@ -497,4 +539,16 @@ function translateBoard(board) {
     return 'opponent';
   }
   return '';
+}
+
+function randomDeck(deck) {
+  for (var position=deck.length-1; position>=1; position--){
+    //hasard reçoit un nombre entier aléatoire entre 0 et position
+    var hasard=Math.floor(Math.random()*(position+1));
+    //Echange
+    var sauve=deck[position];
+    deck[position]=deck[hasard];
+    deck[hasard]=sauve;
+  }
+  return deck;
 }

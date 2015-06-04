@@ -18,24 +18,35 @@ var opponentAvatar;
 var allPlayersImages = [];
 var allImages = [];
 var allImagesMini = [];
+var allManaImages = [];
 function loadImages() {
   var maxImage = 10;
   var maxImageMini = 9;
   var maxImagePlayer = 6;
+  var maxImageMana = 2;
+  // normal images
   for (var i = 0; i < maxImage; i++) {
     var img = new Image();
     img.src = 'images/carte'+i+'.jpg';
     allImages[i] = img;
   }
+  // small images
   for (var i = 0; i < maxImageMini; i++) {
     var img = new Image();
     img.src = 'images/miniCarte'+i+'.png';
     allImagesMini[i] = img;
   }
+  // players images
   for (var i = 0; i < maxImagePlayer; i++) {
     var img = new Image();
     img.src = 'images/player'+i+'.png';
     allPlayersImages[i] = img;
+  }
+  // mana images
+  for (var i = 0; i < maxImageMana; i++) {
+    var eimg = new Image();
+    eimg.src = 'images/mana'+i+'.png';
+    allManaImages[i] = eimg;
   }
 }
 loadImages();
