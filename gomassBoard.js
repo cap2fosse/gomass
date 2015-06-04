@@ -90,9 +90,7 @@ opponentBoard.onclick = function() {
         this.selectedCarte = selectedCarte.clone();
         this.selectedCaseId = selectedCaseId;
         var power = playerPower.get(0);
-         // if its spellus or healus
-        if (power.titre == allPowerCartes[1].titre ||
-            power.titre == allPowerCartes[2].titre) {
+        if (playerPower.selectedCarte.titre != allPowerCartes[0].titre) { // if its not invocus
           console.log('Player attack Opponent with Power : ' + selectedCarte);
           var attackerBoard  = playerPower.id;
           var defenderBoard = this.id;
@@ -136,7 +134,6 @@ playerBoard.onclick = function() {
   var onHand = cardOnHand();
   if (!selectedCarte.visible && myTurn) {
     var dstboard = this.id;
-    var caseId = selectedCaseId;
     switch (onHand) {
       case 1: // from player
         // reset
@@ -152,10 +149,6 @@ playerBoard.onclick = function() {
             hand.active = true;
             hand.etat.charge = false;
           }
-          // if has onPlayed effect
-          if (hand.effet.declencheur == 'Played') {
-            applySpellEffect(playerHand.id, playerHand.selectedCaseId, playerHand.id, playerHand.selectedCaseId);
-          }
           // clone it and put it on board
           this.addClone(selectedCaseId, hand);
           // remove
@@ -165,7 +158,7 @@ playerBoard.onclick = function() {
           // prepare msg
           var thecarte = hand.clone();
           var srcboard = playerHand.id;
-          // emit message
+          // emit message : add new card on board
           socket.emit('addcarte', {
             player: playerName,
             srcboard: srcboard,
@@ -174,6 +167,12 @@ playerBoard.onclick = function() {
             carte: thecarte,
             game: gameName
           });
+          // get the new card
+          var newcard = this.get(selectedCaseId);
+          // if has onPlayed effect
+          if (newcard.effet.declencheur == 'Played') { // apply effect on myself
+            applySpellEffect(this.id, selectedCaseId, this.id, selectedCaseId);
+          }
         }
         // reset
         playerHand.initSelectedCarte();
@@ -181,8 +180,7 @@ playerBoard.onclick = function() {
         selectedCaseId = -1;
         break;
       case 4: // from power
-        // if its invocus
-        if (playerPower.get(0).titre == allPowerCartes[0].titre) {
+        if (playerPower.get(0).titre == allPowerCartes[0].titre) { // if its invocus
           // remove mana & inactive power
           playerPower.inactivateAll();
           // add new invocation
@@ -231,8 +229,7 @@ playerBoard.onclick = function() {
       }
     break;
     case 4: // from power
-      if (playerPower.get(0).titre == allPowerCartes[2].titre ||
-      playerPower.get(0).titre == allPowerCartes[1].titre) {
+      if (playerPower.selectedCarte.titre != allPowerCartes[0].titre) { // if its not invocus
         var attackerBoard  = playerPower.id;
         var defenderBoard = this.id;
         var attackerCaseId = playerPower.selectedCaseId;
@@ -382,8 +379,7 @@ opponent.onclick = function() {
       console.log(playerPower.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
           'From case : ' + playerPower.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
       // resolve attack here
-      if (playerPower.selectedCarte.titre == allPowerCartes[1].titre || // if its spellus
-      playerPower.selectedCarte.titre == allPowerCartes[2].titre) { // if its healus
+      if (playerPower.selectedCarte.titre != allPowerCartes[0].titre) { // if its not invocus
         var attackerBoard  = playerPower.id;
         var defenderBoard = this.id;
         var attackerCaseId = playerPower.selectedCaseId;
@@ -440,8 +436,7 @@ player.onclick = function() {
         console.log(playerPower.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
             'From case : ' + playerPower.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
         // resolve attack here
-        if (playerPower.selectedCarte.titre == allPowerCartes[1].titre || // if its spellus
-        playerPower.selectedCarte.titre == allPowerCartes[2].titre) { // if its healus
+        if (playerPower.selectedCarte.titre != allPowerCartes[0].titre) { // if its not invocus
           var attackerBoard  = playerPower.id;
           var defenderBoard = this.id;
           var attackerCaseId = playerPower.selectedCaseId;
@@ -533,8 +528,8 @@ playerDeck.fill = function() {
   }
 }
 
-var playerSelector = new Board('playerSelector', 200, 20, 100, 150);
-playerSelector.create(3, 1, 0);
+var playerSelector = new Board('playerSelector', 150, 20, 100, 150);
+playerSelector.create(4, 1, 0);
 document.body.appendChild(playerSelector);
 playerSelector.onclick = function() {
   if (selectedCarte.visible) {
@@ -725,7 +720,7 @@ function applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defender
     }
   }
   // remove the spell from hand
-  if (attCarte.type != 'Player' && attCarte.type != 'PlayerSpell') {
+  if (attCarte.type == 'Spell') {
     socket.emit('cardplayed', {
       game: gameName,
       player: playerName

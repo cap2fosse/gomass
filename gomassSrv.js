@@ -611,40 +611,39 @@ function rmToArray(myArray, elt) {
 }
 
 function loadPlayer() {
-    var invocus = new Carte(0, 'Normal', 'Player', 0, true, 2, 0, 0, 30, 'invocus', 'Invocation');
-    var invocusSpell = new Carte(0, 'Normal', 'PlayerSpell', 0, true, 2, 1, 0, 1, 'invocusSpell');
-    var spellus = new Carte(1, 'Normal', 'Player', 1, true, 2, 0, 0, 30, 'spellus');
-    spellus.effet.id = 1;
-    spellus.effet.zone = 'Single';
-    spellus.effet.impact = 'any';
-    spellus.effet.declencheur = 'Immediat';
-    spellus.effet.modifVie = -1;
-    spellus.setDescription();
-    var spellusSpell = new Carte(1, 'Normal', 'PlayerSpell', 1, true, 2, 0, 0, 0, 'spellusSpell');
-    spellusSpell.effet.id = 1;
-    spellusSpell.effet.zone = 'Single';
-    spellusSpell.effet.impact = 'any';
-    spellusSpell.effet.declencheur = 'Immediat';
-    spellusSpell.effet.modifVie = -1;
-    spellusSpell.setDescription();
-    var healus = new Carte(2, 'Normal', 'Player', 2, true, 2, 0, 0, 30, 'healus');
-    healus.effet.id = 2;
-    healus.effet.zone = 'Single';
-    healus.effet.impact = 'any';
-    healus.effet.declencheur = 'Immediat';
-    healus.effet.modifVie = 1;
-    healus.setDescription();
-    var healusSpell = new Carte(2, 'Normal', 'PlayerSpell', 2, true, 2, 0, 0, 0, 'healusSpell');
-    healusSpell.effet.id = 2;
-    healusSpell.effet.zone = 'Single';
-    healusSpell.effet.impact = 'any';
-    healusSpell.effet.declencheur = 'Immediat';
-    healusSpell.effet.modifVie = 1;
-    healusSpell.setDescription();
-    allAvatars = [invocus, spellus, healus];
-    allPowers = [invocusSpell, spellusSpell, healusSpell];
-    console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus);
-    console.log('AvatarSpell 1 : ' + invocusSpell + ' AvatarSpell 2 : ' + spellusSpell + ' AvatarSpell 3 : ' + healusSpell);
+  // players
+  var invocus = new Carte(0, 'Normal', 'Player', 0, true, 2, 0, 0, 30, 'invocus');
+  var spellus = new Carte(1, 'Normal', 'Player', 1, true, 2, 0, 0, 30, 'spellus');
+  var healus = new Carte(2, 'Normal', 'Player', 2, true, 2, 0, 0, 30, 'healus');
+  var armorus = new Carte(3, 'Normal', 'Player', 3, true, 2, 0, 0, 30, 'armorus');
+  // spell players
+  var invocusSpell = new Carte(0, 'Normal', 'PlayerSpell', 0, true, 2, 1, 0, 1, 'invocusSpell');
+  var spellusSpell = new Carte(1, 'Normal', 'PlayerSpell', 1, true, 2, 0, 0, 0, 'spellusSpell');
+  spellusSpell.effet.id = 1;
+  spellusSpell.effet.zone = 'Single';
+  spellusSpell.effet.impact = 'any';
+  spellusSpell.effet.declencheur = 'Immediat';
+  spellusSpell.effet.modifVie = -1;
+  spellusSpell.setDescription();
+  var healusSpell = new Carte(2, 'Normal', 'PlayerSpell', 2, true, 2, 0, 0, 0, 'healusSpell');
+  healusSpell.effet.id = 2;
+  healusSpell.effet.zone = 'Single';
+  healusSpell.effet.impact = 'any';
+  healusSpell.effet.declencheur = 'Immediat';
+  healusSpell.effet.modifVie = 1;
+  healusSpell.setDescription();
+  var armorusSpell = new Carte(3, 'Normal', 'PlayerSpell', 3, true, 2, 0, 0, 0, 'armorusSpell');
+  armorusSpell.effet.id = 3;
+  armorusSpell.effet.zone = 'Single';
+  armorusSpell.effet.impact = 'any';
+  armorusSpell.effet.declencheur = 'Immediat';
+  armorusSpell.effet.modifDefense = 1;
+  armorusSpell.setDescription();
+  // global arrays
+  allAvatars = [invocus, spellus, healus, armorus];
+  allPowers = [invocusSpell, spellusSpell, healusSpell, armorusSpell];
+  console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus + ' Avatar 4 : ' + armorus);
+  console.log('AvatarSpell 1 : ' + invocusSpell + ' AvatarSpell 2 : ' + spellusSpell + ' AvatarSpell 3 : ' + healusSpell + ' AvatarSpell 4 : ' + armorusSpell);
 }
 
 function loadCartes() {

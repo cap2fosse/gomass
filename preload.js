@@ -16,6 +16,7 @@ var maxCartes = 80;
 // END GLOBAL VAR
 // preload images
 var allPlayersImages = [];
+var allCartesImages = [];
 var allInvocationImages = [];
 var allSpellImages = [];
 var allEquipmentImages = [];
@@ -29,10 +30,17 @@ function loadImages() {
   var maxInvocationImage = 8;
   var maxSpellImage = 8;
   var maxEquipmentImage = 8;
+  var maxCartesImage = 8;
   var maxImageMini = 8;
-  var maxImagePlayer = 3;
+  var maxImagePlayer = 4;
   var maxImageMana = 2;
-  var maxImagePlayerSpell = 3;
+  var maxImagePlayerSpell = 4;
+  // CartesImage images
+  for (var i = 1; i <= maxCartesImage; i++) {
+    var img = new Image();
+    img.src = 'images/carte'+i+'.png';
+    allCartesImages[i] = img;
+  }
   // InvocationImage images
   for (var i = 0; i < maxInvocationImage; i++) {
     var img = new Image();
