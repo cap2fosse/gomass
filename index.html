@@ -24,11 +24,10 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 // BEGIN UI
 var infoDiv = new gomassInfo(150, 250, 'info');
-var infoTxt = '<h2>1 - Connect to Gomass Game</h2><p>To begin, choose a name and click <b>connect</b> button.</p>';
-infoDiv.setText(infoTxt);
+displayInfo(1);
 // Up area
-var userNameT = new gomassButton(850, 10, "text", '');
-var userNameB = new gomassButton(1000, 10, "button", "connect");
+var userNameT = new gomassButton(650, 10, "text", '');
+var userNameB = new gomassButton(800, 10, "button", "connect");
 userNameB.onclick = function() {
   if (userNameT.value != '') {
     // init playerName
@@ -39,15 +38,11 @@ userNameB.onclick = function() {
     userNameB.disabled = true;
     userNameT.disabled = true;
     // change info
-    infoTxt = '<h2>2 - Avatar selection</h2><p>Choose your Avatar : <ul>'+
-    '<li>Invocus : Put a new card on player board for 2 mana</li>'+
-    '<li>Spellus : Attack a card or a player for 2 mana</li>'+
-    '<li>Healus : Add one life to a card on player board</li></ul></p>';
-    infoDiv.setText(infoTxt);
+    displayInfo(2);
   }
 }
-var createT = new gomassButton(850, 50, "text", '');
-var createB = new gomassButton(1000, 50, "button", ".create.");
+var createT = new gomassButton(650, 40, "text", '');
+var createB = new gomassButton(800, 40, "button", ".create.");
 createB.onclick = function(game) {
   if (createT.value != '') {
     // init gameName
@@ -59,13 +54,12 @@ createB.onclick = function(game) {
       player: playerName
     });
     // show info
-    infoTxt = '<h2>5 - Wait until someone join the game</h2>';
-    infoDiv.setText(infoTxt);
+    displayInfo(5);
     console.log('create game : ' + createT.value);
   }
 }
-var gomassListGame = new gomassCombo(850, 90, "gameList");
-var joinB = new gomassButton(1000, 90, "button", ".join.");
+var gomassListGame = new gomassCombo(650, 70, "gameList");
+var joinB = new gomassButton(800, 70, "button", ".join.");
 joinB.onclick = function(game) {
   if (gomassListGame.value != '') {
     disableCommands(true);
@@ -79,7 +73,7 @@ joinB.onclick = function(game) {
   }
 }
 // Middle area
-var endTurnB = new gomassButton(1000, 295, "button", "end turn");
+var endTurnB = new gomassButton(650, 550, "button", "end turn");
 endTurnB.style.visibility = "hidden";
 endTurnB.onclick = function() {
     socket.emit('endturn', {
@@ -89,15 +83,15 @@ endTurnB.onclick = function() {
     });
     endTurnB.disabled = true;
 }
-var deckB = new gomassButton(1000, 355, "button", ".deck.");
+var deckB = new gomassButton(650, 600, "button", ".deck.");
 deckB.onclick = function() {
   // hide info
   infoDiv.visible(false);
   // show deck ui
   showDeckBuilder(true);
-  disableCommands(true);
+  hideCommands(true);
 }
-var finishDeckB = new gomassButton(1000, 395, "button", "finish");
+var finishDeckB = new gomassButton(300, 550, "button", "finish");
 finishDeckB.style.visibility = "hidden";
 finishDeckB.onclick = function() {
   // check if deck is complete
@@ -115,21 +109,19 @@ finishDeckB.onclick = function() {
   // hide finish and clear buttons
   this.hide(true);
   clearB.hide(true);
+  hideCommands(false);
   // show info
-  infoTxt = '<h2>4 - Create or Join a game</h2>'+
-  '<ul><li>Choose a game name and click on <b>.create.</b> button.</li>'+
-  '<li>Or select a game and click on <b>.join.</b> button.</li>'+
-  '<li>You can also modify your deck with the <b>.deck.</b> button.</li>';
-  infoDiv.setText(infoTxt);
+  displayInfo(4);
   infoDiv.visible(true);
 }
-var clearB = new gomassButton(1000, 425, "button", ".clear.");
+var clearB = new gomassButton(360, 550, "button", ".clear.");
 clearB.style.visibility = "hidden";
 clearB.onclick = function() {
   playerDeck.clearAll();
   allCarte.unselectAll();
 }
 // Down area
+/*
 var gomassChat = new gomassBox(820, 500, "chatArea");
 var sendT = new gomassButton(820, 580, "text", "talk");
   sendT.size = 20;sendT.value = '';
@@ -141,6 +133,7 @@ sendB.onclick = function() {
     }
   );
 }
+*/
 // disable all buttons
 disableCommands(true);
 resetAllBoards();
@@ -179,6 +172,15 @@ function gomassBox(x, y, val) {
   element.style.left = x;
   element.style.top = y;
   element.disabled = false;
+  element.hide = function(on) {
+    this.disabled = on;
+    if (on) {
+      this.style.visibility = "hidden";
+    }
+    else {
+      this.style.visibility = "visible";
+    }
+  };
   document.body.appendChild(element);
   return element;
 }
@@ -237,6 +239,15 @@ function gomassCombo(x, y, val) {
     opt.selected = true;
     this.add(opt);
   };
+  element.hide = function(on) {
+    this.disabled = on;
+    if (on) {
+      this.style.visibility = "hidden";
+    }
+    else {
+      this.style.visibility = "visible";
+    }
+  };
   return element;
 }
 //-----------------------------------------------------------
@@ -246,6 +257,13 @@ function disableCommands(b) {
   joinB.disabled = b;
   gomassListGame.disabled = b;
   deckB.disabled = b;
+}
+function hideCommands(b) {
+  createB.hide(b);
+  createT.hide(b);
+  joinB.hide(b);
+  gomassListGame.hide(b);
+  deckB.hide(b);
 }
 function loadNewGame() {
   // reset all
@@ -258,12 +276,38 @@ function loadNewGame() {
   // choose a new avatar
   playerSelector.setVisibility(true);
   // change info
-  infoTxt = '<h2>2 - Avatar selection</h2><p>Choose your Avatar : <ul>'+
-  '<li>Invocus : Put a new card on player board for 2 mana</li>'+
-  '<li>Spellus : Attack a card or a player for 2 mana</li>'+
-  '<li>Healus : Add one life to a card on player board</li></ul></p>';
-  infoDiv.setText(infoTxt);
-  //infoDiv.visible(true);
+  displayInfo(2);
+}
+function displayInfo(num) {
+  var txt = '';
+  switch (num) {
+    case 1:
+    txt = '<h2>1 - Connect to Gomass Game</h2>'+
+    '<p>To begin, choose a name and click <b>connect</b> button.</p>';
+    break;
+    case 2:
+    txt = '<h2>2 - Avatar selection</h2><p>Choose your Avatar : <ul>'+
+    '<li>Invocus : Invocate a new creature 1/1 for 2 mana.</li>'+
+    '<li>Spellus : Do 1 damage to a creature or a player for 2 mana.</li>'+
+    '<li>Healus : Add 1 life to a creature for 2 mana.</li></ul></p>';
+    break;
+    case 3:
+    txt = '<h2>3 - Deck selection</h2><p>Choose your Deck : </p>'+
+    '<p>Click <b>.deck.</b> button and choose your card.</p>'+
+    '<p>Click <b>finish</b> button to complete selection.</p>';
+    break;
+    case 4:
+    txt = '<h2>4 - Create or Join a game</h2>'+
+    '<ul><li>Choose a game name and click <b>.create.</b> button.</li>'+
+    '<li>Or select a game and click <b>.join.</b> button.</li>'+
+    '<li>You can also modify your deck with <b>.deck.</b> button.</li>';
+    break;
+    case 5:
+    txt = '<h2>5 - Wait until someone join the game.</h2>';
+    break;
+    default:
+  }
+  infoDiv.setText(txt);
 }
 console.log('Finish index.js');
 //-----------------------------------------------------------

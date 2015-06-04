@@ -50,10 +50,7 @@ socket.on('avatarok', function(message) {
     // hide avatar board
     playerSelector.setVisibility(false);
     // change info
-    infoTxt = '<h2>3 - Deck selection</h2><p>Choose your Deck : </p>'+
-    '<p>Click on the <b>.deck.</b> button and choose your card.</p>'+
-    '<p>Click on <b>finish</b> button to finish selection</p>';
-    infoDiv.setText(infoTxt);
+    displayInfo(3);
     console.log('Received avatarok : ' + message.accepted);
   }
   else {
@@ -210,6 +207,9 @@ socket.on('endturnok', function(message) {
   // set hiding opponent hand
   var ocarte = backCard.clone();
   opponentHand.addLast(ocarte);
+  // clean boards
+  playerBoard.inactivateAll();
+  opponentBoard.inactivateAll();
 })
 socket.on('newturn', function(message) {
   console.log('Received newturn : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
@@ -228,13 +228,14 @@ socket.on('newturn', function(message) {
 })
 
 socket.on('endgameok', function(message) {
+  var infoTxt = '';
   console.log('Received endgameok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
   // win the game?
   if (message.win) {
-    infoTxt = '<h2>6 - End of game</h2><p>You win the game : ' + message.game + ' you are the boss ' + playerName + '</p>';
+    infoTxt = '<h2>6 - End of game</h2><p>You <b>win</b> the game : ' + message.game + ' you are the boss ' + playerName + '</p>';
   }
   else {
-    infoTxt = '<h2>6 - End of game</h2><p>You loose the game : ' + message.game + ' may be next time ' + playerName + '</p>';
+    infoTxt = '<h2>6 - End of game</h2><p>You <b>loose</b> the game : ' + message.game + ' may be next time ' + playerName + '</p>';
   }
   // game is finish
   endTurnB.disabled = true;

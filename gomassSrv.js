@@ -599,27 +599,40 @@ function loadCartes() {
   }
 }
 function doEtat(carte) {
-  var hasard = Math.floor(Math.random() * 100) + 1;
+  var hasard = Math.floor(Math.random() * 100);
+  var defense = -1;
+  var attack = -1;
   if (hasard < 10) {
     carte.special = 'Provocate';
     carte.etat.provocator = true;
+    malus(-1, 0);
   }
   if (hasard >= 10 && hasard < 20) {
     carte.special = 'Furie';
-    carte.etat.furie = true;
+    carte.etat.activeFurie();
+    malus(-1, -1);
   }
   if (hasard >= 20 && hasard < 30) {
     carte.special = 'Divin';
     carte.etat.divin = true;
+    malus(-1, -1);
   }
   if (hasard >= 30 && hasard < 40) {
     carte.special = 'Hide';
     carte.etat.hide = true;
+    malus(-1, 0);
   }
   if (hasard >= 40 && hasard < 50) {
     carte.special = 'Charge';
     carte.etat.charge = true;
+    malus(0, -1);
   }
+  function malus(att, def) {
+    var a = parseInt(carte.attaque);
+    var d = parseInt(carte.defense);
+    if (a + att > 0) {carte.attaque = String(a + att);}
+    if (d + def > 0) {carte.defense = String(d + def);}
+  };
 }
 function translateBoard(board) {
   if (board == 'playerBoard') {

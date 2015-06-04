@@ -171,12 +171,19 @@ function Board(name, posx, posy, caseW, caseH) {
   // active all visible carte
   objBoard.activateAll = function() {
     for (var caseid = 0; caseid < this.cases.length; caseid++) {
-      if (this.cases[caseid].carte.visible) {
-        this.cases[caseid].carte.active = true;
+      if (this.cases[caseid].carte.visible && !this.cases[caseid].carte.stun) {
+        this.cases[caseid].carte.activate(true);
       }
       else {
-        this.cases[caseid].carte.active = false;
+        this.cases[caseid].carte.activate(false);
       }
+      this.cases[caseid].draw();
+    }
+  };
+  // inactive all carte
+  objBoard.inactivateAll = function() {
+    for (var caseid = 0; caseid < this.cases.length; caseid++) {
+      this.cases[caseid].carte.activate(false);
       this.cases[caseid].draw();
     }
   };
@@ -363,7 +370,7 @@ function Case(casex, casey, id, boardName, width, height) {
       this.ctx.lineWidth = lineW;
       this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
     }
-    else if (this.carte.etat.furie) {
+    else if (this.carte.etat.furie > 0) {
       this.ctx.strokeStyle = "rgb(207,27,0)";
       this.ctx.lineWidth = lineW;
       this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
@@ -620,5 +627,4 @@ function manageCoutButton(posx, posy, nbButtonX, nbButtonY) {
 
   return allCoutB;
 }
-
 console.log('Finish Board.js');

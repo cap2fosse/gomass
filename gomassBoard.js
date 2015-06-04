@@ -1,13 +1,13 @@
 "use strict";
 console.log('Start gomasBoard.js');
 var opponentHand = new Board('opponentHand', 0, 0, 100, 150);
-opponentHand.create(8, 1, 0);
+opponentHand.create(6, 1, 0);
 document.body.appendChild(opponentHand);
 opponentHand.onclick = function() { 
   console.log("Can't select carte!");
 }
 var opponentBoard = new Board('opponentBoard', 0, 170, 100, 150);
-opponentBoard.create(8, 1, 0);
+opponentBoard.create(6, 1, 0);
 document.body.appendChild(opponentBoard);
 opponentBoard.onclick = function() {
   if (selectedCarte.visible && myTurn) {
@@ -86,7 +86,7 @@ opponentBoard.provocate = function() {
 }
 
 var playerBoard = new Board('playerBoard', 0, 320, 100, 150);
-playerBoard.create(8, 1, 0);
+playerBoard.create(6, 1, 0);
 document.body.appendChild(playerBoard);
 // pass active all visible cartes in playerBoard
 playerBoard.onclick = function() {
@@ -193,7 +193,7 @@ playerBoard.onclick = function() {
 }
 
 var playerHand = new Board('playerHand', 0, 490, 100, 150);
-playerHand.create(8, 1, 0);
+playerHand.create(6, 1, 0);
 document.body.appendChild(playerHand);
 playerHand.onclick = function() {
   if (selectedCarte.visible && myTurn) {
@@ -218,7 +218,7 @@ playerHand.onclick = function() {
   selectedCarte.init();
   selectedCaseId = -1;
 }
-var opponent = new Board('opponent', 850, 140, 100, 150);
+var opponent = new Board('opponent', 650, 140, 100, 150);
 opponent.create(1, 1, 0);
 document.body.appendChild(opponent);
 opponent.onclick = function() {
@@ -290,7 +290,7 @@ opponent.onclick = function() {
   }
 }
 
-var player = new Board('player', 850, 320, 100, 150);
+var player = new Board('player', 650, 320, 100, 150);
 player.create(1, 1, 0);
 document.body.appendChild(player);
 player.onclick = function() {
@@ -412,7 +412,7 @@ playerSelector.fill = function(){
   this.setVisibility(true);
 }
 
-var manaBoard = new ManageMana(960, 440, 10, 1);
+var manaBoard = new ManageMana(650, 500, 10, 1);
 manaBoard.create();
 document.body.appendChild(manaBoard);
 
@@ -493,6 +493,13 @@ function doAttackOn(board, caseId, attack) {
   var theBoard = getBoard(board);
   var theCarte = theBoard.get(caseId);
   var defLife = theCarte.defense - attack;
+  if (theCarte.etat.hide) { //hide nothing happen
+    return;
+  }
+  if (theCarte.etat.divin) { // it's not a divine carte
+    defLife = theCarte.defense;
+    theCarte.etat.divin = false;
+  }
   if (defLife <= 0) {
     if (board == opponent.id) { // the opponent is dead
       theCarte.init(); // carte is dead
@@ -533,10 +540,17 @@ function resolveAttack(attackerBoard, attackerCaseId, defenderBoard, defenderCas
   var attCarte = attBoard.get(attackerCaseId);
   var defCarte = defBoard.get(defenderCaseId);
   var defLife = defCarte.defense - attCarte.attaque;
+  attCarte.active = false; // inactive attack carte
+  if (attCarte.etat.hide) { // unhidden
+    attCarte.etat.hide = false;
+  }
+  if (attCarte.etat.furie > 0) {
+    attCarte.active = true;
+    attCarte.etat.furie--;
+  }
   if (defLife <= 0) {
     if (defenderBoard == opponent.id) { // the opponent is dead
       defCarte.init(); // carte is dead
-      attCarte.active = false; // inactive attack carte
       // send the end game message
       socket.emit('endgame', {
         name: gameName,
@@ -545,7 +559,6 @@ function resolveAttack(attackerBoard, attackerCaseId, defenderBoard, defenderCas
     }
     else {
       defCarte.init(); // carte is dead
-      attCarte.active = false; // inactive attack carte
       // emit the remove message
       socket.emit('remove', {
         player: playerName,
@@ -557,7 +570,6 @@ function resolveAttack(attackerBoard, attackerCaseId, defenderBoard, defenderCas
   }
   else {
     defCarte.defense = defLife; // not die change is life
-    attCarte.active = false; // inactive attack carte
     // emit the change message
     socket.emit('change', {
       player: playerName,
@@ -576,61 +588,70 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   var defBoard = getBoard(defenderBoard);
   var attCarte = attBoard.get(attackerCaseId);
   var defCarte = defBoard.get(defenderCaseId);
-    var defLife = defCarte.defense - attCarte.attaque;
-    var attLife = attCarte.defense - defCarte.attaque;
-    if (defCarte.etat.divin) { // it's not a divine carte
-      defLife = defCarte.defense;
-      defCarte.etat.divin = false;
-    }
-    if (attCarte.etat.divin) { // it's not a divine carte
-      attLife = attCarte.defense;
-      attCarte.etat.divin = false;
-    }
-    // defender
-    if (defLife <= 0) {
-      defCarte.init(); // carte is dead
-      attCarte.active = false; // inactive attack carte
-      // emit the remove message
-      socket.emit('remove', {
-        player: playerName,
-        game: gameName,
-        board: defenderBoard,
-        caseid: defenderCaseId
-      });
-    }
-    else {
-      defCarte.defense = defLife; // not die change is life
-      attCarte.active = false; // inactive attack carte
-      // emit the change message
-      socket.emit('change', {
-        player: playerName,
-        game: gameName,
-        board: defenderBoard,
-        caseid: defenderCaseId,
-        carte: defCarte
-      });
-    }
-    // attack
-    if (attLife <= 0) {
-      attCarte.init();
-      socket.emit('remove', {
-        player: playerName,
-        game: gameName,
-        board: attackerBoard,
-        caseid: attackerCaseId
-      });
-    }
-    else {
-      attCarte.defense = attLife;
-      attCarte.active = false; // inactive attack carte
-      socket.emit('change', {
-        player: playerName,
-        game: gameName,
-        board: attackerBoard,
-        caseid: attackerCaseId,
-        carte: attCarte
-      });
-    }
+  var defLife = defCarte.defense - attCarte.attaque;
+  var attLife = attCarte.defense - defCarte.attaque;
+  attCarte.active = false; // inactive attack carte
+  if (defCarte.etat.hide) { //hide nothing happen
+    attCarte.active = true;
+    return;
+  }
+  if (attCarte.etat.hide) { // unhidden
+    attCarte.etat.hide = false;
+  }
+  if (defCarte.etat.divin) { // it's not a divine carte
+    defLife = defCarte.defense;
+    defCarte.etat.divin = false;
+  }
+  if (attCarte.etat.divin) { // it's not a divine carte
+    attLife = attCarte.defense;
+    attCarte.etat.divin = false;
+  }
+  if (attCarte.etat.furie > 0) {
+    attCarte.active = true;
+    attCarte.etat.furie--;
+  }
+  // defender
+  if (defLife <= 0) {
+    defCarte.init(); // carte is dead
+    // emit the remove message
+    socket.emit('remove', {
+      player: playerName,
+      game: gameName,
+      board: defenderBoard,
+      caseid: defenderCaseId
+    });
+  }
+  else {
+    defCarte.defense = defLife; // not die change is life
+    // emit the change message
+    socket.emit('change', {
+      player: playerName,
+      game: gameName,
+      board: defenderBoard,
+      caseid: defenderCaseId,
+      carte: defCarte
+    });
+  }
+  // attack
+  if (attLife <= 0) {
+    attCarte.init();
+    socket.emit('remove', {
+      player: playerName,
+      game: gameName,
+      board: attackerBoard,
+      caseid: attackerCaseId
+    });
+  }
+  else {
+    attCarte.defense = attLife;
+    socket.emit('change', {
+      player: playerName,
+      game: gameName,
+      board: attackerBoard,
+      caseid: attackerCaseId,
+      carte: attCarte
+    });
+  }
   // draw all changes
   attBoard.getCase(attackerCaseId).draw();
   defBoard.getCase(defenderCaseId).draw();

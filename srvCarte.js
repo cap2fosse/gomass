@@ -37,7 +37,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, titre, desc, a
     return "Carte : " + "id : " + this.id + " - " + "cout : " + this.cout + " - " + "attaque: " + this.attaque
             + " - " + "defense: " + this.defense + " - " + "titre: " + this.titre + " - " + "description: " + this.description
             + " - " + "visible: " + this.visible  + " - " + "active: " + this.active  + " - " + "typeimg: " + this.typeimg
-            + " - " + "type : " + this.type + '||' + this.effet.toString() + '||' + this.etat.toString();
+            + " - " + "type : " + this.type + '|| ' + this.effet.toString() + '|| ' + this.etat.toString();
   };
   this.init = function() {
     this.id = -1;
@@ -55,6 +55,12 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, titre, desc, a
     this.etat = new Etat();
     this.active = false;
     this.selected = false;
+  };
+  this.activate = function(on) {
+    this.active = on;
+    if (on && this.etat.maxfurie > 0) {
+      this.etat.furie = this.etat.maxfurie;
+    }
   };
 }
 Carte.prototype = {
@@ -134,21 +140,28 @@ function Etat(provocator, charge, silent, furie, divin, stun, rage, hide) {
   else {this.rage = Etat.prototype.rage;}
   if (hide != undefined) {this.hide = hide;}
   else {this.hide = Etat.prototype.hide;}
+  if (this.furie > 0) {this.maxfurie = 1;}
+  else {this.maxfurie = 0;}
   this.toString = function() {
     return "Etat : " + "provocator : " + this.provocator + " - " + "charge : " + this.charge + " - " + "silent: " + this.silent
             + " - " + "furie: " + this.furie + " - " + "divin: " + this.divin
             + " - " + "stun: " + this.stun + " - " + "rage: " + this.rage + " - " + "hide: " + this.hide;
+  };
+  this.activeFurie = function() {
+    this.maxfurie = 1;
+    this.furie = this.maxfurie;
   };
 }
 Etat.prototype = {
   provocator : false,
   charge : false,
   silent : false,
-  furie : false,
+  furie : 0,
   divin : false,
   stun : false,
   rage : false,
-  hide : false
+  hide : false,
+  maxfurie : 2
 };
 module.exports = Carte;
 console.log('Finish srvCarte.js');
