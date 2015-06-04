@@ -597,6 +597,7 @@ playerPower.onclick = function() {
         this.selectedCaseId = selectedCaseId;
         console.log('Selected power : ' + selectedCarte);
       }
+      else {console.log('Not enougth mana!');}
       break;
       case 4: // unselect the carte
         this.initSelectedCarte();

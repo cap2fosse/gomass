@@ -89,6 +89,7 @@ finishSelectB.onclick = function() {
   socket.emit('removedhandcard', {
     player: playerName,
     iscreator: creator,
+    myturn: myTurn,
     numbercard: cardSelector.numberOfCardAsked,
     room: gameName
   });
