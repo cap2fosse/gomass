@@ -1,5 +1,4 @@
 console.log('Start gomasBoard.js');
-var allGameCartes = [];
 var opponentHand = new Board('opponentHand', 0, 0);
 opponentHand.create(8, 1);
 document.body.appendChild(opponentHand);
@@ -61,10 +60,25 @@ document.body.appendChild(playerBoard);
 playerBoard.onclick = function() {
   var onHand = cardOnHand();
   if (!selectedCarte.visible && myTurn) {
+    var dstboard = this.id;
+    var caseId = selectedCaseId;
     switch (onHand) {
       case 1: // player do invocation on board
-        this.add(selectedCaseId, player.selectedCarte.clone());
-        console.log('Player invocation : ' + this.get(selectedCaseId));
+        if (player.get(0).description == 'invocus') {
+          this.add(selectedCaseId, player.selectedCarte.clone());
+          console.log('Player invocation : ' + this.get(selectedCaseId));
+          var carteId = player.selectedCarte.id;
+          var srcboard = 'player';
+          // emit message
+          socket.emit('newcarte', {
+            player: playerName,
+            srcboard: srcboard,
+            dstboard: dstboard,
+            caseId: caseId,
+            carte: allAvatarsCartes[0],
+            game: gameName
+          });
+        }
         // reset
         player.initSelectedCarte();
         selectedCarte.init();
@@ -74,6 +88,17 @@ playerBoard.onclick = function() {
         this.add(selectedCaseId, playerHand.selectedCarte);
         playerHand.remove(playerHand.selectedCaseId);
         console.log('Put a carte on board : ' + this.get(selectedCaseId));
+        var carteId = playerHand.selectedCarte.id;
+        var srcboard = 'playerHand';
+        // emit message
+        socket.emit('addcarte', {
+          player: playerName,
+          srcboard: srcboard,
+          dstboard: dstboard,
+          caseId: caseId,
+          carteId: carteId,
+          game: gameName
+        });
         // reset
         playerHand.initSelectedCarte();
         selectedCarte.init();
@@ -128,7 +153,6 @@ playerHand.onclick = function() {
     console.log("Can't select carte!");
   }
 }
-
 var opponent = new Board('opponent', 850, 140);
 opponent.create(1, 1);
 document.body.appendChild(opponent);
@@ -198,21 +222,31 @@ player.onclick = function() {
   selectedCaseId = -1;
 }
 
-var allCarte = new Board('player', 0, 0);
-allCarte.create(6, 8);
+var allCarte = new Board('allCarte', 0, 0);
+allCarte.create(6, 14);
 document.body.appendChild(allCarte);
 allCarte.onclick = function() {
   if (selectedCarte.visible) {
-    var myMini = new MiniCarte(selectedCarte.id, selectedCarte.imgid, selectedCarte.cout, selectedCarte.titre, selectedCarte.visible);
+    var myMini = new Carte(selectedCarte.id, selectedCarte.imgid, selectedCarte.cout, selectedCarte.attaque, selectedCarte.defense, selectedCarte.titre, selectedCarte.description, selectedCarte.visible, selectedCarte.active, 1);
     playerDeck.add(myMini);
     console.log("Select carte : " + selectedCarte);
   }
   selectedCarte.init();
   selectedCaseId = -1;
 }
+// fill the cartes array from server
+allCarte.fill = function(){
+  var srvCard;
+  var card;
+  for (var id = 0; id < allGameCartes.length; id++) {
+    srvCard = allGameCartes[id];
+    card = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
+    this.add(id, card);
+  }
+}
 
 var playerDeck = new MiniBoard('playerDeck', 650, 50);
-playerDeck.create(1, 30);
+playerDeck.create(1, maxDeckCarte);
 document.body.appendChild(playerDeck);
 playerDeck.onclick = function() {
   if (selectedCarte.visible) {
@@ -222,6 +256,33 @@ playerDeck.onclick = function() {
   selectedCaseId = -1;
 }
 
+var playerSelector = new Board('playerSelector', 200, 20);
+playerSelector.create(3, 1);
+document.body.appendChild(playerSelector);
+playerSelector.onclick = function() {
+  if (selectedCarte.visible) {
+    socket.emit('avatar', {
+      player: playerName,
+      id: selectedCarte.imgid
+    });
+    var srvCard = allAvatarsCartes[selectedCaseId];
+    playerAvatar = new Carte(srvCard.id, srvCard.imgid, '', '', '', playerName, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
+    player.add(0, playerAvatar);
+    console.log("Select avatar : " + selectedCarte);
+  }
+  selectedCarte.init();
+  selectedCaseId = -1;
+}
+playerSelector.fill = function(){
+  var srvCard;
+  var card;
+  for (var id = 0; id < allAvatarsCartes.length; id++) {
+    srvCard = allAvatarsCartes[id];
+    card = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, srvCard.type);
+    this.add(id, card);
+  }
+  this.setVisibility(true);
+}
 // return 0 if no card on hand
 function cardOnHand() {
   if (player.selectedCarte.visible) return 1;
@@ -229,111 +290,31 @@ function cardOnHand() {
   else if (playerBoard.selectedCarte.visible) return 3;
   else return 0;
 }
-function initAllBoards() {
-  opponentHand.initCartes();
-  opponentBoard.initCartes();
-  playerBoard.initCartes();
-  playerHand.initCartes();
-}
 function showDeckBuilder(on) {
-  appendAllCarte();
+  allCarte.fill();
   allCarte.setVisibility(on);
   playerDeck.setVisibility(on);
+  finishDeckB.hide(!on);
+  deckB.hide(on);
 }
-function showAllBoards(on) {
-  var p1 = new Carte(0, 1, "", "", "30", playerName, "", true, false);
-  var p2 = new Carte(0, 2, "", "", "30", opponentName, "", true, false);
-  var c1 = new Carte(1, 1, "1", "1", "1", "soldat", "soldat", true, false);
-  var c2 = new Carte(2, 2, "2", "2", "2", "sergent", "sergent", true, false);
-  var c4 = new Carte(4, 4, "4", "4", "4", "lieutenant", "lieutenant", true, false);
-  playerHand.add(0, c1);
-  playerHand.add(1, c2);
-  playerBoard.add(3, c4);
-  playerHand.add(2, c1);
-  playerBoard.add(4, c2);
-  opponentBoard.add(3, c1);
-  opponentBoard.add(5, c4);
+function resetDeckBuilder() {
+  allCarte.initCartes();
+  playerDeck.initCartes();
+}
+function showGameBoards(on) {
   opponentHand.setVisibility(on);
   opponentBoard.setVisibility(on);
   playerBoard.setVisibility(on);
   playerHand.setVisibility(on);
   opponent.setVisibility(on);
   player.setVisibility(on);
-  if (on) {
-    player.add(0, p1);
-    opponent.add(0, p2);
-  }
-  else {
-    player.remove(0);
-    opponent.remove(0);
-  }
 }
-function appendAllCarte() {
-  var id = 0;
-  for (var x = 0; x < allCarte.nbCasesx; x++) {
-    for (var y = 0; y < allCarte.nbCasesy; y++) {
-      switch (y) {
-        case 0:
-        var c1 = new Carte(id, 1, "1", "1", "1", "soldat", "soldat"+x, true, false);
-        allCarte.add(id, c1);
-        break;
-        case 1:
-        var c2 = new Carte(id, 2, "2", "2", "2", "sergent", "sergent"+x, true, false);
-        allCarte.add(id, c2);
-        break;
-        case 2:
-        var c3 = new Carte(id, 3, "3", "3", "3", "adjudant", "adjudant"+x, true, false);
-        allCarte.add(id, c3);
-        break;
-        case 3:
-        var c4 = new Carte(id, 4, "4", "4", "4", "lieutenant", "lieutenant"+x, true, false);
-        allCarte.add(id, c4);
-        break;
-        case 4:
-        var c5 = new Carte(id, 5, "5", "5", "5", "capitaine", "capitaine"+x, true, false);
-        allCarte.add(id, c5);
-        break;
-        case 5:
-        var c6 = new Carte(id, 6, "6", "6", "6", "commandant", "commandant"+x, true, false);
-        allCarte.add(id, c6);
-        break;
-        case 6:
-        var c7 = new Carte(id, 7, "7", "7", "7", "colonel", "colonel"+x, true, false);
-        allCarte.add(id, c7);
-        break;
-        case 7:
-        var c8 = new Carte(id, 8, "8", "8", "8", "général", "général"+x, true, false);
-        allCarte.add(id, c8);
-        break;
-      }
-      id++;
-    }
-  }
-/*
-  var cm1 = new MiniCarte(0, 1, 1, 'soldat', true);
-  playerDeck.add(0, cm1);
-  var cm2 = new MiniCarte(0, 2, 2, 'sergent', true);
-  playerDeck.add(1, cm2);
-  */
+function resetGameBoards() {
+  opponentHand.initCartes();
+  opponentBoard.initCartes();
+  playerBoard.initCartes();
+  playerHand.initCartes();
+  opponent.initCartes();
+  player.initCartes();
 }
 console.log('Finish gomassBoard.js');
-/*
-mainBoard.add(4, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(7, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(9, "images/carte5.jpg", "10", "10", "10", "lieutenant", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(12, "images/carte6.jpg", "10", "10", "10", "capitaine", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(14, "images/carte7.jpg", "10", "10", "10", "colonel", "012345678901234"); // add a carte number 3 to plateau and display it
-mainBoard.add(16, "images/carte8.jpg", "10", "10", "10", "général", "012345678901234"); // add a carte number 3 to plateau and display it
-pile.add(0, "images/carte1.jpg", "", "", "30", "player1", "");
-pile.add(1, "images/carte2.jpg", "", "", "30", "player2", "");
-
-// insert some demo cards
-playerHand.add(0, new Carte(0, "images/carte6.jpg", "10", "10", "10", "capitaine", "012345678901234", true, false));
-playerHand.add(1, new Carte(1, "images/carte7.jpg", "10", "10", "10", "colonel", "012345678901234", true, false));
-playerHand.add(2, new Carte(2, "images/carte8.jpg", "10", "10", "10", "général", "012345678901234", true, false));
-playerBoard.add(3, new Carte(3, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234", true, true));
-playerBoard.add(4, new Carte(4, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234", true, true));
-playerBoard.add(5, new Carte(5, "images/carte5.jpg", "10", "10", "10", "lieutenant", "012345678901234", true, false));
-opponentBoard.add(4, new Carte(4, "images/carte2.jpg", "10", "10", "10", "lieutenant", "012345678901234", true, false));
-
-*/

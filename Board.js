@@ -1,15 +1,14 @@
 console.log('Start Board.js');
 // default empty carte (empty = carte 0)
-var emptyCarte = new Carte(-1, 0, '', '', '', '', '', false, false);
-var emptyMiniCarte = new MiniCarte(-1, 0, '', '', false);
+var emptyCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 0);
+var emptyMiniCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 1);
+var emptyAvatar = new Carte(-1, 0, '', '', '', '', '', false, false, 2);
 // the current selected carte
 var selectedCarte = emptyCarte;
-// store the current selected case id
-var selectedCaseId = -1;
-/*
- * posx : absolute position on x
- * posy : absolute position on y
-*/
+// store all cartes send by server
+var allGameCartes = [];
+var allAvatarsCartes = [];
+// create a new Board at posx, posy absolute position
 function Board(name, posx, posy) {
   var objBoard = document.createElement("div");
   objBoard.id = name;
@@ -55,6 +54,14 @@ function Board(name, posx, posy) {
     if (caseid >= 0) {
       return this.cases[caseid].carte.clone();
     }
+  };
+  // get all carte from board
+  objBoard.getAll = function() {
+    var carteArray = [];
+    for (var caseid = 0; caseid < this.cases.length; caseid++) {
+      carteArray.push(this.get(caseid));
+    }
+    return carteArray;
   };
   // add a carte to board at position caseid 
   objBoard.add = function(caseid, myCarte) {
@@ -138,14 +145,46 @@ function MiniBoard(name, posx, posy) {
     }
     this.maxCarte = id;
   };
+  // add carte in first empty carte
   miniBoar.add = function(myCarte) {
     var caseid = 0;
-    while (this.cases[caseid].carte.visible) {
+    while (caseid < this.cases.length && this.cases[caseid].carte.visible) {
       caseid++;
     }
-    this.cases[caseid].add(myCarte.clone());
-    this.cases[caseid].draw();
+    if (caseid < this.cases.length) {
+      this.cases[caseid].add(myCarte.clone());
+      this.cases[caseid].draw();
+    }
   };
+  // check if deck is complete
+  miniBoar.isComplete = function() {
+    var cid = 0;
+    while (cid < this.cases.length && this.cases[cid].carte.visible) {
+      cid++;
+    }
+    if (cid == this.cases.length) {
+      return true;
+    }
+    return false;
+  };
+  // fill the deck randomly
+  miniBoar.fill = function() {
+    var fid = 0;
+    var idxCard;
+    var srvCard;
+    var miniCard;
+    while (fid < this.cases.length) {
+      if (!this.cases[fid].carte.visible) {
+        // get a random carte from allCarte
+        idxCard = Math.floor((Math.random() * maxCartes));
+        srvCard = allGameCartes[idxCard];
+        miniCard = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 1);
+        this.add(miniCard);
+      }
+      fid++;
+    }
+  }
+  // return object
   return miniBoar;
 }
 /*

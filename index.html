@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
   <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="preload.js"></script>
   <script src="Carte.js"></script>
   <script src="Board.js"></script>
   <script src="gomassClt.js"></script>
@@ -21,13 +22,6 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 ////////////////////////////////MAIN/////////////////////////
 //-----------------------------------------------------------
-// BEGIN GLOBAL VAR
-var playerName = 'DEFAULT';
-var opponentName = 'DEFAULT';
-var creator = false; // if player create the game
-var gameName = 'DEFAULT';
-var myTurn = false;
-// END GLOBAL VAR
 //-----------------------------------------------------------
 // BEGIN UI
 // Up area
@@ -42,7 +36,6 @@ userNameB.onclick = function() {
     });
     userNameB.disabled = true;
     userNameT.disabled = true;
-    disableCommands(false);
   }
 }
 var createT = new gomassButton(850, 50, "text", '');
@@ -84,9 +77,25 @@ endTurnB.onclick = function() {
     });
     endTurnB.disabled = true;
 }
-var deckB = new gomassButton(1000, 355, "button", "my deck");
+var deckB = new gomassButton(1000, 355, "button", ".deck.");
 deckB.onclick = function() {
   showDeckBuilder(true);
+}
+var finishDeckB = new gomassButton(1000, 395, "button", "finish");
+finishDeckB.style.visibility = "hidden";
+finishDeckB.onclick = function() {
+  // check if deck is complete
+  if (!playerDeck.isComplete()) {
+    playerDeck.fill();
+  }
+  var myDeck = playerDeck.getAll();
+  console.log(myDeck);
+  // send deck to server
+  socket.emit('deck', {
+    player: playerName,
+    deck: myDeck
+  });
+  this.hide(true);
 }
 // Down area
 var gomassChat = new gomassBox(820, 500, "chatArea");
@@ -100,7 +109,7 @@ sendB.onclick = function() {
     }
   );
 }
-//loadImages();
+// disable all buttons
 disableCommands(true);
 //-----------------------------------------------------------
 ////////////////////////////////USEFULL//////////////////////
@@ -114,6 +123,15 @@ function gomassButton(x, y, type, val) {
   element.style.left = x;
   element.style.top = y;
   element.disabled = false;
+  element.hide = function(on) {
+    this.disabled = on;
+    if (on) {
+      this.style.visibility = "hidden";
+    }
+    else {
+      this.style.visibility = "visible";
+    }
+  };
   document.body.appendChild(element);
   return element;
 }
@@ -163,17 +181,11 @@ function initGlobal() {
   myTurn = false;
   creator = false;
   createT.value = '';
-  initAllBoards();
+  resetGameBoards();
 }
 function showGame(on) {
-  showAllBoards(on);
-  endTurnB.disabled = !on;
-  if (on) {
-    endTurnB.style.visibility = "visible";
-  }
-  else {
-    endTurnB.style.visibility = "hidden";
-  }
+  showGameBoards(on);
+  endTurnB.hide(!on);
 }
 console.log('Finish index.js');
 //-----------------------------------------------------------

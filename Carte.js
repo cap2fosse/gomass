@@ -1,25 +1,9 @@
 console.log('Start Carte.js');
-// preload images
-var allImages = [];
-var allImagesMini = [];
-function loadImages() {
-  for (var i = 0; i < 10; i++) {
-    var img = new Image();
-    img.src = 'images/carte'+i+'.jpg';
-    allImages[i] = img;
-  }
-  for (var i = 0; i < 9; i++) {
-    var img = new Image();
-    img.src = 'images/miniCarte'+i+'.png';
-    allImagesMini[i] = img;
-  }
-}
-loadImages();
+
 // Carte prototype.
-function Carte(id, imgid, cout, att, def, titre, desc, visible, active) {
+function Carte(id, imgid, cout, att, def, titre, desc, visible, active, type) {
   this.id = id;
   this.visible = visible;
-  this.imagej = allImages[imgid];
   this.imgid = imgid;
   this.cout = cout;
   this.attaque = att;
@@ -28,6 +12,18 @@ function Carte(id, imgid, cout, att, def, titre, desc, visible, active) {
   this.description = desc;
   this.effet = -1;
   this.active = active;
+  this.type = type; // [0=normal, 1=mini, 2=player]
+  switch(type) {
+  case 0:
+    this.imagej = allImages[imgid];
+    break;
+  case 1:
+    this.imagej = allImagesMini[imgid];
+    break;
+  case 2:
+    this.imagej = allPlayersImages[imgid];
+    break;
+  }
   this.clone = function() {
     var copy = this.constructor();
     for (var attr in this) {
@@ -39,7 +35,8 @@ function Carte(id, imgid, cout, att, def, titre, desc, visible, active) {
   };
   this.toString = function() {
     return "Carte : " + "id : " + this.id + " - " + "cout : " + this.cout + " - " + "attaque: " + this.attaque
-            + " - " + "defense: " + this.defense + " - " + "titre: " + this.titre + " - " + "description: " + this.description + " - " + "image: " + this.imagej.src  + " - " + "visible: " + this.visible  + " - " + "active: " + this.active;
+            + " - " + "defense: " + this.defense + " - " + "titre: " + this.titre + " - " + "description: " + this.description
+            + " - " + "image: " + this.imagej.src  + " - " + "visible: " + this.visible  + " - " + "active: " + this.active  + " - " + "type: " + this.type;
   };
   this.equal = function(other) {
     if (this.id == other.id) return true;
@@ -58,31 +55,23 @@ function Carte(id, imgid, cout, att, def, titre, desc, visible, active) {
     this.effet = -1;
     this.active = false;
   };
+  this.toMini = function() {
+    return new MiniCarte(this.id, this.imgid, this.cout, this.titre, this.visible);
+  }
 }
 Carte.prototype = {
   id : -1,
   visible : false,
   imagej : allImages[0],
-  imgig : 0,
+  imgid : 0,
   cout : '',
   attaque : '',
   defense : '',
   titre : '',
   description : '',
   effet : -1,
-  active : false,
+  active : false
 };
-
-function MiniCarte(id, imgid, cout, titre, visible) {
-  var miniCard = new Carte(id, imgid, cout, '', '', titre, '', visible, false);
-  miniCard.id = id;
-  miniCard.imagej = allImagesMini[imgid];
-  miniCard.imgid = imgid;
-  miniCard.cout = cout;
-  miniCard.titre = titre;
-  miniCard.visible = visible;
-  return miniCard;
-}
 
 function Effet() {
   id = -1;
