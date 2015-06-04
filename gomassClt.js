@@ -116,11 +116,9 @@ socket.on('startgame', function(message) {
     srvCardPl = allAvatarsCartes[message.imgid2];
   }
   // add avatar to the board
-  opponentAvatar = new Carte(srvCardOp.id, srvCardOp.typeimg, srvCardOp.type, srvCardOp.imgid, 
-  srvCardOp.visible, '2', '', '30', opponentName, srvCardOp.description);
+  opponentAvatar = fromSrvCarte(srvCardOp);
   opponent.add(0, opponentAvatar);
-  playerAvatar = new Carte(srvCardPl.id, srvCardPl.typeimg, srvCardOp.type, srvCardPl.imgid, 
-  srvCardPl.visible, '2', '', '30', playerName, srvCardPl.description);
+  playerAvatar = fromSrvCarte(srvCardPl);
   player.add(0, playerAvatar);
   endTurnB.style.visibility = "visible";
   // who play in first ?
@@ -137,10 +135,8 @@ socket.on('startgame', function(message) {
   }
   // get my hand
   for (var i = 0; i < message.hand.length; i++) {
-    var srvCard = message.hand[i];
-    var pcarte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible, 
-    srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
-    srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
+    var srvcarte = message.hand[i];
+    var pcarte = fromSrvCarte(srvcarte);
     playerHand.add(i, pcarte);
     // set hiding opponent hand
     opponentHand.addClone(i, backCard);
@@ -150,13 +146,14 @@ socket.on('startgame', function(message) {
 })
 
 socket.on('addcarteok', function(data) {
-  console.log('Received addcarteok : ' + data.message + 'at ' + data.caseId + ' from player : ' + data.player);
+  console.log('Received addcarteok : ' + data.message + data.game + ' at ' + data.caseid + ' from player : ' + data.player);
 })
 socket.on('putcarte', function(data) {
-  console.log('Received putcarte : ' + data.message + 'at ' + data.caseId + ' from player : ' + data.player);
+  console.log('Received putcarte : ' + data.message + data.game + ' at ' + data.caseid + ' from player : ' + data.player);
   if (data.dstboard == 'opponentBoard' && data.srcboard == 'opponentHand') {
-    var putCarte = allCarte.getByCarteId(data.carteId);
-    opponentBoard.addClone(data.caseId, putCarte);
+    var srvC = data.carte;
+    var putCarte = fromSrvCarte(srvC);
+    opponentBoard.add(data.caseid, putCarte);
     opponentHand.removeLast();
   }
 })
@@ -166,10 +163,8 @@ socket.on('newcarteok', function(data) {
 socket.on('insertcarte', function(data) {
   console.log('Received insertcarte : ' + data.message + data.dstboard + ' on case : ' + data.caseId);
   if (data.srcboard == 'opponent' && data.dstboard == 'opponentBoard') {
-    var srvCard = data.carte;
-    var newCarte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
-    srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
-    srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
+    var srvcarte = data.carte;
+    var newCarte = fromSrvCarte(srvcarte);
     opponentBoard.add(data.caseId, newCarte);
   }
 })
@@ -177,26 +172,37 @@ socket.on('removeok', function(data) {
   console.log('Received removeok : ' + data.message + data.board + ' on case : ' + data.caseid);
 })
 socket.on('deletecarte', function(data) {
-  var theBoard = data.board;
-  var caseId = data.caseid;
-  console.log('Received deletecarte : ' + data.message + data.board + ' on case : ' + data.caseid);
-  var remBoard = getBoard(theBoard);
-  remBoard.getCase(caseId).clear();
+  var board1 = data.defboard;
+  var board2 = data.attboard;
+  var caseId1 = data.defcaseid;
+  var caseId2 = data.attcaseid;
+  var changeCard = fromSrvCarte(data.attcarte);
+  console.log('Received deletecarte : ' + data.message + data.defboard + ' on case : ' + data.defcaseid);
+  var remBoard = getBoard(board1);
+  remBoard.getCase(caseId1).clear();
+  var changeBoard = getBoard(board2);
+  changeBoard.getCase(caseId2).carte = changeCard;
+  changeBoard.getCase(caseId2).draw();
 })
 socket.on('changeok', function(data) {
   console.log('Received changeok : ' + data.message + data.board + ' on case : ' + data.caseid);
 })
 socket.on('changecarte', function(data) {
-  var theBoard = data.board;
-  var caseId = data.caseid;
-  var srvCard = data.carte;
-  console.log('Received changecarte : ' + data.message + data.board + ' on case : ' + data.caseid);
-  var carte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
-  srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
-  srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
-  var remBoard = getBoard(theBoard);
-  remBoard.getCase(caseId).carte = carte;
-  remBoard.getCase(caseId).draw();
+  var board1 = data.defboard;
+  var board2 = data.attboard;
+  var caseId1 = data.defcaseid;
+  var caseId2 = data.attcaseid;
+  var card1 = fromSrvCarte(data.defcarte);
+  var card2 = fromSrvCarte(data.attcarte);
+  console.log('Received changecarte : ' + data.message + data.defboard + ' on case : ' + data.defcaseid);
+  var carte1 = fromSrvCarte(card1);
+  var carte2 = fromSrvCarte(card2);
+  var defBoard = getBoard(board1);
+  var attBoard = getBoard(board2);
+  defBoard.getCase(caseId1).carte = carte1;
+  defBoard.getCase(caseId1).draw();
+  attBoard.getCase(caseId2).carte = carte2;
+  attBoard.getCase(caseId2).draw();
 })
 
 socket.on('endturnok', function(message) {
@@ -218,10 +224,8 @@ socket.on('newturn', function(message) {
   // get mana
   manaBoard.set(message.mana);
   // get new carte 
-  var srvCard = message.carte[0];
-  var carte = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
-  srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, 
-  srvCard.active, srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
+  var srvcarte = message.carte[0];
+  var carte = fromSrvCarte(srvcarte);
   playerHand.addLast(carte);
   // activate carte from playerBord
   playerBoard.activateAll();
@@ -252,7 +256,7 @@ function createArrayCarte(srvCarteArray, cltCarteArray) {
   for (var i = 0; i < srvCarteArray.length; i++) {
     var srvCard = srvCarteArray[i];
     var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
-    srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.active, 
+    srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
     srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
     cltCarteArray.push(cltCard);
   }

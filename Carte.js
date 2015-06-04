@@ -1,7 +1,7 @@
 "use strict";
 console.log('Start Carte.js');
 // Carte prototype.
-function Carte(id, typeImg, type, imgid, visible, cout, att, def, titre, desc, active, selected, special, effet, etat) {
+function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, special, effet, etat) {
   if (id != undefined){this.id = id;}
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
@@ -14,6 +14,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, titre, desc, a
   else {this.attaque = Carte.prototype.attaque;}
   if (def != undefined){this.defense = def;}
   else {this.defense = Carte.prototype.defense;}
+  if (vie != undefined){this.vie = vie;}
+  else {this.vie = Carte.prototype.vie;}
   if (titre != undefined){this.titre = titre;}
   else {this.titre = Carte.prototype.titre;}
   if (desc != undefined){this.description = desc;}
@@ -85,9 +87,10 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, titre, desc, a
     this.imgid = 0;
     this.typeimg = 'Normal'; // Normal | Mini
     this.type = ''; // 'Invocation' | 'Spell' | 'Equipment' | 'Player'
-    this.cout = "";
-    this.attaque = "";
-    this.defense = "";
+    this.cout = 0;
+    this.attaque = 0;
+    this.defense = 0;
+    this.vie = 0;
     this.titre = "";
     this.description = "";
     this.special = "";
@@ -103,7 +106,29 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, titre, desc, a
     }
   };
   this.toMini = function() {
-    return new MiniCarte(this.id, this.imgid, this.cout, this.titre, this.visible);
+    this.typeimg = 'Mini';
+    this.imagej = allImagesMini[this.imgid];
+  };
+  this.applyEffect = function() {
+    this.attaque += this.effet.modifAttack;
+    this.defense += this.effet.modifDefense;
+    this.vie += this.effet.modifVie;
+  };
+  this.toNormal = function() {
+    this.typeimg = 'Normal';
+    if (this.type == 'Invocation') {
+      this.imagej = allInvocationImages[this.imgid];
+    }
+    else if (this.type == 'Spell') {
+      this.imagej = allSpellImages[this.imgid];
+    }
+    else if (this.type == 'Equipment') {
+      this.imagej = allEquipmentImages[this.imgid];
+    }
+    else if (this.type == 'Player') {
+      this.imagej = allPlayersImages[imgid];
+    }
+    else {this.imagej = Carte.prototype.imagej}
   };
 }
 Carte.prototype = {
@@ -113,9 +138,10 @@ Carte.prototype = {
   type : '',
   typeimg : 'Normal',
   visible : false,
-  cout : '',
-  attaque : '',
-  defense : '',
+  cout : 0,
+  attaque : 0,
+  defense : 0,
+  vie : 0,
   titre : '',
   description : '',
   special : '',
@@ -166,20 +192,22 @@ Etat.prototype = {
   maxfurie : 2
 };
 
-function Effet(id, zone, impact, declencheur, attack, defense, description) {
+function Effet(id, zone, impact, declencheur, attack, defense, vie, description) {
   if (id != undefined) {this.id = id;}
   else {this.id = Effet.prototype.id;}
   if (zone == 'Single' || zone == 'Multi') {this.zone = zone;}
   else {this.zone = Effet.prototype.zone;}
-  if (impact == 'Allie' || impact == 'Adversaire' || impact == 'Tous') {this.impact = impact;}
+  if (impact == 'Allie' || impact == 'Opponent' || impact == 'Every') {this.impact = impact;}
   else {this.impact = Effet.prototype.impact;}
-  if (declencheur == 'Immediat' || declencheur == 'OnAttack' || declencheur == 'OnDie') {this.declencheur = declencheur;}
+  if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Die') {this.declencheur = declencheur;}
   else {this.declencheur = Effet.prototype.declencheur;}
   if (attack != undefined) {this.modifAttack = attack;} // An integer
-  else {this.modifAttack = Effet.prototype.modifAttack;}
+  else {this.modifAttack = Effet.prototype.modifAttack;}  // if > 0 add attack else remove attack
   if (defense != undefined) {this.modifDefense = defense;} // An integer
-  else {this.modifDefense = Effet.prototype.modifDefense;}
-  if (description != undefined) {this.description = description;} // An integer
+  else {this.modifDefense = Effet.prototype.modifDefense;} // if > 0 add life else remove life
+  if (vie != undefined) {this.modifVie = vie;} // An integer
+  else {this.modifVie = Effet.prototype.modifVie;} // if > 0 add life else remove life
+  if (description != undefined) {this.description = description;}
   else {this.description = Effet.prototype.description;}
   this.clone = function() {
     var copy = this.constructor();
@@ -191,7 +219,10 @@ function Effet(id, zone, impact, declencheur, attack, defense, description) {
     return copy;
   };
   this.setDescription = function() {
-    this.description = 'Att:'+this.modifAttack+'Def:'+this.modifDefense+'\n'+this.zone+':'+this.impact+':'+this.declencheur;
+    this.description = 'Z:'+this.zone.substring(0, 1)
+    +'-I:'+this.impact.substring(0, 1)
+    +'-D:'+this.declencheur.substring(0, 1)
+    +'-A:'+this.modifAttack+'-D:'+this.modifDefense+'-V:'+this.modifVie;
   }
   this.toString = function() {
     return "Effet : " + "id : " + this.id + " - " + "zone : " + this.zone + " - " + "impact: " + this.impact
@@ -202,10 +233,11 @@ function Effet(id, zone, impact, declencheur, attack, defense, description) {
 Effet.prototype = {
   id : -1,
   zone : '', // 'Single' | 'Multi'
-  impact : '', // 'Allie' | 'Adversaire' | 'Tous'
-  declencheur : '', // 'Immediat' | 'OnAttack' | 'OnDie'
+  impact : '', // 'Allie' | 'Opponent' | 'Every'
+  declencheur : '', // 'Immediat' | 'Attack' | 'Die'
   modifAttack : 0, // An integer
   modifDefense : 0,
+  modifVie : 0,
   description : ''
 };
 console.log('Finish Carte.js');

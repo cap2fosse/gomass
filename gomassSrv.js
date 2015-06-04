@@ -58,7 +58,7 @@ function Player(name) {
     return carte;
   }
 }
-var maxCartes = 80;
+var maxCartes = 120;
 var maxPlayer = 3;
 var allUsers = [];
 var allPlayers = [];
@@ -315,22 +315,24 @@ io.on('connection', function (socket) {
     if (idx != -1) {
       var dstboard = translateBoard(data.dstboard);
       var srcboard = translateBoard(data.srcboard);
-      var caseId = data.caseId;
-      var carteId = data.carteId;
+      var caseId = data.caseid;
+      var thecarte = data.carte;
       // send only to the requester
       socket.emit('addcarteok', {
         message: "Carte add on board.",
-        caseId: caseId,
-        player: player
+        caseid: caseId,
+        player: player,
+        game: gameName
       });
       // send to all in the room except requester
       socket.broadcast.to(gameName).emit('putcarte', {
         message: "New carte arrived.",
         srcboard: srcboard,
         dstboard: dstboard,
-        caseId: caseId,
-        carteId: carteId,
-        player: player
+        caseid: caseId,
+        carte: thecarte,
+        player: player,
+        game: gameName
       });
     }
   });
@@ -373,19 +375,26 @@ io.on('connection', function (socket) {
     console.log('receveived cmd remove from : ' + player + ' in room : ' + gameName);
     var idx = gameExist(gameName);
     if (idx != -1) {
-      var clientBoard = data.board;
-      var Transboard = translateBoard(clientBoard);
-      var caseId = data.caseid;
+      var board1 = data.defboard;
+      var board2 = data.attboard;
+      var transboard1 = translateBoard(board1);
+      var transboard2 = translateBoard(board2);
+      var caseId1 = data.defcaseid;
+      var caseId2 = data.attcaseid;
+      var changeCard = data.attcarte;
       socket.emit('removeok', {
         message: "Carte removed on board : ",
-        caseid: caseId,
-        board: clientBoard
+        caseid: caseId1,
+        board: board1
       });
       // send to all in the room except requester
       socket.broadcast.to(gameName).emit('deletecarte', {
         message: "New carte deleted on board : ",
-        caseid: caseId,
-        board: Transboard
+        attboard: transboard2,
+        defboard: transboard1,
+        defcaseid: caseId1,
+        attcaseid: caseId2,
+        attcarte: changeCard
       });
     }
   });
@@ -396,23 +405,30 @@ io.on('connection', function (socket) {
     console.log('receveived cmd change from : ' + player + ' in room : ' + gameName);
     var idx = gameExist(gameName);
     if (idx != -1) {
-      var clientBoard = data.board;
-      var Transboard = translateBoard(clientBoard);
-      var caseId = data.caseid;
-      var cltCard = data.carte;
+      var board1 = data.defboard;
+      var board2 = data.attboard;
+      var transboard1 = translateBoard(board1);
+      var transboard2 = translateBoard(board2);
+      var caseId1 = data.defcaseid;
+      var caseId2 = data.attcaseid;
+      var card1 = data.defcarte;
+      var card2 = data.attcarte;
       // to the emitter
       socket.emit('changeok', {
         message: "Carte changed on board : ",
-        caseid: caseId,
-        board: clientBoard,
-        carte: cltCard
+        board: board2,
+        caseid: caseId2,
+        carte: card2
       });
       // send to all in the room except requester
       socket.broadcast.to(gameName).emit('changecarte', {
         message: "New carte change on board : ",
-        caseid: caseId,
-        board: Transboard,
-        carte: cltCard
+        attboard: transboard2,
+        defboard: transboard1,
+        defcaseid: caseId1,
+        attcaseid: caseId2,
+        defcarte: card1,
+        attcarte: card2
       });
     }
   });
@@ -559,9 +575,21 @@ function rmToArray(myArray, elt) {
 }
 
 function loadPlayer() {
-    var invocus = new Carte(0, 'Normal', 'Player', 0, true, '2', '1', '1', '', 'invocus');
-    var spellus = new Carte(1, 'Normal', 'Player', 1, true, '2', '1', '', '', 'spellus');
-    var healus = new Carte(2, 'Normal', 'Player', 2, true, '2', '', '1', '', 'healus');
+    var invocus = new Carte(0, 'Normal', 'Player', 0, true, 2, 0, 0, 30, 'invocus', 'Invocation');
+    var spellus = new Carte(1, 'Normal', 'Player', 1, true, 2, 0, 0, 30, 'spellus', 'spellus');
+    spellus.effet.zone = 'Single';
+    spellus.effet.impact = 'Opponent';
+    spellus.effet.declencheur = 'Immediat';
+    spellus.effet.modifVie = -1;
+    spellus.effet.setDescription();
+    spellus.description = spellus.effet.description;
+    var healus = new Carte(2, 'Normal', 'Player', 2, true, 2, 0, 0, 30, 'healus', 'healus');
+    healus.effet.zone = 'Single';
+    healus.effet.impact = 'Allie';
+    healus.effet.declencheur = 'Immediat';
+    healus.effet.modifVie = 1;
+    healus.effet.setDescription();
+    healus.description = healus.effet.description;
     allAvatars = [invocus, spellus, healus];
     console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus);
 }
@@ -570,30 +598,55 @@ function loadCartes() {
   var c;
   for (var id = 0; id < maxCartes; id++) {
     if (id >= 0 && id < 10) {
-      c = new Carte(id, 'Normal', 'Invocation', 0, true, "1", "1", "1", "soldat", "soldat"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 0, true, 1, 1, 0, 1, "soldat"+id);
     }
-    if (id >= 10 && id < 20) {
-      c = new Carte(id, 'Normal', 'Invocation', 1, true, "2", "2", "2", "sergent", "sergent"+id);
+    if (id >= 10 && id < 15) {
+      c = new Carte(id, 'Normal', 'Spell', 0, true, 1, 0, 0, 0, "spell"+id);
     }
-    if (id >= 20 && id < 30) {
-      c = new Carte(id, 'Normal', 'Invocation', 2, true,"3", "3", "3", "adjudant", "adjudant"+id);
+    if (id >= 15 && id < 25) {
+      c = new Carte(id, 'Normal', 'Invocation', 1, true, 2, 2, 0, 2, "sergent"+id);
+    }
+    if (id >= 25 && id < 30) {
+      c = new Carte(id, 'Normal', 'Spell', 1, true, 2, 0, 0, 0, "spell"+id);
     }
     if (id >= 30 && id < 40) {
-      c = new Carte(id, 'Normal', 'Invocation', 3, true, "4", "4", "4", "lieutenant", "lieutenant"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 2, true, 3, 3, 0, 3, "adjudant"+id);
     }
-    if (id >= 40 && id < 50) {
-      c = new Carte(id, 'Normal', 'Invocation', 4, true, "5", "5", "5", "capitaine", "capitaine"+id);
+    if (id >= 40 && id < 45) {
+      c = new Carte(id, 'Normal', 'Spell', 2, true, 3, 0, 0, 0, "spell"+id);
     }
-    if (id >= 50 && id < 60) {
-      c = new Carte(id, 'Normal', 'Invocation', 5, true, "6", "6", "6", "commandant", "commandant"+id);
+    if (id >= 45 && id < 55) {
+      c = new Carte(id, 'Normal', 'Invocation', 3, true, 4, 4, 0, 4, "lieutenant"+id);
+    }
+    if (id >= 55 && id < 60) {
+      c = new Carte(id, 'Normal', 'Spell', 3, true, 4, 0, 0, 0, "spell"+id);
     }
     if (id >= 60 && id < 70) {
-      c = new Carte(id, 'Normal', 'Invocation', 6, true, "7", "7", "7", "colonel", "colonel"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 4, true, 5, 5, 0, 5, "capitaine"+id);
     }
-    if (id >= 70 && id < 80) {
-      c = new Carte(id, 'Normal', 'Invocation', 7, true, "8", "8", "8", "général", "général"+id);
+    if (id >= 70 && id < 75) {
+      c = new Carte(id, 'Normal', 'Spell', 4, true, 5, 0, 0, 0, "spell"+id);
+    }
+    if (id >= 75 && id < 85) {
+      c = new Carte(id, 'Normal', 'Invocation', 5, true, 6, 6, 0, 6, "commandant"+id);
+    }
+    if (id >= 85 && id < 90) {
+      c = new Carte(id, 'Normal', 'Spell', 5, true, 6, 0, 0, 0, "spell"+id);
+    }
+    if (id >= 90 && id < 100) {
+      c = new Carte(id, 'Normal', 'Invocation', 6, true, 7, 7, 0, 7, "colonel"+id);
+    }
+    if (id >= 100 && id < 105) {
+      c = new Carte(id, 'Normal', 'Spell', 6, true, 7, 0, 0, 0, "spell"+id);
+    }
+    if (id >= 105 && id < 115) {
+      c = new Carte(id, 'Normal', 'Invocation', 7, true, 8, 8, 0, 8, "général"+id);
+    }
+    if (id >= 115 && id < 120) {
+      c = new Carte(id, 'Normal', 'Spell', 7, true, 8, 0, 0, 0, "spell"+id);
     }
     doEtat(c);
+    doEffet(c);
     allCartes.push(c);
     console.log('push a new carte : '+ c);
   }
@@ -602,37 +655,95 @@ function doEtat(carte) {
   var hasard = Math.floor(Math.random() * 100);
   var defense = -1;
   var attack = -1;
-  if (hasard < 10) {
-    carte.special = 'Provocate';
-    carte.etat.provocator = true;
-    malus(-1, 0);
-  }
-  if (hasard >= 10 && hasard < 20) {
-    carte.special = 'Furie';
-    carte.etat.activeFurie();
-    malus(-1, -1);
-  }
-  if (hasard >= 20 && hasard < 30) {
-    carte.special = 'Divin';
-    carte.etat.divin = true;
-    malus(-1, -1);
-  }
-  if (hasard >= 30 && hasard < 40) {
-    carte.special = 'Hide';
-    carte.etat.hide = true;
-    malus(-1, 0);
-  }
-  if (hasard >= 40 && hasard < 50) {
-    carte.special = 'Charge';
-    carte.etat.charge = true;
-    malus(0, -1);
+  if (carte.type == 'Invocation') {
+    if (hasard < 10) {
+      carte.special = 'Provocate';
+      carte.etat.provocator = true;
+      malus(-1, 0);
+    }
+    if (hasard >= 10 && hasard < 20) {
+      carte.special = 'Furie';
+      carte.etat.activeFurie();
+      malus(-1, -1);
+    }
+    if (hasard >= 20 && hasard < 30) {
+      carte.special = 'Divin';
+      carte.etat.divin = true;
+      malus(-1, -1);
+    }
+    if (hasard >= 30 && hasard < 40) {
+      carte.special = 'Hide';
+      carte.etat.hide = true;
+      malus(-1, 0);
+    }
+    if (hasard >= 40 && hasard < 50) {
+      carte.special = 'Charge';
+      carte.etat.charge = true;
+      malus(0, -1);
+    }
   }
   function malus(att, def) {
-    var a = parseInt(carte.attaque);
-    var d = parseInt(carte.defense);
-    if (a + att > 0) {carte.attaque = String(a + att);}
-    if (d + def > 0) {carte.defense = String(d + def);}
+    var a = carte.attaque;
+    var d = carte.defense;
+    if (a + att > 0) {carte.attaque = a + att;}
+    if (d + def > 0) {carte.defense = d + def;}
   };
+}
+function doEffet(carte) {
+  var isSpell = Math.floor(Math.random() * 100);
+  var zone = Math.floor(Math.random() * 100);
+  var impact = Math.floor(Math.random() * 100);
+  var declencheur = Math.floor(Math.random() * 100);
+  var isAttackMod = Math.floor(Math.random() * 100);
+  var bonus = parseInt(carte.cout)/2;
+  var spell = carte.effet;
+  spell.id = carte.id;
+  if (isSpell < 30 && carte.type == 'Invocation') {
+    if (zone < 50) {spell.zone = 'Single';}
+    else {spell.zone = 'Multi';}
+    if (impact < 33) {spell.impact = 'Allie';}
+    else if (impact < 66) {spell.impact = 'Opponent';}
+    else {spell.impact = 'Every';}
+    if (declencheur < 50) {spell.declencheur = 'Attack';}
+    else {spell.declencheur = 'Die';}
+    if (isAttackMod < 30) {
+      if (isAttackMod < 20) {spell.modifAttack = Math.round(bonus);}
+      else {spell.modifAttack = -Math.round(bonus);}
+    }
+    else if (isAttackMod < 60) {
+      if (isAttackMod < 50) {spell.modifDefense = Math.round(bonus);}
+      else {spell.modifDefense = -Math.round(bonus);}
+    }
+    else {
+      if (isAttackMod < 80) {spell.modifDefense = Math.round(bonus);}
+      else {spell.modifDefense = -Math.round(bonus);}
+    }
+    spell.setDescription();
+    carte.description = spell.description;
+  }
+  if (carte.type == 'Spell') {
+    if (zone < 50) {spell.zone = 'Single';}
+    else {spell.zone = 'Multi';}
+    if (impact < 33) {spell.impact = 'Allie';}
+    else if (impact < 66) {spell.impact = 'Opponent';}
+    else {spell.impact = 'Every';}
+    if (isAttackMod < 30) {
+      if (isAttackMod < 20) {spell.modifAttack = Math.round(bonus);}
+      else {spell.modifAttack = -Math.round(bonus);}
+    }
+    else if (isAttackMod < 60) {
+      if (isAttackMod < 50) {spell.modifDefense = Math.round(bonus);}
+      else {spell.modifDefense = -Math.round(bonus);}
+    }
+    else {
+      if (isAttackMod < 80) {spell.modifDefense = Math.round(bonus);}
+      else {spell.modifDefense = -Math.round(bonus);}
+    }
+    spell.declencheur = 'Immediat';
+    spell.setDescription();
+    carte.description = spell.description;
+  }
+  carte.effet = spell;
 }
 function translateBoard(board) {
   if (board == 'playerBoard') {

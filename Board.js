@@ -316,7 +316,7 @@ function Case(casex, casey, id, boardName, width, height) {
       this.ctx.shadowOffsetY = 2;
       this.ctx.shadowBlur = 2;
       this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-      if (this.carte.cout != '') {
+      if (this.carte.cout != 0) {
         this.ctx.font = "16px serif";
         this.ctx.fillStyle = "rgb(255,255,0)";
         this.ctx.fillText(this.carte.cout, 8, 20);
@@ -326,20 +326,26 @@ function Case(casex, casey, id, boardName, width, height) {
         this.ctx.fillStyle = "rgb(77,77,77)";
         this.ctx.fillText(this.carte.titre, 20, 20);
       }
-      if (this.carte.defense != '') {
+      if (this.carte.vie != 0) {
         this.ctx.font = "16px serif";
         this.ctx.fillStyle = "rgb(255,51,51)";
-        this.ctx.fillText(this.carte.defense, this.width-20, this.height-8);
+        this.ctx.fillText(this.carte.vie, this.width-25, this.height-8);
       }
-      if (this.carte.attaque != '') {
+      if (this.carte.attaque != 0) {
         this.ctx.font = "16px serif";
         this.ctx.fillStyle = "rgb(128,255,0)";
         this.ctx.fillText(this.carte.attaque, 8, this.height-8);
       }
+      if (this.carte.defense != 0) {
+        this.ctx.font = "16px serif";
+        this.ctx.fillStyle = "rgb(235,80,0)";
+        this.ctx.fillText(this.carte.defense, this.width-25, 20);
+      }
       if (this.carte.description != '') {
-        this.ctx.font = "12px serif";
+        this.ctx.font = "10px serif";
         this.ctx.fillStyle = "rgb(77,77,77)";
-        this.ctx.fillText(this.carte.description, 12, this.height-30);
+        this.ctx.fillText(this.carte.description.substring(0, 11), 12, this.height-40);
+        this.ctx.fillText(this.carte.description.substring(12), 12, this.height-30);
       }
       if (this.carte.special != '') {
         this.ctx.font = "12px serif";
