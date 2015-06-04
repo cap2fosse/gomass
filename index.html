@@ -1,0 +1,217 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
+<head>
+  <meta charset="utf-8">
+  <script type="text/javascript" src="gomassBoard.js"></script>
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
+  <!--<script src="tst.js"></script>-->
+  <title>Gomass</title>
+</head>
+<body>
+</body>
+<script>
+//-----------------------------------------------------------
+////////////////////////////////MAIN/////////////////////////
+//-----------------------------------------------------------
+var rootUrl = 'http://localhost:3000';
+var gameName = 'DEFAULT';
+var pile;var mainBoard;
+//-----------------------------------------------------------
+// BEGIN UI
+// Up area
+var userNameT = new gomassButton(820, 10, "text", "pseudo");
+var userNameB = new gomassButton(980, 10, "button", "connect");
+userNameB.onclick = function() {
+  if (userNameT.value != '') {
+    socket.emit('add user', userNameT.value);
+    userNameB.disabled = true;
+    userNameT.disabled = true;
+  }
+}
+var createT = new gomassButton(820, 50, "text", "game");
+var createB = new gomassButton(980, 50, "button", ".create.");
+createB.onclick = function() {
+  socket.emit('newGame', createT.value);
+  console.log('create game : ' + createT.value);
+}
+var gomassListGame = new gomassCombo(820, 90, "gameList");
+//var joinT = new gomassButton(820, 90, "text", "game");
+var joinB = new gomassButton(980, 90, "button", ".join.");
+joinB.onclick = function() {
+  socket.emit('joinGame', gomassListGame.value);
+  console.log('join game : ' + gomassListGame.value);
+}
+
+// Middle area
+
+// Down area
+var gomassChat = new gomassBox(820, 500, "chatArea");
+var talkT = new gomassButton(820, 580, "text", "talk");
+talkT.size = 20;talkT.value = '';
+var talkB = new gomassButton(980, 580, "button", "send");
+talkB.onclick = function() {
+  socket.emit('new message', talkT.value);
+}
+function createGame() {
+  if (gameName != 'DEFAULT') {
+    console.log('Create or Join the game : ' + gameName);
+    pile = new Plateau(gameName, 820, 150);
+      pile.create(1, 2);
+      pile.add(0, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234");
+      //console.log(pile.toString()); // to display log
+    mainBoard = new Plateau(gameName, 0, 0); // init the gomas Plateau
+      mainBoard.create(8, 4); // create all cases
+      mainBoard.add(3, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
+      mainBoard.add(4, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
+      mainBoard.add(16, "darth-vader.jpg", "10", "10", "10", "01234567890123", "012345678901234"); // add a carte number 3 to plateau and display it
+      //console.log(mainBoard.toString()); // to display log
+  }
+}
+//END UI
+//-----------------------------------------------------------
+
+//BEGIN CHAT
+var socket = io.connect(rootUrl);
+
+// reponse du serveur a la connection quand c'est toi
+socket.on('login', function(message) {
+  if (message.accepted) {
+    console.log('Received login : you are accepted : ' + message.player);
+  }
+  else {
+    console.log('Received login : login already exist : ' + message.player);
+    userNameB.disabled = false;
+    userNameT.disabled = false;
+  }
+})
+// quand c'est pas toi
+socket.on('user joined', function(message) {
+  if (message.accepted) {
+    console.log('Received user joined : ' + message.player);
+  }
+})
+// quand t'envoie un message
+socket.on('new message', function(message) {
+  gomassChat.value += message.username + ' : ' + message.message + '\n';
+  //console.log(message.username + ' : ' + message.message);
+})
+// quand un user se déco
+socket.on('user left', function(message) {
+  gomassChat.value += message.username + ' : leave the game!' + '\n';
+  console.log('Received user left : ' + message.username + ' : ' + message.message);
+})
+
+//END CHAT
+//-----------------------------------------------------------
+
+//BEGIN CREATE GAME
+socket.on('newGameOk', function(message) {
+  if (message.accepted) {
+    gameName = createT.value;
+    createGame();
+    disableButton(true);
+    console.log('Received newGameOk : ' + message.validated);
+  }
+  else {
+    console.log('Received newGameOk : ' + message.validated);
+  }
+})
+socket.on('joinGameOk', function(message) {
+  gameName = gomassListGame.value;
+  createGame();
+  disableButton(true);
+  console.log('Received joinGameOk : ' + message.validated);
+})
+socket.on('openGame', function(message) {
+  gomassListGame.addOpt(message.game);
+  console.log('Received openGame : ' + message.validated);
+})
+socket.on('closeGame', function(message) {
+  //gomassListGame.value -= message.game;
+  console.log('Received closeGame : ' + message.validated);
+})
+
+//END CREATE GAME
+//-----------------------------------------------------------
+
+//BEGIN MOVE
+socket.on('myMove', function(message) {
+  console.log('Received myMove : ' + message.validated);
+})
+socket.on('hisMove', function(message) {
+  console.log('Received hisMove : ' + message.validated);
+  tempMove = message.move.split(",");
+  console.log('move : '+ tempMove[0] +' : '+ tempMove[1]);
+  mainBoard.move(tempMove[0], tempMove[1]);
+})
+//END MOVE
+
+//-----------------------------------------------------------
+////////////////////////////////USEFULL//////////////////////
+function gomassButton(x, y, type, val) {
+  element = document.createElement("input");
+  element.type = type;
+  element.value = val;
+  element.id = val;
+  element.style.position = "absolute";
+  element.style.left = x;
+  element.style.top = y;
+  element.disabled = false;
+  document.body.appendChild(element);
+  return element;
+}
+function gomassInfo(x, y, val) {
+  element = document.createElement("div");
+  element.id = val;
+  element.value = val;
+  element.innerHTML = "<h3>"+val+"</h3></br>";
+  element.style.position = "absolute";
+  element.style.left = x;
+  element.style.top = y;
+  document.body.appendChild(element);
+  return element;
+}
+function gomassBox(x, y, val) {
+  element = document.createElement("textarea");
+  element.cols = 30;
+  element.rows = 3;
+  element.id = val;
+  element.name = val;
+  element.readonly = true;
+  element.style.position = "absolute";
+  element.style.left = x;
+  element.style.top = y;
+  element.disabled = false;
+  document.body.appendChild(element);
+  return element;
+}
+function gomassCombo(x, y, val) {
+  element = document.createElement("select");
+  element.id = val;
+  element.name = val;
+  element.readonly = true;
+  element.style.position = "absolute";
+  element.style.left = x;
+  element.style.top = y;
+  element.disabled = false;
+  document.body.appendChild(element);
+  element.addOpt = function(name) {
+    opt = document.createElement("option");
+    opt.value = name;
+    opt.text = name;
+    opt.selected = true;
+    this.add(opt);
+  };
+  return element;
+}
+function disableButton(b) {
+  createB.disabled = b;
+  createT.disabled = b;
+  joinB.disabled = b;
+  gomassListGame.disabled = b;
+}
+//-----------------------------------------------------------
+
+//-----------------------------------------------------------
+</script>
+</html>
