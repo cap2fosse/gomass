@@ -1,52 +1,65 @@
 /*
+ * Constante
+*/
+const caseWidth = 100;
+const caseHeight = 150;
+/*
  * Global used to store carte begin movement
 */
-var mouvementCarte = new Array();
+var mouvementCarte = [];
 
 /*
  *Plateau object
 */
 function Plateau(name, posx, posy) {
-  this.largeur = 0; // in number of case
-  this.hauteur = 0; // in number of case
-  this.name = name;
-  this.posx = posx;
-  this.posy = posy;
-  this.visible = false;
-  this.cases = [];
+  var board = document.createElement("div");
+  board.id = name;
+  board.style.position = "absolute";
+  board.style.width = 0;
+  board.style.height = 0;
+  board.style.left = posx;
+  board.style.top = posy;
+  //board.style.border = "2px solid blue";
+  board.style.visibility = "hidden";
+  board.style.padding = '0px';
+  board.largeur = 0;
+  board.hauteur = 0;
+  board.name = name;
+  board.cases = [];
   // create all cases and cartes
-  this.create = function(largeur, hauteur) {
+  board.create = function(largeur, hauteur) {
     this.largeur = largeur;
     this.hauteur = hauteur;
-    gameName = name; //
+    this.style.width = largeur * caseWidth;
+    this.style.height = hauteur * caseHeight;
     var id = 0;
     for (var x = 0; x < largeur; x++) {
       for (var y = 0; y < hauteur; y++) {
-        var caseInstance = new Case(x, y, this.posx, this.posy, id);
+        var caseInstance = new Case(x, y, id);
         this.cases[id] = caseInstance;
-        document.body.appendChild(caseInstance);
+        this.appendChild(caseInstance);
         id++;
       }
     }
   };
   // display all cartes
-  this.display = function() {
+  board.display = function() {
     for (var i = 0; i < (this.largeur*this.hauteur); i++) {
       this.cases[i].draw();
     }
   };
   // add a carte to plateau
-  this.add = function(caseid, img, cout, att, def, titre, desc) {
+  board.add = function(caseid, img, cout, att, def, titre, desc) {
     this.cases[caseid].carte.add(img, cout, att, def, titre, desc);
     this.cases[caseid].draw();
   };
   // remove a carte to plateau
-  this.remove = function(caseid) {
+  board.remove = function(caseid) {
     this.cases[caseid].carte.remove();
     this.cases[caseid].draw();
   };
   // move a carte on the plateau
-  this.move = function(srcid, dstid) {
+  board.move = function(srcid, dstid) {
     this.cases[dstid].carte = this.cases[srcid].carte.clone();
     this.cases[dstid].carte.changeId(dstid);
     this.cases[dstid].draw();
@@ -54,24 +67,30 @@ function Plateau(name, posx, posy) {
     this.cases[srcid].draw();
   };
   // clear all cartes
-  this.clear = function() {
+  board.clear = function() {
     for (var i = 0; i < (this.largeur*this.hauteur); i++) {
       this.cases[i].carte.remove();
       this.cases[i].draw();
     }
   };
-  // set visibility of all canvas
-  this.setVisibility = function(visible) {
+  // set visibility of board and all canvas
+  board.setVisibility = function(visible) {
+    if (visible) {
+      this.style.visibility = "visible";
+    }
+    else {
+      this.style.visibility = "hidden";
+    }
     for (var i = 0; i < (this.largeur*this.hauteur); i++) {
       this.cases[i].setVisibility(visible);
     }
   };
-  this.getId = function(largeur, hauteur) {
+  board.getId = function(largeur, hauteur) {
     var id = parseInt(largeur) * this.hauteur + parseInt(hauteur);
     console.log(id);
     return id;
   };
-  this.toString = function() {
+  board.toString = function() {
     var plateauString = "Plateau : " + "largeur : " + this.largeur + " - " + "hauteur : " + this.hauteur + "\n";
     if (this.cases.length > 0) {
       for (var i = 0; i < (this.largeur*this.hauteur); i++) {
@@ -80,13 +99,14 @@ function Plateau(name, posx, posy) {
     }
     return plateauString;
   };
+  return board;
 }
 
 /*
  * Case inherit from Canvas
  * See Plateau.create() function.
 */
-function Case(casex, casey, posx, posy, id) {
+function Case(casex, casey, id) {
   var canvasCase = document.createElement('canvas');
   // new properties
   canvasCase.x = casex;
@@ -96,12 +116,12 @@ function Case(casex, casey, posx, posy, id) {
   // overwrite canvas properties
   canvasCase.ctx = canvasCase.getContext("2d");
   canvasCase.id = id;
-  canvasCase.width = 100;
-  canvasCase.height = 150;
+  canvasCase.width = caseWidth;
+  canvasCase.height = caseHeight;
   //canvasCase.style.zIndex = 8;
   canvasCase.style.position = "absolute";
-  canvasCase.style.left = casex * canvasCase.width + posx;
-  canvasCase.style.top = casey * canvasCase.height + posy;
+  canvasCase.style.left = casex * canvasCase.width;
+  canvasCase.style.top = casey * canvasCase.height;
   canvasCase.style.border = "1px solid grey";
   canvasCase.style.visibility = "hidden";
   // overwrite canvas on click method

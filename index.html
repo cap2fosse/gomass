@@ -78,14 +78,18 @@ endTurnB.onclick = function() {
     });
     endTurnB.disabled = true;
 }
-var mainBoard = new Plateau(gameName, 0, 100); // init the gomas Plateau
+var mainBoard = new Plateau('mainBoard', 0, 100); // init the gomas Plateau
 mainBoard.create(8, 2); // create all cases
-var playerHandBoard = new Plateau(gameName, 0, 420);
+document.body.appendChild(mainBoard);
+var playerHandBoard = new Plateau('playerHandBoard', 0, 420);
 playerHandBoard.create(8, 1);
-var opponentBoard = new Plateau(gameName, 850, 140);
+document.body.appendChild(playerHandBoard);
+var opponentBoard = new Plateau('opponentBoard', 850, 140);
 opponentBoard.create(1, 1);
-var playerBoard = new Plateau(gameName, 850, 320);
+document.body.appendChild(opponentBoard);
+var playerBoard = new Plateau('playerBoard', 850, 320);
 playerBoard.create(1, 1);
+document.body.appendChild(playerBoard);
 showGame(false);
 /*
 mainBoard.add(4, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234"); // add a carte number 3 to plateau and display it
