@@ -6,6 +6,7 @@ function Carte(id, imgsrc, cout, att, def, titre, desc, visible, active) {
   this.visible = visible;
   this.imagej = new Image();
   this.imagej.src = imgsrc;
+  this.imagej.onload = function() {};
   this.cout = cout;
   this.attaque = att;
   this.defense = def;
@@ -13,21 +14,11 @@ function Carte(id, imgsrc, cout, att, def, titre, desc, visible, active) {
   this.description = desc;
   this.effet = -1;
   this.active = active;
-  this.change = function(id, imgsrc, cout, att, def, titre, desc, visible, active) {
-    this.id = id;
-    this.visible = true;
-    this.imagej.src = imgsrc;
-    this.cout = cout;
-    this.attaque = att;
-    this.defense = def;
-    this.titre = titre;
-    this.description = desc;
-    this.active = active;
-  };
   this.init = function() {
     this.id = -1;
     this.visible = false;
     this.imagej = new Image();
+    this.imagej.src = 'images/emptyCarte.png';
     this.cout = "";
     this.attaque = "";
     this.defense = "";
@@ -39,9 +30,6 @@ function Carte(id, imgsrc, cout, att, def, titre, desc, visible, active) {
   this.equal = function(other) {
     if (this.id == other.id) return true;
     else return false;
-  };
-  this.changeId = function(id) {
-    this.id = id;
   };
   this.clone = function() {
     var copy = this.constructor();
@@ -61,11 +49,11 @@ Carte.prototype = {
   id : -1,
   visible : false,
   imagej : new Image(),
-  cout : "",
-  attaque : "",
-  defense : "",
-  titre : "",
-  description : "",
+  cout : '',
+  attaque : '',
+  defense : '',
+  titre : '',
+  description : '',
   effet : -1,
   active : false
 };

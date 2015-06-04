@@ -4,9 +4,12 @@
 var caseWidth = 100;
 var caseHeight = 150;
 /*
- * Store the current selected carte and case id
+ * Store the current selected case id
 */
-var selectedCarte = new Carte();selectedCarte.init();
+// default empty carte
+var emptyCarte = new Carte(-1, 'images/emptyCarte.png', '', '', '', '', '', false, false);
+// the current selected carte
+var selectedCarte = emptyCarte;
 var selectedCaseId = -1;
 /*
  * posx : absolute position on x
@@ -24,12 +27,11 @@ function Board(name, posx, posy) {
   objBoard.nbCasesx = 0;
   objBoard.nbCasesy = 0;
   objBoard.cases = [];
-  objBoard.selectedCarte = new Carte();
-  objBoard.selectedCarte.init();
-  objBoard.selectedCaseId = -1;
+  objBoard.selectedCarte = selectedCarte;
+  objBoard.selectedCaseId = selectedCaseId;
   /* create all cases and cartes
    * largeur : number of case on x
-   * hauteur : number of case on y */  
+   * hauteur : number of case on y */
   objBoard.create = function(largeur, hauteur) {
     this.nbCasesx = largeur;
     this.nbCasesy = hauteur;
@@ -38,48 +40,54 @@ function Board(name, posx, posy) {
     var id = 0;
     for (var x = 0; x < largeur; x++) {
       for (var y = 0; y < hauteur; y++) {
-        var caseInstance = new Case(x, y, id);
+        var caseInstance = new Case(x, y, id, this.id);
         this.cases[id] = caseInstance;
         this.appendChild(caseInstance);
         id++;
       }
     }
   };
-  /* display all cartes */
+  // display all cartes 
   objBoard.display = function() {
     for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
       this.cases[i].draw();
     }
   };
-  /* get a carte from board */
+  // get a carte from board 
   objBoard.get = function(caseid) {
-    return this.cases[caseid].carte.clone();
+    if (caseid >= 0) {
+      return this.cases[caseid].carte.clone();
+    }
   };
-  /* add a carte to board at position caseid */
+  // add a carte to board at position caseid 
   objBoard.add = function(caseid, myCarte) {
-    this.cases[caseid].add(myCarte.clone());
-    this.cases[caseid].draw();
+    if (caseid >= 0) {
+      this.cases[caseid].add(myCarte.clone());
+      this.cases[caseid].draw();
+    }
   };
-  /* remove a carte to board at position caseid */
+  // remove a carte to board at position caseid 
   objBoard.remove = function(caseid) {
-    this.cases[caseid].remove();
-    this.cases[caseid].draw();
+    if (caseid >= 0) {
+      this.cases[caseid].remove();
+      this.cases[caseid].draw();
+    }
   };
-  /* initialize all Cartes */
+  // initialize all Cartes 
   objBoard.initCartes = function() {
     for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
       this.cases[i].carte.init();
       this.cases[i].draw();
     }
   };
-  /* initialize all Cases */
+  // initialize all Cases 
   objBoard.init = function() {
     for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
       this.cases[i].init();
       this.cases[i].draw();
     }
   };
-  /* set visibility of objBoard and all canvas */
+  // set visibility of objBoard and all canvas 
   objBoard.setVisibility = function(visible) {
     if (visible) {
       this.style.visibility = "visible";
@@ -116,14 +124,13 @@ function Board(name, posx, posy) {
  * Case inherit from Canvas
  * See Plateau.create() function.
 */
-function Case(casex, casey, id) {
+function Case(casex, casey, id, boardName) {
   var canvasCase = document.createElement('canvas');
   // new properties
   canvasCase.x = casex;
   canvasCase.y = casey;
-  canvasCase.name = "case" + casex + "-" + casey;
-  canvasCase.carte = new Carte();
-  canvasCase.carte.init();
+  canvasCase.boardName = boardName;
+  canvasCase.carte = emptyCarte;
   // overwrite canvas properties
   canvasCase.ctx = canvasCase.getContext("2d");
   canvasCase.id = id;
@@ -134,21 +141,6 @@ function Case(casex, casey, id) {
   canvasCase.style.top = casey * caseHeight;
   canvasCase.style.border = "1px solid grey";
   canvasCase.style.visibility = "hidden";
-  // only in case
-  canvasCase.init = function() {
-    this.x = -1;
-    this.y = -1;
-    this.name = "defaultCase";
-    this.carte.init();
-    this.id = -1;
-    this.width = caseWidth;
-    this.height = caseHeight;
-    this.style.position = "absolute";
-    this.style.border = "1px solid grey";
-    this.style.visibility = "hidden";
-    this.style.left = 0;
-    this.style.top = 0;
-  };
   // overwrite canvas on click method
   canvasCase.onclick = function() {
     selectedCarte = this.carte.clone();
@@ -174,12 +166,10 @@ function Case(casex, casey, id) {
       this.ctx.fillText(this.carte.defense, this.width-carreCote, this.height-2);
       this.ctx.fillText(this.carte.attaque, 0, this.height-2);
       this.ctx.fillText(this.carte.description, carreCote/2, this.height-(carreCote+2));
-      if (this.carte.imagej.src != "") {
-        this.ctx.drawImage(this.carte.imagej, carreCote+2, carreCote+2, this.width-2*(carreCote+2), this.height-3*(carreCote+2));
-        this.ctx.rect(0, 0, carreCote, carreCote);//haut gauche
-        this.ctx.rect(this.width-carreCote, this.height-carreCote, carreCote, carreCote);//bas droite
-        this.ctx.rect(0, this.height-carreCote, carreCote, carreCote);// bas gauche
-      }
+      this.ctx.drawImage(this.carte.imagej, carreCote+2, carreCote+2, this.width-2*(carreCote+2), this.height-3*(carreCote+2));
+      this.ctx.rect(0, 0, carreCote, carreCote);//haut gauche
+      this.ctx.rect(this.width-carreCote, this.height-carreCote, carreCote, carreCote);//bas droite
+      this.ctx.rect(0, this.height-carreCote, carreCote, carreCote);// bas gauche
       this.ctx.stroke();
     }
     else {
@@ -195,7 +185,7 @@ function Case(casex, casey, id) {
     }
   };
   canvasCase.toString = function() {
-    var caseString = "Case :" + "id : " + this.id + " - " + "name : " + this.name + " - " + "x : " + this.x + " - " + "y : " + this.y + " - " + "ctx : " + this.ctx;
+    var caseString = "Case :" + "id : " + this.id + " - " + "boardName : " + this.boardName + " - " + "x : " + this.x + " - " + "y : " + this.y + " - " + "ctx : " + this.ctx;
     caseString = caseString + " - " + "width : " + this.width + " - " + "height : " + this.height;
     return caseString + "\n" + this.carte.toString();
   };

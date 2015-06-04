@@ -1,16 +1,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
 <head>
   <meta charset="utf-8">
-  <script type="text/javascript" src="Carte.js"></script>
-  <script type="text/javascript" src="Board.js"></script>
-  <script type="text/javascript" src="gomassBoard.js"></script>
-  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
   <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
-  <script type="text/javascript" src="gomassClt.js"></script>
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="Carte.js"></script>
+  <script src="Board.js"></script>
+  <script src="gomassClt.js"></script>
+  <script>
+</script>
   <title>Gomass</title>
 </head>
 <body>
-  
+  <!-- need document.body -->
+  <script src="gomassBoard.js"></script>
 </body>
 <script>
 //-----------------------------------------------------------
@@ -21,14 +23,13 @@ var playerName = 'DEFAULT';
 var opponentName = 'DEFAULT';
 var creator = false; // if player create the game
 var gameName = 'DEFAULT';
-var myTurn = true;
-
+var myTurn = false;
 // END GLOBAL VAR
 //-----------------------------------------------------------
 // BEGIN UI
 // Up area
 var userNameT = new gomassButton(850, 10, "text", '');
-var userNameB = new gomassButton(1000, 10, "button", "connect");
+userNameB = new gomassButton(1000, 10, "button", "connect");
 userNameB.onclick = function() {
   if (userNameT.value != '') {
     // init playerName
@@ -42,7 +43,7 @@ userNameB.onclick = function() {
   }
 }
 var createT = new gomassButton(850, 50, "text", '');
-var createB = new gomassButton(1000, 50, "button", ".create.");
+createB = new gomassButton(1000, 50, "button", ".create.");
 createB.onclick = function(game) {
   if (createT.value != '') {
     // init gameName
@@ -70,7 +71,6 @@ joinB.onclick = function(game) {
     console.log('join game : ' + gomassListGame.value);
   }
 }
-
 // Middle area
 var endTurnB = new gomassButton(1000, 295, "button", "end turn");
 endTurnB.style.visibility = "hidden";
@@ -87,32 +87,22 @@ deckB.onclick = function() {
       player: playerName
     });
 }
-// append IHM game
-document.body.appendChild(opponentBoard);
-document.body.appendChild(playerBoard);
-document.body.appendChild(playerHand);
-document.body.appendChild(opponent);
-document.body.appendChild(player);
 // Down area
 var gomassChat = new gomassBox(820, 500, "chatArea");
 var sendT = new gomassButton(820, 580, "text", "talk");
-sendT.size = 20;sendT.value = '';
+  sendT.size = 20;sendT.value = '';
 var sendB = new gomassButton(980, 580, "button", "send");
 sendB.onclick = function() {
   socket.emit('newmessage', {
       message: sendT.value,
       player: playerName
-    });
+    }
+  );
 }
-// hide all
-showGame(false);
 disableCommands(true);
-
-//END UI
-//-----------------------------------------------------------
-
 //-----------------------------------------------------------
 ////////////////////////////////USEFULL//////////////////////
+//-----------------------------------------------------------
 function gomassButton(x, y, type, val) {
   var element = document.createElement("input");
   element.type = type;
@@ -122,17 +112,6 @@ function gomassButton(x, y, type, val) {
   element.style.left = x;
   element.style.top = y;
   element.disabled = false;
-  document.body.appendChild(element);
-  return element;
-}
-function gomassInfo(x, y, val) {
-  var element = document.createElement("div");
-  element.id = val;
-  element.value = val;
-  element.innerHTML = "<h3>"+val+"</h3></br>";
-  element.style.position = "absolute";
-  element.style.left = x;
-  element.style.top = y;
   document.body.appendChild(element);
   return element;
 }
@@ -169,6 +148,7 @@ function gomassCombo(x, y, val) {
   };
   return element;
 }
+//-----------------------------------------------------------
 function disableCommands(b) {
   createB.disabled = b;
   createT.disabled = b;
@@ -181,30 +161,18 @@ function initGlobal() {
   myTurn = false;
   creator = false;
   createT.value = '';
-  opponentBoard.initCartes();
-  playerBoard.initCartes();
-  playerHand.initCartes();
+  initAllBoards();
 }
 function showGame(on) {
-  opponentBoard.setVisibility(on);
-  playerBoard.setVisibility(on);
-  playerHand.setVisibility(on);
-  opponent.setVisibility(on);
-  player.setVisibility(on);
+  showAllBoards(on);
   endTurnB.disabled = !on;
   if (on) {
-    player.add(0, new Carte(0, "images/carte1.jpg", "", "", "30", playerName, "", true, true));
-    opponent.add(0, new Carte(0, "images/carte2.jpg", "", "", "30", opponentName, "", true, false));
     endTurnB.style.visibility = "visible";
   }
   else {
-    player.remove(0);
-    opponent.remove(0);
     endTurnB.style.visibility = "hidden";
   }
 }
-//-----------------------------------------------------------
-
 //-----------------------------------------------------------
 </script>
 </html>

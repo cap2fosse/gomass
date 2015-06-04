@@ -1,8 +1,7 @@
 // URL
-var rootUrl = 'http://localhost:3000';
+rootUrl = 'http://localhost:3000/';
 // socket creation
-var socket = io.connect(rootUrl);
-
+socket = io.connect(rootUrl);
 //BEGIN CONNECTION
 socket.on('login', function(message) {
   if (message.accepted) {

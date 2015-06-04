@@ -1,17 +1,19 @@
-
-var opponentBoard = new Board('playerBoard', 0, 100);
+var opponentHand = new Board('opponentHand', 0, 0);
+opponentHand.create(8, 1);
+document.body.appendChild(opponentHand);
+opponentHand.onclick = function() { 
+  console.log("Can't select carte!");
+}
+var opponentBoard = new Board('opponentBoard', 0, 170);
 opponentBoard.create(8, 1);
-opponentBoard.add(4, new Carte(4, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234", true, false));
-opponentBoard.selectedCarte = new Carte();
-opponentBoard.selectedCarte.init();
-opponentBoard.selectedCaseId = -1;
+document.body.appendChild(opponentBoard);
 opponentBoard.onclick = function() {
   if (selectedCarte.visible && myTurn) {
     var onHand = cardOnHand();
     switch (onHand) {
       case 1: // received attack from player
         this.selectedCarte = selectedCarte.clone();
-        this.selectedCaseId = selectedCaseId
+        this.selectedCaseId = selectedCaseId;
         console.log('Player attack Opponent: ' + selectedCarte);
         // revolve attack here
         
@@ -22,7 +24,7 @@ opponentBoard.onclick = function() {
         break;
       case 2: // received attack from player hand
         this.selectedCarte = selectedCarte.clone();
-        this.selectedCaseId = selectedCaseId
+        this.selectedCaseId = selectedCaseId;
         console.log('Player Hand attack Opponent: ' + selectedCarte);
         playerHand.remove(playerHand.selectedCaseId);
         // revolve attack here
@@ -34,7 +36,7 @@ opponentBoard.onclick = function() {
         break;
       case 3: // received attack from player board
         this.selectedCarte = selectedCarte.clone();
-        this.selectedCaseId = selectedCaseId
+        this.selectedCaseId = selectedCaseId;
         console.log('Player Board attack Opponent: ' + playerBoard.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
             'From case : ' + playerBoard.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
         // resolve attack here
@@ -51,8 +53,9 @@ opponentBoard.onclick = function() {
   }
 }
 
-var playerBoard = new Board('playerBoard', 0, 250);
+var playerBoard = new Board('playerBoard', 0, 320);
 playerBoard.create(8, 1);
+document.body.appendChild(playerBoard);
 playerBoard.onclick = function() {
   var onHand = cardOnHand();
   if (!selectedCarte.visible && myTurn) {
@@ -81,7 +84,7 @@ playerBoard.onclick = function() {
    // select a carte on board
   else if (selectedCarte.visible && myTurn && onHand == 0) {
     this.selectedCarte = selectedCarte.clone();
-    this.selectedCaseId = selectedCaseId
+    this.selectedCaseId = selectedCaseId;
     console.log('Selected carte : ' + selectedCarte + ' at case id : ' + selectedCaseId);
     // reset
     selectedCarte.init();
@@ -97,8 +100,9 @@ playerBoard.onclick = function() {
   }
 }
 
-var playerHand = new Board('playerHandBoard', 0, 420);
+var playerHand = new Board('playerHand', 0, 490);
 playerHand.create(8, 1);
+document.body.appendChild(playerHand);
 playerHand.onclick = function() {
   if (selectedCarte.visible && myTurn) {
     var onHand = cardOnHand();
@@ -123,8 +127,9 @@ playerHand.onclick = function() {
   }
 }
 
-var opponent = new Board('opponentBoard', 850, 140);
+var opponent = new Board('opponent', 850, 140);
 opponent.create(1, 1);
+document.body.appendChild(opponent);
 opponent.onclick = function() {
   if (selectedCarte.visible && myTurn) {
     var onHand = cardOnHand();
@@ -132,7 +137,7 @@ opponent.onclick = function() {
     case 1: // Player attack direct
       console.log('Player attack direct : ' + selectedCarte);
       this.selectedCarte = selectedCarte.clone();
-      this.selectedCaseId = selectedCaseId
+      this.selectedCaseId = selectedCaseId;
       // resolve attack here
       console.log(player.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
           'From case : ' + player.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
@@ -157,7 +162,7 @@ opponent.onclick = function() {
     case 3: // Board attack direct
       console.log('Board attack direct : ' + selectedCarte);
       this.selectedCarte = selectedCarte.clone();
-      this.selectedCaseId = selectedCaseId
+      this.selectedCaseId = selectedCaseId;
       // resolve attack here
       console.log(playerBoard.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
           'From case : ' + playerBoard.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
@@ -174,6 +179,7 @@ opponent.onclick = function() {
 
 var player = new Board('player', 850, 320);
 player.create(1, 1);
+document.body.appendChild(player);
 player.onclick = function() {
   if (selectedCarte.visible && myTurn) {
     var onHand = cardOnHand();
@@ -189,12 +195,35 @@ player.onclick = function() {
   selectedCarte.init();
   selectedCaseId = -1;
 }
+
 // return 0 if no card on hand
 function cardOnHand() {
   if (player.selectedCarte.visible) return 1;
   else if (playerHand.selectedCarte.visible) return 2;
   else if (playerBoard.selectedCarte.visible) return 3;
   else return 0;
+}
+function initAllBoards() {
+  opponentHand.initCartes();
+  opponentBoard.initCartes();
+  playerBoard.initCartes();
+  playerHand.initCartes();
+}
+function showAllBoards(on) {
+  opponentHand.setVisibility(on);
+  opponentBoard.setVisibility(on);
+  playerBoard.setVisibility(on);
+  playerHand.setVisibility(on);
+  opponent.setVisibility(on);
+  player.setVisibility(on);
+  if (on) {
+    player.add(0, new Carte(0, "images/carte1.jpg", "", "", "30", playerName, "", true, true));
+    opponent.add(0, new Carte(0, "images/carte2.jpg", "", "", "30", opponentName, "", true, false));
+  }
+  else {
+    player.remove(0);
+    opponent.remove(0);
+  }
 }
 // insert some demo cards
 playerHand.add(0, new Carte(0, "images/carte6.jpg", "10", "10", "10", "capitaine", "012345678901234", true, false));
@@ -203,6 +232,7 @@ playerHand.add(2, new Carte(2, "images/carte8.jpg", "10", "10", "10", "général
 playerBoard.add(3, new Carte(3, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234", true, true));
 playerBoard.add(4, new Carte(4, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234", true, true));
 playerBoard.add(5, new Carte(5, "images/carte5.jpg", "10", "10", "10", "lieutenant", "012345678901234", true, false));
+opponentBoard.add(4, new Carte(4, "images/carte2.jpg", "10", "10", "10", "lieutenant", "012345678901234", true, false));
 /*
 mainBoard.add(4, "images/carte3.png", "10", "10", "10", "soldat", "012345678901234"); // add a carte number 3 to plateau and display it
 mainBoard.add(7, "images/carte4.jpg", "10", "10", "10", "sergent", "012345678901234"); // add a carte number 3 to plateau and display it
