@@ -84,6 +84,7 @@ opponentBoard.onclick = function() {
           else if (selectedCarte.etat.provoke) { // attack provoke
             resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
           }
+          else {console.log('Provocation on board!');}
         }
         break;
       case 4: // received attack from player power
@@ -228,6 +229,13 @@ playerBoard.onclick = function() {
         selectedCaseId = -1;
       }
     break;
+    case 3: // from here => unselect
+      console.log('Unselected carte : ' + selectedCarte);
+      // reset
+      this.initSelectedCarte();
+      selectedCarte.init();
+      selectedCaseId = -1;
+    break;
     case 4: // from power
       if (playerPower.selectedCarte.titre != allPowerCartes[0].titre) { // if its not invocus
         var attackerBoard  = playerPower.id;
@@ -243,13 +251,11 @@ playerBoard.onclick = function() {
         selectedCaseId = -1;
       }
     break;
-    default: // unselect the selected carte on board
-      if (selectedCarte.equal(this.selectedCarte)) {
-        console.log('Unselected carte : ' + selectedCarte);
-        // reset
-        selectedCarte.init();
-        selectedCaseId = -1;
-      }
+    default: 
+      console.log("Can't select carte!");
+      // reset
+      selectedCarte.init();
+      selectedCaseId = -1;
     }
   }
   else {
@@ -276,6 +282,7 @@ playerHand.onclick = function() {
         this.selectedCaseId = selectedCaseId;
         console.log('Select a Carte in Hand : ' + this.selectedCarte);
       }
+      else {console.log('Not enough mana!');}
       break;
       default:
       if (selectedCarte.equal(this.selectedCarte)) {
@@ -418,9 +425,12 @@ player.onclick = function() {
         console.log('Unselected player : ' + selectedCarte);
       break;
       case 2: // spell from hand
-        // if its spell
-        if (playerHand.selectedCarte.type == 'Spell') {
+        if (playerHand.selectedCarte.type == 'Spell') { // if its spell
           applySpellEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
+          manaBoard.remove(playerHand.selectedCarte.cout); // remove mana
+        }
+        if (playerHand.selectedCarte.type == 'Equipment') { // if it Equipment
+          applyEquipmentEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
           manaBoard.remove(playerHand.selectedCarte.cout); // remove mana
         }
         // reset
@@ -768,6 +778,30 @@ function applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defender
     defBoard.getCase(defCaseId[i]).draw();
   }
 }
+function applyEquipmentEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId) {
+  var attBoard = getBoard(attackerBoard);
+  var defBoard = getBoard(defenderBoard);
+  var attCarte = attBoard.get(attackerCaseId);
+  var defCarte = defBoard.get(defenderCaseId);
+  socket.emit('cardplayed', {
+    game: gameName,
+    player: playerName
+  });
+  defCarte.applyEquipment(attCarte.equipement);
+  socket.emit('change', {
+    player: playerName,
+    game: gameName,
+    defboard: defenderBoard,
+    defcaseid: defenderCaseId,
+    defcarte: defCarte,
+    attboard: attackerBoard,
+    attcaseid: attackerCaseId,
+    attcarte: attCarte
+  });
+  // draw all changes
+  attBoard.getCase(attackerCaseId).draw();
+  defBoard.getCase(defenderCaseId).draw();
+}
 // attaque sans perte de vie
 function resolveAttackOpponent(attackerBoard, attackerCaseId) {
   var attBoard = getBoard(attackerBoard);
@@ -977,7 +1011,7 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
 function fromSrvCarte(srvCard) {
   var localCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
   srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
-  srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
+  srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat, srvCard.equipement);
   return localCard;
 }
 console.log('Finish gomassBoard.js');

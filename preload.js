@@ -36,7 +36,7 @@ function loadImages() {
   var maxImageMana = 2;
   var maxImagePlayerSpell = 4;
   // CartesImage images
-  for (var i = 1; i <= maxCartesImage; i++) {
+  for (var i = 0; i < maxCartesImage; i++) {
     var img = new Image();
     img.src = 'images/carte'+i+'.png';
     allCartesImages[i] = img;

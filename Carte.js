@@ -1,7 +1,7 @@
 'use strict';
 console.log('Start Carte.js');
 // Carte prototype.
-function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, special, effet, etat) {
+function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, special, effet, etat, equipement) {
   if (id != undefined){this.id = id;}
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
@@ -32,21 +32,23 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.effet = new Effet();}
   if (etat != undefined){this.etat = etat;}
   else {this.etat = new Etat();}
+  if (equipement != undefined){this.equipement = equipement;}
+  else {this.equipement = new Equipement();}
   if (typeImg == 'Normal' || typeImg == 'Mini' ||
       typeImg == 'Black' || typeImg == 'White') {
     this.typeimg = typeImg;
     if (typeImg == 'Normal') {
       if (this.type == 'Invocation') {
-        this.image1 = allInvocationImages[this.imgid];
-        this.image2 = allInvocationImages[this.imgid];
+        this.image1 = allCartesImages[this.imgid];
+        this.image2 = allCartesImages[this.imgid];
       }
       else if (this.type == 'Spell') {
-        this.image1 = allSpellImages[this.imgid];
-        this.image2 = allSpellImages[this.imgid];
+        this.image1 = allCartesImages[this.imgid];
+        this.image2 = allCartesImages[this.imgid];
       }
       else if (this.type == 'Equipment') {
-        this.image1 = allEquipmentImages[this.imgid];
-        this.image2 = allEquipmentImages[this.imgid];
+        this.image1 = allCartesImages[this.imgid];
+        this.image2 = allCartesImages[this.imgid];
       }
       else if (this.type == 'Player') {
         this.image1 = allPlayersImages[this.imgid];
@@ -89,7 +91,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     return "Carte : " + "id : " + this.id + " - " + "cout : " + this.cout + " - " + "attaque: " + this.attaque
             + " - " + "defense: " + this.defense + " - " + "titre: " + this.titre + " - " + "description: " + this.description
             + " - " + "visible: " + this.visible  + " - " + "active: " + this.active  + " - " + "typeimg: " + this.typeimg
-            + " - " + "type : " + this.type + " - " + "image : " + this.image1.src + '|| ' + this.effet.toString() + '|| ' + this.etat.toString();
+            + " - " + "type : " + this.type + " - " + "image : " + this.image1.src + '|| ' + this.effet.toString() + '|| ' + this.etat.toString() + '|| ' + this.equipement.toString();;
   };
   this.equal = function(other) {
     if (this.id == other.id && this.imgid == other.imgid && this.typeimg == other.typeimg && this.type == other.type) return true;
@@ -112,6 +114,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.special = "";
     this.effet = new Effet();
     this.etat = new Etat();
+    this.equipement = new Equipement();
     this.active = false;
     this.selected = false;
   };
@@ -146,6 +149,12 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
       this.vie += effect.modifVie;
     }
   };
+  this.applyEquipment = function(equipment) {
+    this.attaque += equipment.modifAttack;
+    if (this.attaque < 0) {this.attaque = 0;}
+    this.defense += equipment.modifDefense;
+    if (this.defense < 0) {this.defense = 0;}
+  };
   this.toNormal = function() {
     this.typeimg = 'Normal';
     if (this.type == 'Invocation') {
@@ -175,31 +184,45 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   };
   this.setDescription = function() {
     if (this.type == 'Invocation') {
-      if (this.effet.zone == 'Single') {this.description = 'Single';}
-      if (this.effet.zone == 'Multi') {this.description = 'Multi';}
-      if (this.effet.impact == 'playerBoard') {this.description += ' PB';}
-      if (this.effet.impact == 'opponentBoard') {this.description += ' OB';}
-      if (this.effet.impact == 'player') {this.description += ' P';}
-      if (this.effet.impact == 'opponent') {this.description += ' O';}
-      if (this.effet.impact == 'any') {this.description += ' E';}
-      if (this.effet.declencheur == 'Attack') {this.description += ' OnAtk';}
-      if (this.effet.declencheur == 'Die') {this.description += ' OnDie';}
-      if (this.effet.declencheur == 'Defense') {this.description += ' OnDef';}
-      if (this.effet.declencheur == 'Activated') {this.description += ' OnAct';}
-      if (this.effet.declencheur == 'Played') {this.description += ' OnPlay';}
-      if (this.effet.modifAttack != 0) {this.description += ' A:' + this.effet.modifAttack;}
-      if (this.effet.modifDefense != 0) {this.description += ' D:' + this.effet.modifDefense;}
-      if (this.effet.modifVie != 0) {this.description += ' V:' + this.effet.modifVie;}
+      // line 1
+      if (this.effet.declencheur == 'Attack') {this.description += 'On Attack;';}
+      else if (this.effet.declencheur == 'Die') {this.description += 'On Die;';}
+      else if (this.effet.declencheur == 'Defense') {this.description += 'On Defense;';}
+      else if (this.effet.declencheur == 'Activated') {this.description += 'On Activated;';}
+      else if (this.effet.declencheur == 'Played') {this.description += 'On Played;';}
+      // line 2
+      if (this.effet.zone == 'Single') {this.description += 'Single';}
+      else if (this.effet.zone == 'Multi') {this.description += 'Multi';}
+      if (this.effet.impact == 'playerBoard') {this.description += ' on playBoard;';}
+      else if (this.effet.impact == 'opponentBoard') {this.description += ' on oppoBoard;';}
+      else if (this.effet.impact == 'player') {this.description += ' on player;';}
+      else if (this.effet.impact == 'opponent') {this.description += ' on opponent;';}
+      else if (this.effet.impact == 'any') {this.description += ' on any;';}
+      // line 3, 4 & 5
+      if (this.effet.modifAttack != 0) {this.description += ' Attack : ' + this.effet.modifAttack + ';';}
+      if (this.effet.modifDefense != 0) {this.description += ' Defense : ' + this.effet.modifDefense + ';';}
+      if (this.effet.modifVie != 0) {this.description += ' Life : ' + this.effet.modifVie + ';';}
     }
     if (this.type == 'Spell') {
       if (this.effet.zone == 'Single') {this.description = 'Single';}
-      if (this.effet.zone == 'Multi') {this.description = 'Multi';}
-      if (this.effet.impact == 'playerBoard') {this.description += ' PB';}
-      if (this.effet.impact == 'opponentBoard') {this.description += ' OB';}
-      if (this.effet.impact == 'player') {this.description += ' P';}
-      if (this.effet.impact == 'opponent') {this.description += ' O';}
-      if (this.effet.impact == 'any') {this.description += ' A';}
-      if (this.effet.declencheur == 'Immediat') {this.description += ' Imdt';}
+      else if (this.effet.zone == 'Multi') {this.description = 'Multi';}
+      else {this.description += '';}
+      if (this.effet.impact == 'playerBoard') {this.description += ' on playBoard';}
+      else if (this.effet.impact == 'opponentBoard') {this.description += ' on opponBoard';}
+      else if (this.effet.impact == 'player') {this.description += ' on player';}
+      else if (this.effet.impact == 'opponent') {this.description += ' on opponent';}
+      else if (this.effet.impact == 'any') {this.description += ' on any';}
+    }
+    if (this.type == 'Equipment') {
+      if (this.equipement.type == 'Weapon') {this.description = 'Weapon';}
+      else if (this.equipement.type == 'Armor') {this.description = 'Armor';}
+      else {this.description += '';}
+      if (this.equipement.impact == 'playerBoard') {this.description += ' on playBoard';}
+      else if (this.equipement.impact == 'opponentBoard') {this.description += ' on opponBoard';}
+      else if (this.equipement.impact == 'player') {this.description += ' on player';}
+      else if (this.equipement.impact == 'opponent') {this.description += ' on opponent';}
+      else if (this.equipement.impact == 'any') {this.description += ' on any';}
+      if (this.equipement.durability != 0) {this.description += 'Durability: ' + this.equipement.durability;}
     }
   };
   this.isPlayable = function() {
@@ -226,6 +249,7 @@ Carte.prototype = {
   special : '',
   effet : Effet.prototype,
   etat : Etat.prototype,
+  equipement : Equipement.prototype,
   active : false,
   selected : false,
 };
@@ -257,7 +281,18 @@ function Etat(provocator, charge, silent, fury, divine, stun, rage, hide) {
   this.activeFury = function() {
     this.maxfury = 1;
     this.fury = this.maxfury;
-  }
+  };
+  this.setDescription = function() {
+    var description = '';
+    if (this.provocator) {description += 'Provocation';}
+    if (this.charge) {description += 'Charge';}
+    if (this.silent) {description += 'Silent';}
+    if (this.fury) {description += 'Fury';}
+    if (this.divine) {description += 'Divine';}
+    if (this.stun) {description += 'Stun';}
+    if (this.hide) {description += 'Hide';}
+    return description;
+  };
 }
 Etat.prototype = {
   provocator : false,
@@ -274,11 +309,21 @@ Etat.prototype = {
 function Effet(id, zone, impact, declencheur, attack, defense, vie, description) {
   if (id != undefined) {this.id = id;}
   else {this.id = Effet.prototype.id;}
-  if (zone == 'Single' || zone == 'Multi') {this.zone = zone;}
+  if (zone != undefined) {
+    if (zone == 'Single' || zone == 'Multi') {this.zone = zone;}
+    else {this.zone = Effet.prototype.zone;}
+  }
   else {this.zone = Effet.prototype.zone;}
-  if (impact == 'opponentBoard' || impact == 'playerBoard' || 
-      impact == 'opponent' || impact == 'player' || impact == 'any') {this.impact = impact;}
-  if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Defense' || declencheur == 'Played' || declencheur == 'Activated' || declencheur == 'Die') {this.declencheur = declencheur;}
+  if (impact != undefined) {
+    if (impact == 'opponentBoard' || impact == 'playerBoard' || 
+        impact == 'opponent' || impact == 'player' || impact == 'any') {this.impact = impact;}
+    else {this.impact = Effet.prototype.impact;}
+  }
+  else {this.impact = Effet.prototype.impact;}
+  if (declencheur != undefined) {
+    if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Defense' || declencheur == 'Played' || declencheur == 'Activated' || declencheur == 'Die') {this.declencheur = declencheur;}
+    else {this.declencheur = Effet.prototype.declencheur;}
+  }
   else {this.declencheur = Effet.prototype.declencheur;}
   if (attack != undefined) {this.modifAttack = attack;} // An integer
   else {this.modifAttack = Effet.prototype.modifAttack;}  // if > 0 add attack else remove attack
@@ -327,6 +372,66 @@ Effet.prototype = {
   modifAttack : 0, // An integer
   modifDefense : 0,
   modifVie : 0,
+  description : ''
+};
+
+function Equipement(id, type, impact, durability, attack, defense, description) {
+  if (id != undefined) {this.id = id;}
+  else {this.id = Equipement.prototype.id;}
+  if (type != undefined) {
+    if (type == 'Weapon' || type == 'Armor') {this.type = type;}
+    else {this.type = Equipement.prototype.type;}
+  }
+  else {this.type = Equipement.prototype.type;}
+  if (impact != undefined) {
+    if (impact == 'opponentBoard' || impact == 'playerBoard' || 
+        impact == 'opponent' || impact == 'player' || impact == 'any') {this.impact = impact;}
+    else {this.impact = Equipement.prototype.impact;}
+  }
+  else {this.impact = Equipement.prototype.impact;}
+  if (durability != undefined) {this.durability = durability;} // An integer
+  else {this.durability = Equipement.prototype.durability;}  // if > 0 add attack else remove attack
+  if (attack != undefined) {this.modifAttack = attack;} // An integer
+  else {this.modifAttack = Equipement.prototype.modifAttack;}  // if > 0 add attack else remove attack
+  if (defense != undefined) {this.modifDefense = defense;} // An integer
+  else {this.modifDefense = Equipement.prototype.modifDefense;} // if > 0 add life else remove life
+  if (description != undefined) {this.description = description;}
+  else {this.description = Equipement.prototype.description;}
+  this.clone = function() {
+    var copy = this.constructor();
+    for (var attr in this) {
+        if (this.hasOwnProperty(attr)) {
+          copy[attr] = this[attr];
+        }
+    }
+    return copy;
+  };
+  this.setDescription = function() {
+    this.description = '/Impact:'+this.impact
+    +'/A:'+this.modifAttack+'/D:'+this.modifDefense;
+  }
+  this.toString = function() {
+    return "Equipement : " + "id : " + this.id + " - " + "type: " + this.type
+            + " - " + "impact: " + this.impact + " - " + "attack: " + this.modifAttack
+            + " - " + "defense: " + this.modifDefense + " - " + "durability: " + this.durability + " - " + "description: " + this.description;
+  };
+  this.clear = function() {
+    this.id = Equipement.prototype.id;
+    this.type = Equipement.prototype.type;
+    this.impact = Equipement.prototype.impact;
+    this.durability = Equipement.prototype.durability;
+    this.modifAttack = Equipement.prototype.modifAttack;
+    this.modifDefense = Equipement.prototype.modifDefense;
+    this.description = Equipement.prototype.description;
+  };
+}
+Equipement.prototype = {
+  id : -1,
+  type : '', // 'Weapon' | 'Armor'
+  impact : '', // 'opponentBoard' | 'playerBoard' | 'any' | 'opponent' | 'player'
+  durability : 0, // An integer = cout
+  modifAttack : 0, // An integer
+  modifDefense : 0,
   description : ''
 };
 console.log('Finish Carte.js');

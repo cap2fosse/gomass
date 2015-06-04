@@ -649,56 +649,81 @@ function loadPlayer() {
 function loadCartes() {
   var c;
   for (var id = 0; id < maxCartes; id++) {
-    if (id >= 0 && id < 10) {
+    if (id >= 0 && id < 9) {
       c = new Carte(id, 'Normal', 'Invocation', 0, true, 1, 1, 1, 1, "Soldier"+id);
     }
-    if (id >= 10 && id < 15) {
+    if (id >= 9 && id < 13) {
       c = new Carte(id, 'Normal', 'Spell', 0, true, 1, 0, 0, 0, "Spell"+id);
     }
-    if (id >= 15 && id < 25) {
+    if (id >= 13 && id < 15) {
+      c = new Carte(id, 'Normal', 'Equipment', 0, true, 1, 0, 0, 0, "Equipment"+id);
+    }
+    if (id >= 15 && id < 24) {
       c = new Carte(id, 'Normal', 'Invocation', 1, true, 2, 2, 1, 2, "Corporal"+id);
     }
-    if (id >= 25 && id < 30) {
+    if (id >= 24 && id < 28) {
       c = new Carte(id, 'Normal', 'Spell', 1, true, 2, 0, 0, 0, "Spell"+id);
     }
-    if (id >= 30 && id < 40) {
+    if (id >= 28 && id < 30) {
+      c = new Carte(id, 'Normal', 'Equipment', 1, true, 2, 0, 0, 0, "Equipment"+id);
+    }
+    if (id >= 30 && id < 39) {
       c = new Carte(id, 'Normal', 'Invocation', 2, true, 3, 3, 1, 3, "Sergeant"+id);
     }
-    if (id >= 40 && id < 45) {
+    if (id >= 39 && id < 43) {
       c = new Carte(id, 'Normal', 'Spell', 2, true, 3, 0, 0, 0, "Spell"+id);
     }
-    if (id >= 45 && id < 55) {
+    if (id >= 43 && id < 45) {
+      c = new Carte(id, 'Normal', 'Equipment', 2, true, 3, 0, 0, 0, "Equipment"+id);
+    }
+    if (id >= 45 && id < 54) {
       c = new Carte(id, 'Normal', 'Invocation', 3, true, 4, 4, 1, 4, "Lieutenant"+id);
     }
-    if (id >= 55 && id < 60) {
+    if (id >= 54 && id < 58) {
       c = new Carte(id, 'Normal', 'Spell', 3, true, 4, 0, 0, 0, "Spell"+id);
     }
-    if (id >= 60 && id < 70) {
+    if (id >= 58 && id < 60) {
+      c = new Carte(id, 'Normal', 'Equipment', 3, true, 4, 0, 0, 0, "Equipment"+id);
+    }
+    if (id >= 60 && id < 69) {
       c = new Carte(id, 'Normal', 'Invocation', 4, true, 5, 5, 1, 5, "Captain"+id);
     }
-    if (id >= 70 && id < 75) {
+    if (id >= 69 && id < 73) {
       c = new Carte(id, 'Normal', 'Spell', 4, true, 5, 0, 0, 0, "Spell"+id);
     }
-    if (id >= 75 && id < 85) {
+    if (id >= 73 && id < 75) {
+      c = new Carte(id, 'Normal', 'Equipment', 4, true, 5, 0, 0, 0, "Equipment"+id);
+    }
+    if (id >= 75 && id < 84) {
       c = new Carte(id, 'Normal', 'Invocation', 5, true, 6, 6, 1, 6, "Major"+id);
     }
-    if (id >= 85 && id < 90) {
+    if (id >= 84 && id < 88) {
       c = new Carte(id, 'Normal', 'Spell', 5, true, 6, 0, 0, 0, "Spell"+id);
     }
-    if (id >= 90 && id < 100) {
+    if (id >= 88 && id < 90) {
+      c = new Carte(id, 'Normal', 'Equipment', 5, true, 6, 0, 0, 0, "Equipment"+id);
+    }
+    if (id >= 90 && id < 99) {
       c = new Carte(id, 'Normal', 'Invocation', 6, true, 7, 7, 1, 7, "Colonel"+id);
     }
-    if (id >= 100 && id < 105) {
+    if (id >= 99 && id < 103) {
       c = new Carte(id, 'Normal', 'Spell', 6, true, 7, 0, 0, 0, "Spell"+id);
     }
-    if (id >= 105 && id < 115) {
+    if (id >= 103 && id < 105) {
+      c = new Carte(id, 'Normal', 'Equipment', 6, true, 7, 0, 0, 0, "Equipment"+id);
+    }
+    if (id >= 105 && id < 114) {
       c = new Carte(id, 'Normal', 'Invocation', 7, true, 8, 8, 1, 8, "General"+id);
     }
-    if (id >= 115 && id < 120) {
+    if (id >= 114 && id < 118) {
       c = new Carte(id, 'Normal', 'Spell', 7, true, 8, 0, 0, 0, "Spell"+id);
+    }
+    if (id >= 118 && id < 120) {
+      c = new Carte(id, 'Normal', 'Equipment', 7, true, 8, 0, 0, 0, "Equipment"+id);
     }
     doEtat(c);
     doEffet(c);
+    doEquipement(c);
     allCartes.push(c);
     console.log('push a new carte : '+ c);
   }
@@ -709,7 +734,7 @@ function doEtat(carte) {
   var attack = -1;
   if (carte.type == 'Invocation') {
     if (hasard < 10) {
-      carte.special = 'Provoke';
+      carte.special = 'Provocate';
       carte.etat.provoke = true;
       if (carte.cout > 0 && carte.cout < 5) {malus(-1, 1, 0);}
       else {malus(-2, 2, 0);}
@@ -1003,6 +1028,38 @@ function doEffet(carte) {
     return [attackBonus, defenceBonus, lifeBonus];
   }
 }
+function doEquipement(carte) {
+  var hasard = Math.floor(Math.random() * 100);
+  var impact = Math.floor(Math.random() * 100);
+  var armorBonus = parseInt(carte.cout);
+  var weaponBonus = Math.round(armorBonus/2);
+  var durability = Math.round(weaponBonus/2);
+  if (durability <= 0) {durability = 0;}
+  if (carte.type == 'Equipment') {
+    var equip = carte.equipement;
+    equip.id = carte.id;
+    if (hasard < 50) {
+      equip.type = 'Weapon';
+      equip.durability = durability;
+      equip.modifAttack = weaponBonus;
+    }
+    else {
+      equip.type = 'Armor';
+      equip.modifDefense = armorBonus;
+    }
+    if (impact < 20) {equip.impact = 'opponentBoard';}
+    else if (impact < 40) {equip.impact = 'playerBoard';}
+    else if (impact < 60) {equip.impact = 'opponent';}
+    else if (impact < 80) {equip.impact = 'player';}
+    else {equip.impact = 'any';}
+    equip.impact = 'player'; // only for player
+    carte.attaque = equip.modifAttack;
+    carte.defense = equip.modifDefense;
+    carte.equipement = equip;
+    carte.setDescription();
+  }
+}
+
 function translateBoard(board) {
   if (board == 'playerBoard') {
     return 'opponentBoard';

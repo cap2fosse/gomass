@@ -219,7 +219,7 @@ socket.on('deletecarte', function(data) {
   console.log('Received deletecarte : ' + data.message + data.defboard + ' on case : ' + data.defcaseid);
   var remBoard = getBoard(board1);
   remBoard.getCase(caseId1).clear();
-  if (changeCard.type != 'Spell' && changeCard.type != 'PlayerSpell') { // not a spell change it
+  if (changeCard.type == 'Invocation' || changeCard.type == 'Player') { // change only invocation or player
     var changeBoard = getBoard(board2);
     changeBoard.getCase(caseId2).carte = changeCard;
     changeBoard.getCase(caseId2).draw();
@@ -238,11 +238,11 @@ socket.on('changecarte', function(data) {
   var defboard = getBoard(board1);
   var attboard = getBoard(board2);
   console.log('Received changecarte : ' + data.message + data.defboard + ' on case : ' + data.defcaseid);
-  if (card1.type != 'Spell' && card1.type != 'PlayerSpell') { // not a spell change it
+  if (card1.type == 'Invocation' || card1.type == 'Player') { // change only invocation or player
     defboard.getCase(caseId1).carte = card1;
     defboard.getCase(caseId1).draw();
   }
-  if (card2.type != 'Spell' && card2.type != 'PlayerSpell') { // not a spell change it
+  if (card2.type == 'Invocation' || card2.type == 'Player') { // change only invocation or player
     attboard.getCase(caseId2).carte = card2;
     attboard.getCase(caseId2).draw();
   }
@@ -311,7 +311,7 @@ function createArrayCarte(srvCarteArray, cltCarteArray) {
     var srvCard = srvCarteArray[i];
     var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
     srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
-    srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat);
+    srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat, srvCard.equipement);
     cltCarteArray.push(cltCard);
   }
 }

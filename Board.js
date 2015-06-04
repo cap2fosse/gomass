@@ -348,10 +348,30 @@ function Case(casex, casey, id, boardName, width, height) {
           else {this.ctx.fillStyle = "rgb(77,77,77)";}
           this.ctx.fillText(this.carte.titre, 15, 38);
         }
-        if (this.carte.description != '') {
+        if (this.carte.type != '') {
           this.ctx.font = "10px serif";
           this.ctx.fillStyle = "rgb(77,77,77)";
-          this.ctx.fillText(this.carte.description, 8, this.height-40);
+          this.ctx.fillText(this.carte.type, 20, 20);
+        }
+        if (this.carte.description != '') {
+          var desc = this.carte.description.split(';');
+          this.ctx.font = "10px serif";
+          this.ctx.fillStyle = "rgb(77,77,77)";
+          if (desc[0] != undefined) { // declencheur || spell Effect || equipment effect
+            this.ctx.fillText(desc[0], 8, this.height-90);
+          }
+          if (desc[1] != undefined && desc[1] != 0) { // zone & impact || durability
+            this.ctx.fillText(desc[1], 8, this.height-75);
+          }
+          if (desc[2] != undefined) { // Attack
+            this.ctx.fillText(desc[2], 8, this.height-60);
+          }
+          if (desc[3] != undefined) { // Defense
+            this.ctx.fillText(desc[3], 8, this.height-45);
+          }
+          if (desc[4] != undefined) { // Life
+            this.ctx.fillText(desc[4], 8, this.height-30);
+          }
         }
         if (this.carte.special != '') {
           this.ctx.font = "12px serif";
