@@ -70,8 +70,6 @@ socket.on('startgame', function(message) {
   // who is opponent ?
   if (creator) opponentName = message.player2;
   else opponentName = message.player1;
-  // show the game
-  showGame(true);
   // who play in first ?
   if (message.first == playerName) {
     myTurn = true;
@@ -83,6 +81,8 @@ socket.on('startgame', function(message) {
     endTurnB.disabled = true;
     console.log('You wait your turn : ' + message.game);
   }
+  // show the game
+  showGame(true);
 })
 socket.on('mymove', function(message) {
   console.log('Received mymove : ' + message.validated);

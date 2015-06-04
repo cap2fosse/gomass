@@ -1,15 +1,10 @@
-/*
- * Constante
-*/
-var caseWidth = 100;
-var caseHeight = 150;
-/*
- * Store the current selected case id
-*/
-// default empty carte
-var emptyCarte = new Carte(-1, 'images/emptyCarte.png', '', '', '', '', '', false, false);
+console.log('Start Board.js');
+// default empty carte (empty = carte 0)
+var emptyCarte = new Carte(-1, 0, '', '', '', '', '', false, false);
+var emptyMiniCarte = new MiniCarte(-1, 0, '', '', false);
 // the current selected carte
 var selectedCarte = emptyCarte;
+// store the current selected case id
 var selectedCaseId = -1;
 /*
  * posx : absolute position on x
@@ -24,6 +19,8 @@ function Board(name, posx, posy) {
   objBoard.style.left = posx;
   objBoard.style.top = posy;
   objBoard.style.visibility = "hidden";
+  objBoard.caseWidth = 100;
+  objBoard.caseHeight = 150;
   objBoard.nbCasesx = 0;
   objBoard.nbCasesy = 0;
   objBoard.cases = [];
@@ -35,12 +32,12 @@ function Board(name, posx, posy) {
   objBoard.create = function(largeur, hauteur) {
     this.nbCasesx = largeur;
     this.nbCasesy = hauteur;
-    this.style.width = largeur * caseWidth;
-    this.style.height = hauteur * caseHeight;
+    this.style.width = largeur * this.caseWidth;
+    this.style.height = hauteur * this.caseHeight;
     var id = 0;
     for (var x = 0; x < largeur; x++) {
       for (var y = 0; y < hauteur; y++) {
-        var caseInstance = new Case(x, y, id, this.id);
+        var caseInstance = new Case(x, y, id, this.id, this.caseWidth, this.caseHeight);
         this.cases[id] = caseInstance;
         this.appendChild(caseInstance);
         id++;
@@ -119,12 +116,43 @@ function Board(name, posx, posy) {
   };
   return objBoard;
 }
-
+function MiniBoard(name, posx, posy) {
+  var miniBoar = new Board(name, posx, posy);
+  miniBoar.id = name;
+  miniBoar.maxCarte = 0;
+  miniBoar.caseWidth = 100;
+  miniBoar.caseHeight = 20;
+  miniBoar.create = function(largeur, hauteur) {
+    this.nbCasesx = largeur;
+    this.nbCasesy = hauteur;
+    this.style.width = largeur * this.caseWidth;
+    this.style.height = hauteur * this.caseHeight;
+    var id = 0;
+    for (var x = 0; x < largeur; x++) {
+      for (var y = 0; y < hauteur; y++) {
+        var caseInstance = new MiniCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
+        this.cases[id] = caseInstance;
+        this.appendChild(caseInstance);
+        id++;
+      }
+    }
+    this.maxCarte = id;
+  };
+  miniBoar.add = function(myCarte) {
+    var caseid = 0;
+    while (this.cases[caseid].carte.visible) {
+      caseid++;
+    }
+    this.cases[caseid].add(myCarte.clone());
+    this.cases[caseid].draw();
+  };
+  return miniBoar;
+}
 /*
  * Case inherit from Canvas
  * See Plateau.create() function.
 */
-function Case(casex, casey, id, boardName) {
+function Case(casex, casey, id, boardName, width, height) {
   var canvasCase = document.createElement('canvas');
   // new properties
   canvasCase.x = casex;
@@ -134,11 +162,11 @@ function Case(casex, casey, id, boardName) {
   // overwrite canvas properties
   canvasCase.ctx = canvasCase.getContext("2d");
   canvasCase.id = id;
-  canvasCase.width = caseWidth;
-  canvasCase.height = caseHeight;
+  canvasCase.width = width;
+  canvasCase.height = height;
   canvasCase.style.position = "absolute";
-  canvasCase.style.left = casex * caseWidth;
-  canvasCase.style.top = casey * caseHeight;
+  canvasCase.style.left = casex * width;
+  canvasCase.style.top = casey * height;
   canvasCase.style.border = "1px solid grey";
   canvasCase.style.visibility = "hidden";
   // overwrite canvas on click method
@@ -161,15 +189,25 @@ function Case(casex, casey, id, boardName) {
     // don't draw if no carte
     if (this.carte.visible) {
       this.ctx.beginPath();
-      this.ctx.fillText(this.carte.cout, 0, carreCote-2);
-      this.ctx.fillText(this.carte.titre, carreCote+2, carreCote-2);
-      this.ctx.fillText(this.carte.defense, this.width-carreCote, this.height-2);
-      this.ctx.fillText(this.carte.attaque, 0, this.height-2);
-      this.ctx.fillText(this.carte.description, carreCote/2, this.height-(carreCote+2));
+      if (this.carte.cout != '') {
+        this.ctx.fillText(this.carte.cout, 0, carreCote-2);
+        this.ctx.rect(0, 0, carreCote, carreCote);//haut gauche
+      }
+      if (this.carte.titre != '') {
+        this.ctx.fillText(this.carte.titre, carreCote+2, carreCote-2);
+      }
+      if (this.carte.defense != '') {
+        this.ctx.fillText(this.carte.defense, this.width-carreCote, this.height-2);
+        this.ctx.rect(this.width-carreCote, this.height-carreCote, carreCote, carreCote);//bas droite
+      }
+      if (this.carte.attaque != '') {
+        this.ctx.fillText(this.carte.attaque, 0, this.height-2);
+        this.ctx.rect(0, this.height-carreCote, carreCote, carreCote);// bas gauche
+      }
+      if (this.carte.description != '') {
+        this.ctx.fillText(this.carte.description, carreCote/2, this.height-(carreCote+2));
+      }
       this.ctx.drawImage(this.carte.imagej, carreCote+2, carreCote+2, this.width-2*(carreCote+2), this.height-3*(carreCote+2));
-      this.ctx.rect(0, 0, carreCote, carreCote);//haut gauche
-      this.ctx.rect(this.width-carreCote, this.height-carreCote, carreCote, carreCote);//bas droite
-      this.ctx.rect(0, this.height-carreCote, carreCote, carreCote);// bas gauche
       this.ctx.stroke();
     }
     else {
@@ -191,3 +229,20 @@ function Case(casex, casey, id, boardName) {
   };
   return canvasCase;
 }
+
+function MiniCase(casex, casey, id, boardName, width, height) {
+  var miniCaz = new Case(casex, casey, id, boardName, width, height);
+  miniCaz.carte = emptyMiniCarte;
+  miniCaz.draw = function() {
+    if (this.carte.visible) {
+      this.ctx.beginPath();
+      if (this.carte.cout != '') {
+        this.ctx.fillText(this.carte.cout, 0, 10);
+        this.ctx.drawImage(this.carte.imagej, 10, 0, 100, 20);
+        this.ctx.stroke();
+      }
+    }
+  };
+  return miniCaz;
+}
+console.log('Finish Board.js');
