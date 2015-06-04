@@ -1,10 +1,12 @@
+"use strict";
 console.log('Start Board.js');
 // default empty carte (empty = carte 0)
 var emptyCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 0);
 var emptyMiniCarte = new Carte(-1, 0, '', '', '', '', '', false, false, 1);
 var emptyAvatar = new Carte(-1, 0, '', '', '', '', '', false, false, 2);
 var backCard = new Carte(100, 9, '', '', '', 'back', '', true, false, 0);
-var invocusCard = new Carte(200, 0, '2', '1', '1', 'invocus', '', true, false, 2);
+//var invocusCard = new Carte(200, 0, '2', '1', '1', 'invocus', '', true, false, 2);
+var spellusEffect = new Effet(200, 'Single', 'Tous', 'Immediat', 1, 0, 'basic Spellus attack');
 // the current selected carte
 var selectedCarte = emptyCarte;
 // store all cartes send by server
@@ -66,6 +68,24 @@ function Board(name, posx, posy, caseW, caseH) {
     if (caseid >= 0) {
       return this.cases[caseid].carte.clone();
     }
+  };
+  
+  // get a random carte not selected and visible from board
+  objBoard.getRandom = function() {
+    while (true) {
+      var rand = Math.floor(Math.random() * this.cases.length);
+      if (this.cases[rand].carte.visible && !this.cases[rand].carte.selected) {
+        return this.cases[rand].carte;
+      }
+    }
+  };
+  // get a carte from board 
+  objBoard.getByCarteId = function(carteid) {
+    var i = 0;
+    while (this.cases[i].carte.id != carteid && i < this.cases.length) {
+      i++;
+    }
+    return this.cases[i].carte;
   };
   // get a carte from board 
   objBoard.get = function(caseid) {
@@ -244,32 +264,33 @@ function Case(casex, casey, id, boardName, width, height) {
       this.carte.init();
   };
   canvasCase.draw = function() {
-    var carreCote = 12;
+    var carreCote = 15;
     // don't draw if no carte
     if (this.carte.visible) {
       // clear all first
       this.ctx.clearRect(0, 0, this.width, this.height);
       // and draw
       this.ctx.beginPath();
+      this.ctx.drawImage(this.carte.imagej, 0, 0);
       if (this.carte.cout != '') {
-        this.ctx.fillText(this.carte.cout, 2, carreCote-2);
+        this.ctx.fillText(this.carte.cout, 2, carreCote-3);
         this.ctx.rect(0, 0, carreCote, carreCote);//haut gauche
       }
       if (this.carte.titre != '') {
-        this.ctx.fillText(this.carte.titre, carreCote+2, carreCote-2);
+        this.ctx.fillText(this.carte.titre, carreCote+2, carreCote-3);
       }
       if (this.carte.defense != '') {
-        this.ctx.fillText(this.carte.defense, this.width-carreCote, this.height-2);
+        this.ctx.fillText(this.carte.defense, this.width-carreCote+2, this.height-3);
         this.ctx.rect(this.width-carreCote, this.height-carreCote, carreCote, carreCote);//bas droite
       }
       if (this.carte.attaque != '') {
-        this.ctx.fillText(this.carte.attaque, 2, this.height-2);
+        this.ctx.fillText(this.carte.attaque, 2, this.height-3);
         this.ctx.rect(0, this.height-carreCote, carreCote, carreCote);// bas gauche
       }
       if (this.carte.description != '') {
-        this.ctx.fillText(this.carte.description, carreCote/2, this.height-(carreCote+2));
+        this.ctx.fillText(this.carte.description, carreCote/2, this.height-(carreCote+10));
       }
-      this.ctx.drawImage(this.carte.imagej, carreCote+2, carreCote+2, this.width-2*(carreCote+2), this.height-3*(carreCote+2));
+      //this.ctx.drawImage(this.carte.imagej, carreCote+2, carreCote+2, this.width-2*(carreCote+2), this.height-3*(carreCote+2));
       this.ctx.stroke();
     }
     else {
@@ -409,7 +430,7 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
       }
     }
   };
-  allMana.add = function(num) {
+  allMana.set = function(num) {
     if (num > this.manas.length) return;
     for (var i = 0; i < num; i++) {
       this.manas[i].activate(true);
@@ -434,9 +455,20 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
   allMana.remove = function(num) {
     if (num > this.manas.length) return;
     var newMana = this.getMana() - num;
-    this.reset();
+    this.clean();
     this.add(newMana);
     this.setText();
+  };
+  allMana.add = function(num) {
+    if (num > this.manas.length) return;
+    for (var i = 0; i < num; i++) {
+      this.manas[i].activate(true);
+    }
+  };
+  allMana.clean = function() {
+    for (var i = 0; i < this.manas.length; i++) {
+      this.manas[i].activate(false);
+    }
   };
   return allMana;
 }

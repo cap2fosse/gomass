@@ -1,6 +1,4 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="fr">
-<link rel="prefetch" href="images/carte1.jpg">
-<link rel="prefetch" href="images/carte2.jpg">
 <head>
   <meta charset="utf-8">
   <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
@@ -18,6 +16,7 @@
   <script src="gomassBoard.js"></script>
 </body>
 <script>
+"use strict";
 console.log('Start index.js');
 //-----------------------------------------------------------
 ////////////////////////////////MAIN/////////////////////////
@@ -25,9 +24,8 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 // BEGIN UI
 // Up area
-
 var userNameT = new gomassButton(850, 10, "text", '');
-userNameB = new gomassButton(1000, 10, "button", "connect");
+var userNameB = new gomassButton(1000, 10, "button", "connect");
 userNameB.onclick = function() {
   if (userNameT.value != '') {
     // init playerName
@@ -40,7 +38,7 @@ userNameB.onclick = function() {
   }
 }
 var createT = new gomassButton(850, 50, "text", '');
-createB = new gomassButton(1000, 50, "button", ".create.");
+var createB = new gomassButton(1000, 50, "button", ".create.");
 createB.onclick = function(game) {
   if (createT.value != '') {
     // init gameName

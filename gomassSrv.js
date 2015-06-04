@@ -1,3 +1,5 @@
+"use strict";
+console.log('Start gomassSrv.js');
 // Setup basic express server
 var express = require('express');
 var app = express();
@@ -559,7 +561,7 @@ function rmToArray(myArray, elt) {
 function loadPlayer() {
     var invocus = new Carte(0, 0, '2', '1', '1', '', 'invocus', true, false, 2);
     var spellus = new Carte(1, 1, '2', '1', '', '', 'spellus', true, false, 2);
-    var healus = new Carte(2, 2, '2', '', '2', '', 'healus', true, false, 2);
+    var healus = new Carte(2, 2, '2', '', '1', '', 'healus', true, false, 2);
     allAvatars = [invocus, spellus, healus];
     console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus);
 }
@@ -629,3 +631,4 @@ function randomDeck(deck) {
   }
   return deck;
 }
+console.log('Finish gomassSrv.js');

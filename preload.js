@@ -1,4 +1,7 @@
+"use strict";
+console.log('Start preload.js');
 // BEGIN GLOBAL VAR
+var rootUrl = 'http://localhost:3000/'; // URL
 var playerName = 'DEFAULT';
 var opponentName = 'DEFAULT';
 var creator = false; // if player create the game
@@ -21,13 +24,13 @@ var allImagesMini = [];
 var allManaImages = [];
 function loadImages() {
   var maxImage = 10;
-  var maxImageMini = 9;
-  var maxImagePlayer = 6;
+  var maxImageMini = 10;
+  var maxImagePlayer = 3;
   var maxImageMana = 2;
   // normal images
   for (var i = 0; i < maxImage; i++) {
     var img = new Image();
-    img.src = 'images/carte'+i+'.jpg';
+    img.src = 'images/carte'+i+'.png';
     allImages[i] = img;
   }
   // small images
@@ -50,3 +53,4 @@ function loadImages() {
   }
 }
 loadImages();
+console.log('Finish preload.js');

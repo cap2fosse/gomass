@@ -1,5 +1,5 @@
+"use strict";
 console.log('Start Carte.js');
-
 // Carte prototype.
 function Carte(id, imgid, cout, att, def, titre, desc, visible, active, type) {
   this.id = id;
@@ -10,8 +10,9 @@ function Carte(id, imgid, cout, att, def, titre, desc, visible, active, type) {
   this.defense = def;
   this.titre = titre;
   this.description = desc;
-  this.effet = -1;
+  this.effet = new Effet();
   this.active = active;
+  this.selected = false;
   this.type = type; // [0=normal, 1=mini, 2=player]
   switch(type) {
     case 0:
@@ -54,8 +55,9 @@ function Carte(id, imgid, cout, att, def, titre, desc, visible, active, type) {
     this.defense = "";
     this.titre = "";
     this.description = "";
-    this.effet = -1;
+    this.effet = new Effet();
     this.active = false;
+    this.selected = false;
   };
   this.toMini = function() {
     return new MiniCarte(this.id, this.imgid, this.cout, this.titre, this.visible);
@@ -71,18 +73,27 @@ Carte.prototype = {
   defense : '',
   titre : '',
   description : '',
-  effet : -1,
-  active : false
+  effet : Effet.prototype,
+  active : false,
+  selected : false
 };
 
-function Effet() {
-  id = -1;
-  type = ''; // 'Invocation' | 'Sort' | 'Buff' | 'DeBuff'
-  zone = ''; // 'Single' | 'Multi'
-  impact = ''; // 'Allie' | 'Adversaire' | 'Tous'
-  sens = ''; // 'Plus' | 'Moins'
-  modificateur = 1; // An integer >= 1 
-  declencheur = ''; // 'Immediat' | 'OnAttack' | 'OnDie'
+function Effet(id, zone, impact, declencheur, attack, defense, description) {
+  this.id = id;
+  if (id != undefined) {this.id = id;}
+  else {this.id = Effet.prototype.id;}
+  if (zone == 'Single' || zone == 'Multi') {this.zone = zone;}
+  else {this.zone = Effet.prototype.zone;}
+  if (impact == 'Allie' || impact == 'Adversaire' || impact == 'Tous') {this.impact = impact;}
+  else {this.impact = Effet.prototype.impact;}
+  if (declencheur == 'Immediat' || declencheur == 'OnAttack' || declencheur == 'OnDie') {this.declencheur = declencheur;}
+  else {this.declencheur = Effet.prototype.declencheur;}
+  if (attack != undefined) {this.modifAttack = attack;} // An integer
+  else {this.modifAttack = Effet.prototype.modifAttack;}
+  if (defense != undefined) {this.modifDefense = defense;} // An integer
+  else {this.modifDefense = Effet.prototype.modifDefense;}
+  if (description != undefined) {this.description = description;} // An integer
+  else {this.description = Effet.prototype.description;}
   this.clone = function() {
     var copy = this.constructor();
     for (var attr in this) {
@@ -95,11 +106,11 @@ function Effet() {
 }
 Effet.prototype = {
   id : -1,
-  type : '', // 'Invocation' | 'Sort' | 'Buff' | 'DeBuff'
   zone : '', // 'Single' | 'Multi'
   impact : '', // 'Allie' | 'Adversaire' | 'Tous'
-  sens : '', // 'Plus' | 'Moins'
-  modificateur : 1, // An integer >= 1 
-  declencheur : '' // 'Immediat' | 'OnAttack' | 'OnDie'
+  declencheur : '', // 'Immediat' | 'OnAttack' | 'OnDie'
+  modifAttack : 0, // An integer
+  modifDefense : 0,
+  description : ''
 };
 console.log('Finish Carte.js');

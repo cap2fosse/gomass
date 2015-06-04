@@ -1,14 +1,16 @@
-// URL
-rootUrl = 'http://localhost:3000/';
+"use strict";
+console.log('Start gomassClt.js');
 // socket creation
-socket = io.connect(rootUrl);
+var socket = io.connect(rootUrl);
 //BEGIN CONNECTION
 socket.on('login', function(message) {
   if (message.accepted) {
     console.log('Received login : you are accepted : ' + message.player);
     // fill array of carte and avatar
-    allGameCartes = message.cartes;
-    allAvatarsCartes = message.avatar;
+    var srvAllGameCartes = message.cartes;
+    var srvAllAvatarsCartes = message.avatar;
+    createArrayCarte(srvAllGameCartes, allGameCartes, 0);
+    createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes, 2);
     //show all avatars
     playerSelector.fill();
   }
@@ -118,7 +120,7 @@ socket.on('startgame', function(message) {
   if (message.first == playerName) {
     myTurn = true;
     endTurnB.disabled  = false;
-    manaBoard.add(1); // give one mana
+    manaBoard.set(1); // give one mana
     console.log('You start the game : ' + message.game);
   }
   else {
@@ -196,7 +198,7 @@ socket.on('newturn', function(message) {
   myTurn = true;
   endTurnB.disabled = false;
   // get mana
-  manaBoard.add(message.mana);
+  manaBoard.set(message.mana);
   // get new carte 
   var srvCard = message.carte[0];
   var carte = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 0);
@@ -209,10 +211,10 @@ socket.on('endgameok', function(message) {
   console.log('Received endgameok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
   // win the game?
   if (message.win) {
-    console.log('You win the game : ' + message.game);
+    console.log('You win the game : ' + message.game + ' you are the boss ' + message.player);
   }
   else {
-    console.log('You loose the game : ' + message.game);
+    console.log('You loose the game : ' + message.game + ' may be next time ' + message.player);
   }
   endTurnB.disabled = true;
   deckB.disabled = false;
@@ -221,3 +223,12 @@ socket.on('endgameok', function(message) {
   showGameBoards(false);
 })
 //END GAME
+
+function createArrayCarte(srvCarteArray, cltCarteArray, type) {
+  for (var i = 0; i < srvCarteArray.length; i++) {
+    var srvCard = srvCarteArray[i];
+    var cltCard = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, type);
+    cltCarteArray.push(cltCard);
+  }
+}
+console.log('Finish gomassClt.js');

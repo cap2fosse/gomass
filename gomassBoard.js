@@ -1,3 +1,4 @@
+"use strict";
 console.log('Start gomasBoard.js');
 var opponentHand = new Board('opponentHand', 0, 0, 100, 150);
 opponentHand.create(8, 1, 0);
@@ -17,7 +18,12 @@ opponentBoard.onclick = function() {
         this.selectedCaseId = selectedCaseId;
         console.log('Player attack Opponent: ' + selectedCarte);
         // revolve attack here
-        
+        // if its spellus
+        if (player.get(0).description == allAvatarsCartes[1].description) {
+          doAttackOn(this.id, selectedCaseId, allAvatarsCartes[1].attaque);
+          // remove mana
+          manaBoard.remove(allAvatarsCartes[1].cout);
+        }
         // reset
         player.initSelectedCarte();
         selectedCarte.init();
@@ -68,10 +74,12 @@ playerBoard.onclick = function() {
     var dstboard = this.id;
     var caseId = selectedCaseId;
     switch (onHand) {
-      case 1: // player do invocation on board
-        if (player.get(0).description == 'invocus') {
+      case 1: // player do invocation on board or a spell
+        // if its invocus
+        if (player.get(0).description == allAvatarsCartes[0].description) {
           // add new invocation
-          this.addClone(selectedCaseId, invocusCard);
+          var invocusCard = allAvatarsCartes[0].clone();
+          this.add(selectedCaseId, invocusCard);
           console.log('Player invocation : ' + this.get(selectedCaseId));
           var srcboard = player.id;
           // emit message
@@ -79,13 +87,13 @@ playerBoard.onclick = function() {
             player: playerName,
             srcboard: srcboard,
             dstboard: dstboard,
-            caseId: caseId,
+            caseId: selectedCaseId,
             carte: invocusCard,
             game: gameName
           });
+          // remove mana
+          manaBoard.remove(invocusCard.cout);
         }
-        // remove mana
-        manaBoard.remove(invocusCard.cout);
         // reset
         player.initSelectedCarte();
         selectedCarte.init();
@@ -103,7 +111,7 @@ playerBoard.onclick = function() {
           player: playerName,
           srcboard: srcboard,
           dstboard: dstboard,
-          caseId: caseId,
+          caseId: selectedCaseId,
           carteId: carteId,
           game: gameName
         });
@@ -114,10 +122,24 @@ playerBoard.onclick = function() {
         break;
       default:
         console.log("Can't select carte!");
+        selectedCarte.init();
+        selectedCaseId = -1;
+    }
+  }
+  // if its heallus
+  else if (selectedCarte.visible && myTurn && onHand == 1) {
+    if (player.get(0).description == allAvatarsCartes[2].description) {
+      doHealOn(this.id, selectedCaseId, allAvatarsCartes[2].defense);
+      // remove mana
+      manaBoard.remove(allAvatarsCartes[2].cout);
+      // reset
+      player.initSelectedCarte();
+      selectedCarte.init();
+      selectedCaseId = -1;
     }
   }
    // select a carte on board
-  else if (selectedCarte.visible && myTurn && onHand == 0) {
+  else if (selectedCarte.visible && selectedCarte.active && myTurn && onHand == 0) {
     this.selectedCarte = selectedCarte.clone();
     this.selectedCaseId = selectedCaseId;
     console.log('Selected carte : ' + selectedCarte + ' at case id : ' + selectedCaseId);
@@ -129,9 +151,15 @@ playerBoard.onclick = function() {
   else if (selectedCarte.visible && selectedCarte.equal(this.selectedCarte)) {
     this.initSelectedCarte();
     console.log('Unselected carte : ' + selectedCarte);
+    // reset
+    selectedCarte.init();
+    selectedCaseId = -1;
   }
   else {
     console.log("Can't select carte!");
+    // reset
+    selectedCarte.init();
+    selectedCaseId = -1;
   }
 }
 
@@ -172,9 +200,15 @@ opponent.onclick = function() {
       console.log('Player attack direct : ' + selectedCarte);
       this.selectedCarte = selectedCarte.clone();
       this.selectedCaseId = selectedCaseId;
-      // resolve attack here
       console.log(player.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
           'From case : ' + player.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
+      // resolve attack here
+      // is it spellus?
+      if (player.get(0).description == allAvatarsCartes[1].description) {
+        doAttackOn(this.id, selectedCaseId, allAvatarsCartes[1].attaque);
+        // remove mana
+        manaBoard.remove(allAvatarsCartes[1].cout);
+      }
       // reset
       player.initSelectedCarte();
       selectedCarte.init();
@@ -232,6 +266,10 @@ player.onclick = function() {
         console.log('Selected player : ' + selectedCarte);
       }
       break;
+      case 1: // unselect the carte
+        this.initSelectedCarte();
+        console.log('Unselected player : ' + selectedCarte);
+      break;
       default:
       console.log("Can't select carte!");
     }
@@ -244,7 +282,8 @@ var allCarte = new Board('allCarte', 0, 0, 100, 150);
 allCarte.create(6, 14, 0);
 document.body.appendChild(allCarte);
 allCarte.onclick = function() {
-  if (selectedCarte.visible) {
+  if (selectedCarte.visible && selectedCarte.selected == false) {
+    this.get(selectedCaseId).selected = true; // force to selected
     var myMini = new Carte(selectedCarte.id, selectedCarte.imgid, selectedCarte.cout, selectedCarte.attaque, selectedCarte.defense, selectedCarte.titre, selectedCarte.description, selectedCarte.visible, selectedCarte.active, 1);
     playerDeck.addLast(myMini);
     console.log("Select carte : " + selectedCarte);
@@ -268,6 +307,9 @@ playerDeck.create(1, maxDeckCarte, 1);
 document.body.appendChild(playerDeck);
 playerDeck.onclick = function() {
   if (selectedCarte.visible) {
+    var carteid = selectedCarte.id;
+    var unselect = allCarte.getByCarteId(carteid);
+    unselect.selected = false;
     this.remove(selectedCaseId);
     console.log("Select carte : " + selectedCarte);
   }
@@ -283,8 +325,7 @@ playerDeck.fill = function() {
   while (fid < this.cases.length) {
     if (!this.cases[fid].carte.visible) {
       // get a random carte from allCarte
-      idxCard = Math.floor((Math.random() * maxCartes));
-      srvCard = allGameCartes[idxCard];
+      srvCard = allCarte.getRandom();
       miniCard = new Carte(srvCard.id, srvCard.imgid, srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.titre, srvCard.description, srvCard.visible, srvCard.active, 1);
       this.addLast(miniCard);
     }
@@ -375,6 +416,61 @@ function getBoard(name) {
   if (name == playerSelector.id) return playerSelector;
   return;
 }
+
+function doHealOn(board, caseId, heal) {
+  var theBoard = getBoard(board);
+  var theCarte = theBoard.get(caseId);
+  var life = parseInt(theCarte.defense) + parseInt(heal);
+  theCarte.defense = String(life);
+  // emit the remove message
+  socket.emit('change', {
+    player: playerName,
+    game: gameName,
+    board: board,
+    caseid: caseId,
+    defense: life
+  });
+  // draw all changes
+  theBoard.getCase(caseId).draw();
+}
+function doAttackOn(board, caseId, attack) {
+  var theBoard = getBoard(board);
+  var theCarte = theBoard.get(caseId);
+  var defLife = theCarte.defense - attack;
+  if (defLife <= 0) {
+    if (board == opponent.id) { // the opponent is dead
+      theCarte.init(); // carte is dead
+      // send the end game message
+      socket.emit('endgame', {
+        name: gameName,
+        player: playerName
+      });
+    }
+    else {
+      theCarte.init(); // carte is dead
+      // emit the remove message
+      socket.emit('remove', {
+        player: playerName,
+        game: gameName,
+        board: board,
+        caseid: caseId
+      });
+    }
+  }
+  else {
+    theCarte.defense = defLife; // not die change is life
+    // emit the change message
+    socket.emit('change', {
+      player: playerName,
+      game: gameName,
+      board: board,
+      caseid: caseId,
+      defense: defLife
+    });
+  }
+  // draw all changes
+  theBoard.getCase(caseId).draw();
+}
 function resolveAttack(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId) {
   var attBoard = getBoard(attackerBoard);
   var defBoard = getBoard(defenderBoard);
@@ -399,7 +495,7 @@ function resolveAttack(attackerBoard, attackerCaseId, defenderBoard, defenderCas
         player: playerName,
         game: gameName,
         board: defenderBoard,
-        caseid: defenderCaseId,
+        caseid: defenderCaseId
       });
     }
   }
@@ -433,7 +529,7 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
       player: playerName,
       game: gameName,
       board: defenderBoard,
-      caseid: defenderCaseId,
+      caseid: defenderCaseId
     });
   }
   else {
@@ -454,7 +550,7 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
       player: playerName,
       game: gameName,
       board: attackerBoard,
-      caseid: attackerCaseId,
+      caseid: attackerCaseId
     });
   }
   else {

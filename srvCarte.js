@@ -1,3 +1,4 @@
+"use strict";
 console.log('Start srvCarte.js');
 // Carte prototype.
 function Carte(id, imgid, cout, att, def, titre, desc, visible, active, type) {
