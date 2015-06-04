@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 console.log('Start preload.js');
 // BEGIN GLOBAL VAR
 var rootUrl = 'http://localhost:3333/'; // URL

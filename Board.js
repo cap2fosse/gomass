@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 console.log('Start Board.js');
 // default empty carte (empty = -1)
 var emptyCarte = new Carte(-1, 'White');
@@ -93,6 +93,7 @@ function Board(name, posx, posy, caseW, caseH) {
     while (tryTime < 1000) {
       var rand = Math.floor(Math.random() * this.cartes.length);
       if (this.cartes[rand].visible && !this.cartes[rand].selected) {
+        this.cartes[rand].selected = true;
         return this.cartes[rand];
       }
       tryTime++;
@@ -316,41 +317,41 @@ function Case(casex, casey, id, boardName, width, height) {
       this.ctx.shadowOffsetY = 2;
       this.ctx.shadowBlur = 2;
       this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
-      if (this.carte.cout != 0) {
+      if (this.carte.isPlayable()) {
+        // cout
         this.ctx.font = "16px serif";
         this.ctx.fillStyle = "rgb(255,255,0)";
         this.ctx.fillText(this.carte.cout, 8, 20);
-      }
-      if (this.carte.titre != '') {
-        this.ctx.font = "14px serif";
-        this.ctx.fillStyle = "rgb(77,77,77)";
-        this.ctx.fillText(this.carte.titre, 20, 20);
-      }
-      if (this.carte.vie != 0) {
+        // vie
         this.ctx.font = "16px serif";
         this.ctx.fillStyle = "rgb(255,51,51)";
         this.ctx.fillText(this.carte.vie, this.width-25, this.height-8);
-      }
-      if (this.carte.attaque != 0) {
+        // attack
         this.ctx.font = "16px serif";
         this.ctx.fillStyle = "rgb(128,255,0)";
         this.ctx.fillText(this.carte.attaque, 8, this.height-8);
-      }
-      if (this.carte.defense != 0) {
+        // defense
         this.ctx.font = "16px serif";
         this.ctx.fillStyle = "rgb(235,80,0)";
         this.ctx.fillText(this.carte.defense, this.width-25, 20);
-      }
-      if (this.carte.description != '') {
-        this.ctx.font = "10px serif";
-        this.ctx.fillStyle = "rgb(77,77,77)";
-        this.ctx.fillText(this.carte.description.substring(0, 11), 12, this.height-40);
-        this.ctx.fillText(this.carte.description.substring(12), 12, this.height-30);
-      }
-      if (this.carte.special != '') {
-        this.ctx.font = "12px serif";
-        this.ctx.fillStyle = "rgb(77,77,77)";
-        this.ctx.fillText(this.carte.special, 20, this.height-8);
+
+        if (this.carte.titre != '') {
+          this.ctx.font = "14px serif";
+          // hight light title
+          if (this.carte.active) {this.ctx.fillStyle = "rgb(45,255,45)";}
+          else {this.ctx.fillStyle = "rgb(77,77,77)";}
+          this.ctx.fillText(this.carte.titre, 15, 38);
+        }
+        if (this.carte.description != '') {
+          this.ctx.font = "10px serif";
+          this.ctx.fillStyle = "rgb(77,77,77)";
+          this.ctx.fillText(this.carte.description, 8, this.height-40);
+        }
+        if (this.carte.special != '') {
+          this.ctx.font = "12px serif";
+          this.ctx.fillStyle = "rgb(77,77,77)";
+          this.ctx.fillText(this.carte.special, 20, this.height-8);
+        }
       }
       this.fillBorder();
       this.ctx.stroke();
@@ -361,12 +362,7 @@ function Case(casex, casey, id, boardName, width, height) {
   };
   canvasCase.fillBorder = function() {
     var lineW = 4;
-    if (this.carte.active) {
-      this.ctx.strokeStyle = "rgb(45,255,45)";
-      this.ctx.lineWidth = lineW;
-      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
-    }
-    else if (this.carte.etat.provocator) {
+    if (this.carte.etat.provoke) {
       this.ctx.strokeStyle = "rgb(44,35,218)";
       this.ctx.lineWidth = lineW;
       this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
@@ -376,12 +372,12 @@ function Case(casex, casey, id, boardName, width, height) {
       this.ctx.lineWidth = lineW;
       this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
     }
-    else if (this.carte.etat.furie > 0) {
+    else if (this.carte.etat.fury > 0) {
       this.ctx.strokeStyle = "rgb(207,27,0)";
       this.ctx.lineWidth = lineW;
       this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
     }
-    else if (this.carte.etat.divin) {
+    else if (this.carte.etat.divine) {
       this.ctx.strokeStyle = "rgb(205,205,0)";
       this.ctx.lineWidth = lineW;
       this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);

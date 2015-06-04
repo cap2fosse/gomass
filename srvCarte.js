@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 console.log('Start srvCarte.js');
 // Carte prototype.
 function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, special, effet, etat) {
@@ -61,9 +61,24 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   };
   this.activate = function(on) {
     this.active = on;
-    if (on && this.etat.maxfurie > 0) {
-      this.etat.furie = this.etat.maxfurie;
+    if (on && this.etat.maxfury > 0) {
+      this.etat.fury = this.etat.maxfury;
     }
+  };
+  this.setDescription = function() {
+    if (this.type == 'Invocation' || this.type == 'Player') {
+     if (this.effet.zone == 'Single') {this.description = 'Single';}
+     if (this.effet.zone == 'Multi') {this.description = 'Multi';}
+     if (this.effet.declencheur == 'Attack') {this.description += ' OnAttack';}
+     if (this.effet.declencheur == 'Die') {this.description += ' OnDie';}
+     if (this.effet.modifAttack != 0) {this.description += ' A:' + this.effet.modifAttack;}
+     if (this.effet.modifDefense != 0) {this.description += ' D:' + this.effet.modifDefense;}
+     if (this.effet.modifVie != 0) {this.description += ' V:' + this.effet.modifVie;}
+    }
+    if (this.type == 'Spell') {
+     if (this.effet.zone == 'Single') {this.description = 'Single Immediate';}
+     if (this.effet.zone == 'Multi') {this.description = 'Multi Immediate';}
+    }      
   };
 }
 Carte.prototype = {
@@ -90,7 +105,8 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
   else {this.id = Effet.prototype.id;}
   if (zone == 'Single' || zone == 'Multi') {this.zone = zone;}
   else {this.zone = Effet.prototype.zone;}
-  if (impact == 'Allie' || impact == 'Opponent' || impact == 'Every') {this.impact = impact;}
+  if (impact == 'opponentBoard' || impact == 'playerBoard' || 
+      impact == 'opponent' || impact == 'player' || impact == 'every') {this.impact = impact;}
   else {this.impact = Effet.prototype.impact;}
   if (declencheur == 'Immediat' || declencheur == 'Attack' || declencheur == 'Die') {this.declencheur = declencheur;}
   else {this.declencheur = Effet.prototype.declencheur;}
@@ -113,9 +129,9 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
   };
   this.setDescription = function() {
     this.description = 'Z:'+this.zone.substring(0, 1)
-    +'-I:'+this.impact.substring(0, 1)
-    +'-D:'+this.declencheur.substring(0, 1)
-    +'-A:'+this.modifAttack+'-D:'+this.modifDefense+'-V:'+this.modifVie;
+    +'/I:'+this.impact.substring(0, 1)
+    +'/D:'+this.declencheur.substring(0, 1)
+    +'/A:'+this.modifAttack+'/D:'+this.modifDefense+'/V:'+this.modifVie;
   }
   this.toString = function() {
     return "Effet : " + "id : " + this.id + " - " + "zone : " + this.zone + " - " + "impact: " + this.impact
@@ -126,52 +142,52 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
 Effet.prototype = {
   id : -1,
   zone : '', // 'Single' | 'Multi'
-  impact : '', // 'Allie' | 'Opponent' | 'Every'
+  impact : '', // 'opponentBoard' | 'playerBoard' | 'every' | 'opponent' | 'player'
   declencheur : '', // 'Immediat' | 'Attack' | 'Die'
   modifAttack : 0, // An integer
   modifDefense : 0,
   modifVie : 0,
   description : ''
 };
-function Etat(provocator, charge, silent, furie, divin, stun, rage, hide) {
-  if (provocator != undefined) {this.provocator = provocator;}
-  else {this.provocator = Etat.prototype.provocator;}
+function Etat(provoke, charge, silent, fury, divine, stun, rage, hide) {
+  if (provoke != undefined) {this.provoke = provoke;}
+  else {this.provoke = Etat.prototype.provoke;}
   if (charge != undefined) {this.charge = charge;}
   else {this.charge = Etat.prototype.charge;}
   if (silent != undefined) {this.silent = silent;}
   else {this.silent = Etat.prototype.silent;}
-  if (furie != undefined) {this.furie = furie;}
-  else {this.furie = Etat.prototype.furie;}
-  if (divin != undefined) {this.divin = divin;}
-  else {this.divin = Etat.prototype.divin;}
+  if (fury != undefined) {this.fury = fury;}
+  else {this.fury = Etat.prototype.fury;}
+  if (divine != undefined) {this.divine = divine;}
+  else {this.divine = Etat.prototype.divine;}
   if (stun != undefined) {this.stun = stun;}
   else {this.stun = Etat.prototype.stun;}
   if (rage != undefined) {this.rage = rage;}
   else {this.rage = Etat.prototype.rage;}
   if (hide != undefined) {this.hide = hide;}
   else {this.hide = Etat.prototype.hide;}
-  if (this.furie > 0) {this.maxfurie = 1;}
-  else {this.maxfurie = 0;}
+  if (this.fury > 0) {this.maxfury = 1;}
+  else {this.maxfury = 0;}
   this.toString = function() {
-    return "Etat : " + "provocator : " + this.provocator + " - " + "charge : " + this.charge + " - " + "silent: " + this.silent
-            + " - " + "furie: " + this.furie + " - " + "divin: " + this.divin
+    return "Etat : " + "provoke : " + this.provoke + " - " + "charge : " + this.charge + " - " + "silent: " + this.silent
+            + " - " + "fury: " + this.fury + " - " + "divine: " + this.divine
             + " - " + "stun: " + this.stun + " - " + "rage: " + this.rage + " - " + "hide: " + this.hide;
   };
-  this.activeFurie = function() {
-    this.maxfurie = 1;
-    this.furie = this.maxfurie;
+  this.activeFury = function() {
+    this.maxfury = 1;
+    this.fury = this.maxfury;
   };
 }
 Etat.prototype = {
-  provocator : false,
+  provoke : false,
   charge : false,
   silent : false,
-  furie : 0,
-  divin : false,
+  fury : 0,
+  divine : false,
   stun : false,
   rage : false,
   hide : false,
-  maxfurie : 2
+  maxfury : 2
 };
 module.exports = Carte;
 console.log('Finish srvCarte.js');

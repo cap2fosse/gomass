@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 console.log('Start gomassClt.js');
 // socket creation
 var socket = io.connect(rootUrl);
@@ -116,9 +116,9 @@ socket.on('startgame', function(message) {
     srvCardPl = allAvatarsCartes[message.imgid2];
   }
   // add avatar to the board
-  opponentAvatar = fromSrvCarte(srvCardOp);
+  opponentAvatar = srvCardOp.clone();
   opponent.add(0, opponentAvatar);
-  playerAvatar = fromSrvCarte(srvCardPl);
+  playerAvatar = srvCardPl.clone();
   player.add(0, playerAvatar);
   endTurnB.style.visibility = "visible";
   // who play in first ?
@@ -133,18 +133,38 @@ socket.on('startgame', function(message) {
     endTurnB.disabled  = true;
     console.log('You wait your turn : ' + message.game);
   }
-  // get my hand
-  for (var i = 0; i < message.hand.length; i++) {
-    var srvcarte = message.hand[i];
-    var pcarte = fromSrvCarte(srvcarte);
-    playerHand.add(i, pcarte);
-    // set hiding opponent hand
-    opponentHand.addClone(i, backCard);
-  }
+  // get first selection of hand
+  var cltcarte = [];
+  createArrayCarte(message.hand, cltcarte);
+  // fill & show cardSelector
+  cardSelector.fill(cltcarte);
+  // fill the first hand
+  playerHand.fill(cltcarte);
+  // active button
+  finishSelectB.hide(false);
+  displayInfo(6);
+})
+socket.on('newhandcard', function(data) {
+  console.log('Received newhandcard : ' + data.message + data.game + ' from player : ' + data.player);
+  var newCards = [];
+  createArrayCarte(data.newcards, newCards);
+  // hide cardSelector & button
+  cardSelector.setVisibility(false);
+  finishSelectB.hide(true);
+  // replace the hand
+  playerHand.fill(newCards);
+  // set hiding opponent hand
+  var backC = [backCard, backCard, backCard];
+  opponentHand.fill(backC);
+  displayInfo(7);
+})
+socket.on('showgame', function(data) {
+  console.log('Received showgame : ' + data.message + data.game + ' from player : ' + data.player);
+  // hide the info
+  infoDiv.visible(false);
   // show the game
   showGameBoards(true);
 })
-
 socket.on('addcarteok', function(data) {
   console.log('Received addcarteok : ' + data.message + data.game + ' at ' + data.caseid + ' from player : ' + data.player);
 })
@@ -180,9 +200,11 @@ socket.on('deletecarte', function(data) {
   console.log('Received deletecarte : ' + data.message + data.defboard + ' on case : ' + data.defcaseid);
   var remBoard = getBoard(board1);
   remBoard.getCase(caseId1).clear();
-  var changeBoard = getBoard(board2);
-  changeBoard.getCase(caseId2).carte = changeCard;
-  changeBoard.getCase(caseId2).draw();
+  if (changeCard.type != 'Spell') { // not a spell change it
+    var changeBoard = getBoard(board2);
+    changeBoard.getCase(caseId2).carte = changeCard;
+    changeBoard.getCase(caseId2).draw();
+  }
 })
 socket.on('changeok', function(data) {
   console.log('Received changeok : ' + data.message + data.board + ' on case : ' + data.caseid);
@@ -194,17 +216,20 @@ socket.on('changecarte', function(data) {
   var caseId2 = data.attcaseid;
   var card1 = fromSrvCarte(data.defcarte);
   var card2 = fromSrvCarte(data.attcarte);
+  var defboard = getBoard(board1);
+  var attboard = getBoard(board2);
   console.log('Received changecarte : ' + data.message + data.defboard + ' on case : ' + data.defcaseid);
-  var carte1 = fromSrvCarte(card1);
-  var carte2 = fromSrvCarte(card2);
-  var defBoard = getBoard(board1);
-  var attBoard = getBoard(board2);
-  defBoard.getCase(caseId1).carte = carte1;
-  defBoard.getCase(caseId1).draw();
-  attBoard.getCase(caseId2).carte = carte2;
-  attBoard.getCase(caseId2).draw();
+  defboard.getCase(caseId1).carte = card1;
+  defboard.getCase(caseId1).draw();
+  if (card2.type != 'Spell') { // not a spell change it
+    attboard.getCase(caseId2).carte = card2;
+    attboard.getCase(caseId2).draw();
+  }
 })
-
+socket.on('cardplayedok', function(message) {
+  console.log('Received cardplayedok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
+  opponentHand.removeLast();
+})
 socket.on('endturnok', function(message) {
   console.log('Received endturnok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
   myTurn = false;
@@ -213,7 +238,7 @@ socket.on('endturnok', function(message) {
   // set hiding opponent hand
   var ocarte = backCard.clone();
   opponentHand.addLast(ocarte);
-  // clean boards
+  // inactive card on boards
   playerBoard.inactivateAll();
   opponentBoard.inactivateAll();
 })

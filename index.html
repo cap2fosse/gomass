@@ -2,7 +2,7 @@
 <head>
   <meta charset="utf-8">
   <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
-  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
   <script src="preload.js"></script>
   <script src="Carte.js"></script>
   <script src="Board.js"></script>
@@ -76,12 +76,23 @@ joinB.onclick = function(game) {
 var endTurnB = new gomassButton(650, 550, "button", "end turn");
 endTurnB.style.visibility = "hidden";
 endTurnB.onclick = function() {
-    socket.emit('endturn', {
-      name: gameName,
-      player: playerName,
-      opponent: opponentName
-    });
-    endTurnB.disabled = true;
+  socket.emit('endturn', {
+    name: gameName,
+    player: playerName,
+    opponent: opponentName
+  });
+  endTurnB.disabled = true;
+}
+var finishSelectB = new gomassButton(450, 250, "button", "ok");
+finishSelectB.style.visibility = "hidden";
+finishSelectB.onclick = function() {
+  socket.emit('removedhandcard', {
+    player: playerName,
+    iscreator: creator,
+    numbercard: cardSelector.numberOfCardAsked,
+    room: gameName
+  });
+  console.log('ask for new cards');
 }
 var deckB = new gomassButton(650, 600, "button", ".deck.");
 deckB.onclick = function() {
@@ -305,9 +316,16 @@ function displayInfo(num) {
     case 5:
     txt = '<h2>5 - Wait until someone join the game.</h2>';
     break;
+    case 6:
+    txt = '<h2>6 - Choose your cards.</h2>';
+    break;
+    case 7:
+    txt = '<h2>7 - Wait until player choose the cards.</h2>';
+    break;
     default:
   }
   infoDiv.setText(txt);
+  infoDiv.visible(true);
 }
 console.log('Finish index.js');
 //-----------------------------------------------------------
