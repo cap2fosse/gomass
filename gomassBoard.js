@@ -228,3 +228,29 @@ Carte.prototype = {
   titre : "",
   description : "",
 };
+
+/*
+ * Effet prototype.
+*/
+function Effet() {
+  this.attaque = '0';
+  this.defense = '0';
+  this.titre = "";
+  this.description = "";
+  this.clone = function() {
+    var copy = this.constructor();
+    for (var attr in this) {
+        if (this.hasOwnProperty(attr)) copy[attr] = this[attr];
+    }
+    return copy;
+  };
+  this.toString = function() {
+    return "Effet : " + "attaque: " + this.attaque + " - " + "defense: " + this.defense + " - " + "titre: " + this.titre + " - " + "description: " + this.description;
+  };
+}
+Effet.prototype = {
+  attaque : "",
+  defense : "",
+  titre : "",
+  description : "",
+};

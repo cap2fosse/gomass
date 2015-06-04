@@ -24,6 +24,9 @@ function Game(name) {
   this.name = name;
   this.turn = 0;
   this.state = ''; //'create', 'running', 'close'
+  this.toString = function() {
+    return "player1 : " + this.player1 + " player2 : " + this.player2 + " name : " + this.name + " turn : " + this.turn + " state : " + this.state;
+  }
 }
 var allUsers = [];
 var allGames = [];
@@ -93,16 +96,15 @@ io.on('connection', function (socket) {
 
   // when the client emits 'newgame'
   socket.on('newgame', function (game) {
-    console.log('receveived cmd newgame : ' + game.name);
+    console.log('receveived cmd newgame : ' + game.name + ' from player : ' + game.player);
     // check if game exist and add it
     myGame = new Game(game.name);
     idx = addToArray(allGames, myGame);
     if (idx != -1) {
-      console.log('idx = ' + idx);
       socket.game = game.name;
       socket.join(game.name);
       // update game
-      allGames[idx].player1 = socket.username;
+      allGames[idx].player1 = game.player;
       allGames[idx].state = 'create';
       // reply to the requester
       socket.emit('newgameok', {
@@ -129,7 +131,7 @@ io.on('connection', function (socket) {
 
   // when the client emits 'joingame'
   socket.on('joingame', function (game) {
-    console.log('receveived cmd joingame : ' + game.name + ' at index : ' + game.idx);
+    console.log('receveived cmd joingame : ' + game.name + ' from player : ' + game.player);
     // game exist?
     idx = gameExist(game.name);
     if (idx != -1) {
@@ -137,7 +139,7 @@ io.on('connection', function (socket) {
       socket.game = game.name;
       socket.join(game.name);
       // update game
-      allGames[idx].player2 = socket.username;
+      allGames[idx].player2 = game.player;
       allGames[idx].state = 'running';
       // who play first?
       firstPlayer = whoPlayFirst(allGames[idx]);
@@ -167,7 +169,7 @@ io.on('connection', function (socket) {
         player1: allGames[idx].player1,
         player2: allGames[idx].player2
       });
-      // answer for all other
+      // answer to all others
       socket.broadcast.emit('closegame', {
         validated: "The game is closed : " + game.name,
         game: game.name,
