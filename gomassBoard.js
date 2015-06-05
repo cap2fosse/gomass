@@ -20,6 +20,7 @@ opponentHand.fill = function(cardList){
 var opponentBoard = new Board('opponentBoard', 0, 170, 100, 150);
 opponentBoard.create(6, 1, 0);
 opponentBoard.type = 'Opponent';
+opponentBoard.setBorder(true);
 document.body.appendChild(opponentBoard);
 opponentBoard.onclick = function() {
   if (selectedCarte.visible && myTurn) {
@@ -130,6 +131,7 @@ opponentBoard.provocate = function() {
 var playerBoard = new Board('playerBoard', 0, 320, 100, 150);
 playerBoard.create(6, 1, 0);
 playerBoard.type = 'Allie';
+playerBoard.setBorder(false);
 document.body.appendChild(playerBoard);
 // pass active all visible cartes in playerBoard
 playerBoard.onclick = function() {
@@ -175,6 +177,9 @@ playerBoard.onclick = function() {
           if (newcard.effet.declencheur == 'Played') { // apply effect on myself
             applySpellEffect(this.id, selectedCaseId, this.id, selectedCaseId);
           }
+        }
+        else {
+          console.log("Can't play this card on board : " + this.get(selectedCaseId));
         }
         // reset
         playerHand.initSelectedCarte();
@@ -306,7 +311,7 @@ playerHand.fill = function(cardList){
   //this.setVisibility(true);
 }
 
-var opponent = new Board('opponent', 760, 140, 100, 150);
+var opponent = new Board('opponent', 760, 160, 100, 150);
 opponent.create(1, 1, 0);
 opponent.type = 'Opponent';
 document.body.appendChild(opponent);
@@ -409,8 +414,11 @@ opponent.onclick = function() {
     cleanHand(); // clean all selected carte
   }
 }
+opponent.setName = function(){
+  this.get(0).description = opponentName;
+}
 
-var player = new Board('player', 760, 320, 100, 150);
+var player = new Board('player', 760, 330, 100, 150);
 player.create(1, 1, 0);
 player.type = 'Allie';
 document.body.appendChild(player);
@@ -470,6 +478,9 @@ player.onclick = function() {
   cleanHand(player.id);
   selectedCarte.init();
   selectedCaseId = -1;
+}
+player.setName = function(){
+  this.get(0).description = playerName;
 }
 
 var allCarte = new Board('allCarte', 100, 0, 100, 150);
@@ -587,7 +598,7 @@ cardSelector.fill = function(cardList){
   this.setVisibility(true);
 }
 
-var playerPower = new Board('playerPower', 650, 420, 60, 60);
+var playerPower = new Board('playerPower', 650, 330, 60, 60);
 playerPower.create(1, 1, 2);
 document.body.appendChild(playerPower);
 playerPower.onclick = function() {
@@ -615,11 +626,11 @@ playerPower.onclick = function() {
   selectedCaseId = -1;
 }
 
-var opponentPower = new Board('opponentPower', 650, 240, 60, 60);
+var opponentPower = new Board('opponentPower', 650, 260, 60, 60);
 opponentPower.create(1, 1, 2);
 document.body.appendChild(opponentPower);
 
-var manaBoard = new ManageMana(650, 500, 10, 1);
+var manaBoard = new ManageMana(650, 510, 10, 1);
 manaBoard.create();
 document.body.appendChild(manaBoard);
 

@@ -180,6 +180,9 @@ socket.on('showgame', function(data) {
   endTurnB.style.visibility = "visible";
   if (myTurn) {endTurnB.disabled  = false;}
   else {endTurnB.disabled  = true;}
+  // set name of players
+  player.setName();
+  opponent.setName();
   // show the game
   showGameBoards(true);
 })

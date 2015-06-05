@@ -73,7 +73,7 @@ joinB.onclick = function(game) {
   }
 }
 // Middle area
-var endTurnB = new gomassButton(650, 550, "button", "end turn");
+var endTurnB = new gomassButton(650, 570, "button", "end turn");
 endTurnB.style.visibility = "hidden";
 endTurnB.onclick = function() {
   socket.emit('endturn', {
@@ -95,7 +95,7 @@ finishSelectB.onclick = function() {
   });
   console.log('ask for new cards');
 }
-var deckB = new gomassButton(650, 600, "button", ".deck.");
+var deckB = new gomassButton(650, 620, "button", ".deck.");
 deckB.onclick = function() {
   // hide info
   infoDiv.visible(false);

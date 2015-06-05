@@ -266,6 +266,15 @@ function Board(name, posx, posy, caseW, caseH) {
     }
     return plateauString;
   };
+  // set div border
+  objBoard.setBorder = function(up) {
+    if (up) {
+      this.style.borderStyle = "none none dotted none";
+    }
+    else {
+      this.style.borderStyle = "dotted none none none";
+    }
+  };
   return objBoard;
 }
 /*
@@ -466,10 +475,6 @@ function SpellCase(casex, casey, id, boardName, width, height) {
     var lineW = 4;
     if (this.carte.visible) {
       this.ctx.font = "12px serif";
-      this.ctx.shadowOffsetX = 1;
-      this.ctx.shadowOffsetY = 1;
-      this.ctx.shadowBlur = 2;
-      this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
       this.ctx.beginPath();
       this.ctx.fillStyle = "rgb(255,255,0)";
       if (this.carte.active) {

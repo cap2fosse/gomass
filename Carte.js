@@ -140,7 +140,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     if (effect.modifVie < 0) {
       var defense = this.defense + effect.modifVie;
       var life = this.vie + defense;
-      if (defense > 0) {this.defense = defense;}
+      if (defense >= 0) {this.defense = defense;}
       else {this.defense = 0;}
       if (life > 0) {this.vie = life;}
       else {this.vie = 0;}
