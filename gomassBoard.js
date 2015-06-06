@@ -824,9 +824,12 @@ function resolveAttackOpponent(attackerBoard, attackerCaseId) {
   var attCarte = attBoard.get(attackerCaseId);
   var defCarte = defBoard.get(0);
   var defDefense = defCarte.defense - attCarte.attaque;
-  var defLife = defCarte.vie + defDefense;
-  if (defDefense > 0) {defCarte.defense = defDefense;}
-  else {defCarte.defense = 0;}
+  var defLife = defCarte.vie;
+  if (defDefense < 0) {
+    defLife = defCarte.vie + defDefense;
+    defCarte.defense = 0;
+  }
+  else {defCarte.defense = defDefense;}
   attCarte.active = false; // inactive attack carte
   if (attCarte.etat.hide) { // unhidden
     attCarte.etat.hide = false;
