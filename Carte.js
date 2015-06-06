@@ -198,6 +198,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
       else if (this.effet.impact == 'player') {this.description += ' on player;';}
       else if (this.effet.impact == 'opponent') {this.description += ' on opponent;';}
       else if (this.effet.impact == 'any') {this.description += ' on any;';}
+      else if (this.effet.impact == 'mySelf') {this.description += ' on my self;';}
       // line 3, 4 & 5
       if (this.effet.modifAttack != 0) {this.description += ' Attack : ' + this.effet.modifAttack + ';';}
       if (this.effet.modifDefense != 0) {this.description += ' Defense : ' + this.effet.modifDefense + ';';}
@@ -212,6 +213,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
       else if (this.effet.impact == 'player') {this.description += ' on player';}
       else if (this.effet.impact == 'opponent') {this.description += ' on opponent';}
       else if (this.effet.impact == 'any') {this.description += ' on any';}
+      else if (this.effet.impact == 'mySelf') {this.description += ' on my self';}
     }
     if (this.type == 'Equipment') {
       if (this.equipement.type == 'Weapon') {this.description = 'Weapon';}
@@ -315,7 +317,7 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
   }
   else {this.zone = Effet.prototype.zone;}
   if (impact != undefined) {
-    if (impact == 'opponentBoard' || impact == 'playerBoard' || 
+    if (impact == 'opponentBoard' || impact == 'playerBoard' || impact == 'mySelf' ||
         impact == 'opponent' || impact == 'player' || impact == 'any') {this.impact = impact;}
     else {this.impact = Effet.prototype.impact;}
   }
@@ -367,7 +369,7 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
 Effet.prototype = {
   id : -1,
   zone : '', // 'Single' | 'Multi'
-  impact : '', // 'opponentBoard' | 'playerBoard' | 'any' | 'opponent' | 'player'
+  impact : '', // 'opponentBoard' | 'playerBoard' | 'any' | 'opponent' | 'player' | 'mySelf'
   declencheur : '', // 'Immediat' | 'Attack' | 'Die' | 'Defense' | 'Activated' | Played
   modifAttack : 0, // An integer
   modifDefense : 0,

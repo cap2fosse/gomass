@@ -353,9 +353,16 @@ function Case(casex, casey, id, boardName, width, height) {
         if (this.carte.titre != '') {
           this.ctx.font = "14px serif";
           // hight light title
-          if (this.carte.active) {this.ctx.fillStyle = "rgb(45,255,45)";}
-          else {this.ctx.fillStyle = "rgb(77,77,77)";}
-          this.ctx.fillText(this.carte.titre, 15, 38);
+          if (this.carte.active) {
+            this.ctx.fillStyle = "rgb(45,255,45)";
+            this.ctx.strokeStyle = "rgb(45,255,45)";
+            this.ctx.lineWidth = 4;
+            this.ctx.strokeRect(4, 4, this.width-6, this.height-6);
+          }
+          else {
+            this.ctx.fillStyle = "rgb(77,77,77)";
+          }
+          this.ctx.fillText(this.carte.titre, 10, 40);
         }
         if (this.carte.type != '') {
           this.ctx.font = "10px serif";
@@ -386,9 +393,9 @@ function Case(casex, casey, id, boardName, width, height) {
           this.ctx.font = "12px serif";
           this.ctx.fillStyle = "rgb(77,77,77)";
           this.ctx.fillText(this.carte.special, 20, this.height-8);
+          this.fillBorder();
         }
       }
-      this.fillBorder();
       this.ctx.stroke();
     }
     else {
@@ -396,32 +403,30 @@ function Case(casex, casey, id, boardName, width, height) {
     }
   };
   canvasCase.fillBorder = function() {
-    var lineW = 4;
+    var lineW = 2;
     if (this.carte.etat.provoke) {
       this.ctx.strokeStyle = "rgb(44,35,218)";
-      this.ctx.lineWidth = lineW;
-      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+      this.ctx.fillStyle = "rgb(44,35,218)";
     }
     else if (this.carte.etat.charge) {
       this.ctx.strokeStyle = "rgb(210,35,210)";
-      this.ctx.lineWidth = lineW;
-      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+      this.ctx.fillStyle = "rgb(210,35,210)";
     }
     else if (this.carte.etat.fury > 0) {
       this.ctx.strokeStyle = "rgb(207,27,0)";
-      this.ctx.lineWidth = lineW;
-      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+      this.ctx.fillStyle = "rgb(207,27,0)";
     }
     else if (this.carte.etat.divine) {
       this.ctx.strokeStyle = "rgb(205,205,0)";
-      this.ctx.lineWidth = lineW;
-      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+      this.ctx.fillStyle = "rgb(205,205,0)";
     }
     else if (this.carte.etat.hide) {
       this.ctx.strokeStyle = "rgb(20,33,0)";
-      this.ctx.lineWidth = lineW;
-      this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+      this.ctx.fillStyle = "rgb(20,33,0)";
     }
+    this.ctx.lineWidth = lineW;
+    this.ctx.fillRect(75, 110, 10, 10);
+    //this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
   };
   canvasCase.setVisibility = function(visible) {
     if (visible) {

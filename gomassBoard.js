@@ -151,7 +151,6 @@ playerBoard.onclick = function() {
           // if charge change to active
           if (hand.etat.charge) {
             hand.active = true;
-            hand.etat.charge = false;
           }
           // clone it and put it on board
           this.addClone(selectedCaseId, hand);
@@ -915,17 +914,11 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   // apply for defender
   if (defLife <= 0) {
     if (defCarte.effet.declencheur == 'Die') { // apply effect on Die
-      if (defCarte.effet.impact == 'player' || defCarte.effet.impact == 'any') {
+      if (defCarte.effet.impact == 'player') {
         applySpellEffect(defenderBoard, defenderCaseId, 'player', 0);
       }
-      if (defCarte.effet.impact == 'playerBoard' || defCarte.effet.impact == 'any') {
-        applySpellEffect(defenderBoard, defenderCaseId, defenderBoard, defenderCaseId);
-      }
-      if (defCarte.effet.impact == 'opponent' || defCarte.effet.impact == 'any') {
+      if (defCarte.effet.impact == 'opponent') {
         applySpellEffect(defenderBoard, defenderCaseId, 'opponent', 0);
-      }
-      if (defCarte.effet.impact == 'opponentBoard' || defCarte.effet.impact == 'any') {
-        applySpellEffect(defenderBoard, defenderCaseId, attackerBoard, attackerCaseId);
       }
     }
     defCarte.init(); // carte is dead
@@ -942,14 +935,8 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   }
   else {
     if (defCarte.effet.declencheur == 'Defense') { // apply effect on Defense
-      if (defCarte.effet.impact == 'player' || defCarte.effet.impact == 'any') {
-        applySpellEffect(defenderBoard, defenderCaseId, 'player', 0);
-      }
       if (defCarte.effet.impact == 'playerBoard' || defCarte.effet.impact == 'any') {
         applySpellEffect(defenderBoard, defenderCaseId, defenderBoard, defenderCaseId);
-      }
-      if (defCarte.effet.impact == 'opponent' || defCarte.effet.impact == 'any') {
-        applySpellEffect(defenderBoard, defenderCaseId, 'opponent', 0);
       }
       if (defCarte.effet.impact == 'opponentBoard' || defCarte.effet.impact == 'any') {
         applySpellEffect(defenderBoard, defenderCaseId, attackerBoard, attackerCaseId);
@@ -974,14 +961,8 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
       if (attCarte.effet.impact == 'player' || attCarte.effet.impact == 'any') {
         applySpellEffect(attackerBoard, attackerCaseId, 'player', 0);
       }
-      if (attCarte.effet.impact == 'playerBoard' || attCarte.effet.impact == 'any') {
-        applySpellEffect(attackerBoard, attackerCaseId, attackerBoard, attackerCaseId);
-      }
       if (attCarte.effet.impact == 'opponent' || attCarte.effet.impact == 'any') {
         applySpellEffect(attackerBoard, attackerCaseId, 'opponent', 0);
-      }
-      if (attCarte.effet.impact == 'opponentBoard' || attCarte.effet.impact == 'any') {
-        applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId);
       }
     }
     attCarte.init();
@@ -997,16 +978,10 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   }
   else { 
     if (attCarte.effet.declencheur == 'Attack') { // apply effect on Attack
-      if (attCarte.effet.impact == 'player' || attCarte.effet.impact == 'any') {
-        applySpellEffect(attackerBoard, attackerCaseId, 'player', 0);
-      }
-      if (attCarte.effet.impact == 'playerBoard' || attCarte.effet.impact == 'any') {
+      if (attCarte.effet.impact == 'playerBoard') {
         applySpellEffect(attackerBoard, attackerCaseId, attackerBoard, attackerCaseId);
       }
-      if (attCarte.effet.impact == 'opponent' || attCarte.effet.impact == 'any') {
-        applySpellEffect(attackerBoard, attackerCaseId, 'opponent', 0);
-      }
-      if (attCarte.effet.impact == 'opponentBoard' || attCarte.effet.impact == 'any') {
+      if (attCarte.effet.impact == 'opponentBoard') {
         applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId);
       }
     }
