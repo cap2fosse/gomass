@@ -137,6 +137,7 @@ socket.on('startgame', function(message) {
     opponentPower.inactivateAll();
     player.activateAll();
     opponent.inactivateAll();
+    playerHand.activateAll();
     console.log('You start the game : ' + message.game);
   }
   else {
@@ -270,6 +271,7 @@ socket.on('endturnok', function(message) {
   opponentPower.activateAll();
   player.inactivateAll();
   opponent.activateAll();
+  playerHand.inactivateAll();
 })
 socket.on('newturn', function(message) {
   console.log('Received newturn : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
@@ -285,6 +287,7 @@ socket.on('newturn', function(message) {
   playerBoard.activateAll();
   playerPower.activateAll();
   player.activateAll();
+  playerHand.activateAll();
   opponentPower.inactivateAll();
   opponentBoard.inactivateAll();
   opponent.inactivateAll();

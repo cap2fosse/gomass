@@ -178,12 +178,10 @@ function Board(name, posx, posy, caseW, caseH) {
   // active all visible carte
   objBoard.activateAll = function() {
     for (var caseid = 0; caseid < this.cases.length; caseid++) {
-      if (this.cases[caseid].carte.visible && !this.cases[caseid].carte.stun) {
+      if (this.cases[caseid].carte.visible) {
         this.cases[caseid].carte.activate(true);
       }
-      else {
-        this.cases[caseid].carte.activate(false);
-      }
+      else {this.cases[caseid].carte.activate(false);}
       this.cases[caseid].draw();
     }
   };

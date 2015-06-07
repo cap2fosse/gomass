@@ -113,6 +113,9 @@ opponentBoard.onclick = function() {
       default:
         console.log("Can't select carte!");
     }
+    // check hand
+    playerHand.activateAll();
+    // clean
     cleanHand();
   }
 }
@@ -270,6 +273,9 @@ playerBoard.onclick = function() {
     selectedCarte.init();
     selectedCaseId = -1;
   }
+  // check hand
+  playerHand.activateAll();
+  // clean
   cleanHand(playerBoard.id);
 }
 
@@ -284,7 +290,9 @@ playerHand.onclick = function() {
       case 0: // select a carte from hand
       // there is enough mana?
       if (manaBoard.getMana() >= selectedCarte.cout) {
+        // clone and inactive it
         this.selectedCarte = selectedCarte.clone();
+        this.selectedCarte.activate(false);
         this.selectedCaseId = selectedCaseId;
         console.log('Select a Carte in Hand : ' + this.selectedCarte);
       }
@@ -309,6 +317,17 @@ playerHand.fill = function(cardList){
     this.addLast(card);
   }
   //this.setVisibility(true);
+}
+playerHand.activateAll = function(){
+  for (var caseid = 0; caseid < this.cases.length; caseid++) {
+    if (this.cases[caseid].carte.visible) {
+      if (manaBoard.getMana() >= this.cases[caseid].carte.cout) {
+        this.cases[caseid].carte.activate(true);
+      }
+      else {this.cases[caseid].carte.activate(false);}
+    }
+    this.cases[caseid].draw();
+  }
 }
 
 var opponent = new Board('opponent', 760, 160, 100, 150);
@@ -411,6 +430,9 @@ opponent.onclick = function() {
     default:
       console.log("Can't select carte!");
     }
+    // check hand
+    playerHand.activateAll();
+    // clean
     cleanHand(); // clean all selected carte
   }
 }
@@ -475,6 +497,9 @@ player.onclick = function() {
         console.log("Can't select carte!");
     }
   }
+  // check hand
+  playerHand.activateAll();
+  // clean
   cleanHand(player.id);
   selectedCarte.init();
   selectedCaseId = -1;
