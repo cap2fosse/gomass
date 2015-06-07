@@ -649,108 +649,109 @@ function loadPlayer() {
 function loadCartes() {
   var c;
   for (var id = 0; id < maxCartes; id++) {
+    var cardName = getName(5, 9, '', '');
     if (id >= 0 && id < 9) {
-      c = new Carte(id, 'Normal', 'Invocation', 0, true, 1, 1, 1, 1, "Soldier"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 0, true, 1, 1, 1, 1, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 9 && id < 13) {
-      c = new Carte(id, 'Normal', 'Spell', 0, true, 1, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 0, true, 1, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 13 && id < 15) {
-      c = new Carte(id, 'Normal', 'Equipment', 0, true, 1, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 0, true, 1, 0, 0, 0, cardName);
       doEquipement(c);
     }
     if (id >= 15 && id < 24) {
-      c = new Carte(id, 'Normal', 'Invocation', 1, true, 2, 2, 1, 2, "Corporal"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 1, true, 2, 2, 1, 2, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 24 && id < 28) {
-      c = new Carte(id, 'Normal', 'Spell', 1, true, 2, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 1, true, 2, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 28 && id < 30) {
-      c = new Carte(id, 'Normal', 'Equipment', 1, true, 2, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 1, true, 2, 0, 0, 0, cardName);
       doEquipement(c);
     }
     if (id >= 30 && id < 39) {
-      c = new Carte(id, 'Normal', 'Invocation', 2, true, 3, 3, 1, 3, "Sergeant"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 2, true, 3, 3, 1, 3, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 39 && id < 43) {
-      c = new Carte(id, 'Normal', 'Spell', 2, true, 3, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 2, true, 3, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 43 && id < 45) {
-      c = new Carte(id, 'Normal', 'Equipment', 2, true, 3, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 2, true, 3, 0, 0, 0, cardName);
       doEquipement(c);
     }
     if (id >= 45 && id < 54) {
-      c = new Carte(id, 'Normal', 'Invocation', 3, true, 4, 4, 1, 4, "Lieutenant"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 3, true, 4, 4, 1, 4, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 54 && id < 58) {
-      c = new Carte(id, 'Normal', 'Spell', 3, true, 4, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 3, true, 4, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 58 && id < 60) {
-      c = new Carte(id, 'Normal', 'Equipment', 3, true, 4, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 3, true, 4, 0, 0, 0, cardName);
       doEquipement(c);
     }
     if (id >= 60 && id < 69) {
-      c = new Carte(id, 'Normal', 'Invocation', 4, true, 5, 5, 1, 5, "Captain"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 4, true, 5, 5, 1, 5, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 69 && id < 73) {
-      c = new Carte(id, 'Normal', 'Spell', 4, true, 5, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 4, true, 5, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 73 && id < 75) {
-      c = new Carte(id, 'Normal', 'Equipment', 4, true, 5, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 4, true, 5, 0, 0, 0, cardName);
       doEquipement(c);
     }
     if (id >= 75 && id < 84) {
-      c = new Carte(id, 'Normal', 'Invocation', 5, true, 6, 6, 1, 6, "Major"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 5, true, 6, 6, 1, 6, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 84 && id < 88) {
-      c = new Carte(id, 'Normal', 'Spell', 5, true, 6, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 5, true, 6, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 88 && id < 90) {
-      c = new Carte(id, 'Normal', 'Equipment', 5, true, 6, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 5, true, 6, 0, 0, 0, cardName);
       doEquipement(c);
     }
     if (id >= 90 && id < 99) {
-      c = new Carte(id, 'Normal', 'Invocation', 6, true, 7, 7, 1, 7, "Colonel"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 6, true, 7, 7, 1, 7, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 99 && id < 103) {
-      c = new Carte(id, 'Normal', 'Spell', 6, true, 7, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 6, true, 7, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 103 && id < 105) {
-      c = new Carte(id, 'Normal', 'Equipment', 6, true, 7, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 6, true, 7, 0, 0, 0, cardName);
       doEquipement(c);
     }
     if (id >= 105 && id < 114) {
-      c = new Carte(id, 'Normal', 'Invocation', 7, true, 8, 8, 1, 8, "General"+id);
+      c = new Carte(id, 'Normal', 'Invocation', 7, true, 8, 8, 1, 8, cardName);
       doEtat(c);
       doInvocEffet(c);
     }
     if (id >= 114 && id < 118) {
-      c = new Carte(id, 'Normal', 'Spell', 7, true, 8, 0, 0, 0, "Spell"+id);
+      c = new Carte(id, 'Normal', 'Spell', 7, true, 8, 0, 0, 0, cardName);
       doSpellEffet(c);
     }
     if (id >= 118 && id < 120) {
-      c = new Carte(id, 'Normal', 'Equipment', 7, true, 8, 0, 0, 0, "Equipment"+id);
+      c = new Carte(id, 'Normal', 'Equipment', 7, true, 8, 0, 0, 0, cardName);
       doEquipement(c);
     }
     allCartes.push(c);
@@ -1103,6 +1104,52 @@ function translateBoard(board) {
   return '';
 }
 
+//-----------------------------------------------------------
+//random name generator from
+//http://leapon.net/files/namegen.html
+//-----------------------------------------------------------
+function getName(minlength, maxlength, prefix, suffix)
+{
+  prefix = prefix || '';
+  suffix = suffix || '';
+  //these weird character sets are intended to cope with the nature of English (e.g. char 'x' pops up less frequently than char 's')
+  //note: 'h' appears as consonants and vocals
+  var vocals = 'aeiouyh' + 'aeiou' + 'aeiou';
+  var cons = 'bcdfghjklmnpqrstvwxz' + 'bcdfgjklmnprstvw' + 'bcdfgjklmnprst';
+  var allchars = vocals + cons;
+  var length = rnd(minlength, maxlength) - prefix.length - suffix.length;
+  var touse = '';
+  if (length < 1) length = 1;
+  var consnum = 0;
+  if (prefix.length > 0) {
+    for (var i = 0; i < prefix.length; i++) {
+      if (consnum == 2) {consnum = 0;}
+      if (cons.indexOf(prefix[i]) != -1) {consnum++;}
+    }
+  }
+  else {
+    consnum = 1;
+  }
+  var name = prefix;
+  for (var i = 0; i < length; i++) {
+    //if we have used 2 consonants, the next char must be vocal.
+    if (consnum == 2) {
+      touse = vocals;
+      consnum = 0;
+    }
+    else {touse = allchars;}
+    //pick a random character from the set we are goin to use.
+    var c = touse.charAt(rnd(0, touse.length - 1));
+    name = name + c;
+    if (cons.indexOf(c) != -1) {consnum++;}
+  }
+  name = name.charAt(0).toUpperCase() + name.substring(1, name.length) + suffix;
+  return name;
+}
+function rnd(minv, maxv){
+  if (maxv < minv) return 0;
+  return Math.floor(Math.random()*(maxv-minv+1)) + minv;
+}
 function randomDeck(deck) {
   for (var position = deck.length-1; position >= 1; position--){
     //hasard reçoit un nombre entier aléatoire entre 0 et position

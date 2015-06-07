@@ -351,8 +351,8 @@ function Case(casex, casey, id, boardName, width, height) {
         this.ctx.fillText(this.carte.defense, this.width-25, 20);
 
         if (this.carte.titre != '') {
-          this.ctx.font = "14px serif";
-          // hight light title
+          this.ctx.font = "12px serif";
+          // hight light title & borders
           if (this.carte.active) {
             this.ctx.fillStyle = "rgb(45,255,45)";
             this.ctx.strokeStyle = "rgb(45,255,45)";
@@ -362,7 +362,7 @@ function Case(casex, casey, id, boardName, width, height) {
           else {
             this.ctx.fillStyle = "rgb(77,77,77)";
           }
-          this.ctx.fillText(this.carte.titre, 10, 40);
+          this.ctx.fillText(this.carte.titre, 10, 35);
         }
         if (this.carte.type != '') {
           this.ctx.font = "10px serif";
@@ -374,25 +374,25 @@ function Case(casex, casey, id, boardName, width, height) {
           this.ctx.font = "10px serif";
           this.ctx.fillStyle = "rgb(77,77,77)";
           if (desc[0] != undefined) { // declencheur || spell Effect || equipment effect
-            this.ctx.fillText(desc[0], 8, this.height-90);
+            this.ctx.fillText(desc[0], 8, this.height-100);
           }
-          if (desc[1] != undefined && desc[1] != 0) { // zone & impact || durability
-            this.ctx.fillText(desc[1], 8, this.height-75);
+          if (desc[1] != undefined && desc[1] != 0) { // zone || durability
+            this.ctx.fillText(desc[1], 8, this.height-85);
           }
-          if (desc[2] != undefined) { // Attack
-            this.ctx.fillText(desc[2], 8, this.height-60);
+          if (desc[2] != undefined && desc[2] != 0) { // impact
+            this.ctx.fillText(desc[2], 8, this.height-70);
           }
-          if (desc[3] != undefined) { // Defense
-            this.ctx.fillText(desc[3], 8, this.height-45);
+          if (desc[3] != undefined) { // Attack
+            this.ctx.fillText(desc[3], 8, this.height-55);
           }
-          if (desc[4] != undefined) { // Life
-            this.ctx.fillText(desc[4], 8, this.height-30);
+          if (desc[4] != undefined) { // Defense
+            this.ctx.fillText(desc[4], 8, this.height-40);
+          }
+          if (desc[5] != undefined) { // Life
+            this.ctx.fillText(desc[5], 8, this.height-25);
           }
         }
         if (this.carte.special != '') {
-          this.ctx.font = "12px serif";
-          this.ctx.fillStyle = "rgb(77,77,77)";
-          this.ctx.fillText(this.carte.special, 20, this.height-8);
           this.fillBorder();
         }
       }
@@ -407,26 +407,35 @@ function Case(casex, casey, id, boardName, width, height) {
     if (this.carte.etat.provoke) {
       this.ctx.strokeStyle = "rgb(44,35,218)";
       this.ctx.fillStyle = "rgb(44,35,218)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 30, 10, 10);
     }
-    else if (this.carte.etat.charge) {
+    if (this.carte.etat.charge) {
       this.ctx.strokeStyle = "rgb(210,35,210)";
       this.ctx.fillStyle = "rgb(210,35,210)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 45, 10, 10);
     }
-    else if (this.carte.etat.fury > 0) {
+    if (this.carte.etat.fury > 0) {
       this.ctx.strokeStyle = "rgb(207,27,0)";
       this.ctx.fillStyle = "rgb(207,27,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 60, 10, 10);
     }
-    else if (this.carte.etat.divine) {
+    if (this.carte.etat.divine) {
       this.ctx.strokeStyle = "rgb(205,205,0)";
       this.ctx.fillStyle = "rgb(205,205,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 75, 10, 10);
     }
-    else if (this.carte.etat.hide) {
+    if (this.carte.etat.hide) {
       this.ctx.strokeStyle = "rgb(20,33,0)";
       this.ctx.fillStyle = "rgb(20,33,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 90, 10, 10);
     }
-    this.ctx.lineWidth = lineW;
-    this.ctx.fillRect(75, 110, 10, 10);
-    //this.ctx.strokeRect(lineW, lineW, this.width-lineW-2, this.height-lineW-2);
+    this.ctx.font = "10px serif";
+    this.ctx.fillText(this.carte.special, 20, this.height-10);
   };
   canvasCase.setVisibility = function(visible) {
     if (visible) {

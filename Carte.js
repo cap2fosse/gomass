@@ -191,14 +191,14 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
       else if (this.effet.declencheur == 'Activated') {this.description += 'On Activated;';}
       else if (this.effet.declencheur == 'Played') {this.description += 'On Played;';}
       // line 2
-      if (this.effet.zone == 'Single') {this.description += 'Single';}
-      else if (this.effet.zone == 'Multi') {this.description += 'Multi';}
-      if (this.effet.impact == 'playerBoard') {this.description += ' on playBoard;';}
-      else if (this.effet.impact == 'opponentBoard') {this.description += ' on oppoBoard;';}
-      else if (this.effet.impact == 'player') {this.description += ' on player;';}
-      else if (this.effet.impact == 'opponent') {this.description += ' on opponent;';}
-      else if (this.effet.impact == 'any') {this.description += ' on any;';}
-      else if (this.effet.impact == 'mySelf') {this.description += ' on my self;';}
+      if (this.effet.zone == 'Single') {this.description += 'Zone Single;';}
+      else if (this.effet.zone == 'Multi') {this.description += 'Zone Multi;';}
+      if (this.effet.impact == 'playerBoard') {this.description += 'on playBoard;';}
+      else if (this.effet.impact == 'opponentBoard') {this.description += 'on oppoBoard;';}
+      else if (this.effet.impact == 'player') {this.description += 'on player;';}
+      else if (this.effet.impact == 'opponent') {this.description += 'on opponent;';}
+      else if (this.effet.impact == 'any') {this.description += 'on any;';}
+      else if (this.effet.impact == 'mySelf') {this.description += 'on myself;';}
       // line 3, 4 & 5
       if (this.effet.modifAttack != 0) {this.description += ' Attack : ' + this.effet.modifAttack + ';';}
       if (this.effet.modifDefense != 0) {this.description += ' Defense : ' + this.effet.modifDefense + ';';}
@@ -213,7 +213,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
       else if (this.effet.impact == 'player') {this.description += ' on player';}
       else if (this.effet.impact == 'opponent') {this.description += ' on opponent';}
       else if (this.effet.impact == 'any') {this.description += ' on any';}
-      else if (this.effet.impact == 'mySelf') {this.description += ' on my self';}
+      else if (this.effet.impact == 'mySelf') {this.description += ' on myself';}
     }
     if (this.type == 'Equipment') {
       if (this.equipement.type == 'Weapon') {this.description = 'Weapon';}

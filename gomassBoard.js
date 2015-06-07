@@ -151,6 +151,7 @@ playerBoard.onclick = function() {
           // if charge change to active
           if (hand.etat.charge) {
             hand.active = true;
+            hand.etat.charge = false;
           }
           // clone it and put it on board
           this.addClone(selectedCaseId, hand);
