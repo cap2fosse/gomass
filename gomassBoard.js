@@ -33,22 +33,23 @@ opponentBoard.onclick = function() {
         console.log(player.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
             'From case : ' + player.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
         // resolve attack here
-          var attackerBoard  = player.id;
-          var defenderBoard = this.id;
-          var attackerCaseId = player.selectedCaseId;
-          var defenderCaseId = selectedCaseId;
-          if (player.selectedCarte.visible && player.selectedCarte.active) {
-            // no provocate on board ?
-            if (!this.provocate()) {
-              resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
-            }
-            else if (selectedCarte.etat.provoke) { // attack provoke
-              resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
-            }
-            else {console.log('Provocation on board!');}
+        var attackerBoard  = player.id;
+        var defenderBoard = this.id;
+        var attackerCaseId = player.selectedCaseId;
+        var defenderCaseId = selectedCaseId;
+        if (player.selectedCarte.visible && player.selectedCarte.active) {
+          // no provocate on board ?
+          if (!this.provocate()) {
+            resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
+            //player.inactivateAll();
           }
+          else if (selectedCarte.etat.provoke) { // attack provoke
+            resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
+            //player.inactivateAll();
+          }
+          else {console.log('Provocation on board!');}
+        }
         // reset
-        player.inactivateAll();
         player.initSelectedCarte();
         selectedCarte.init();
         selectedCaseId = -1;
@@ -62,10 +63,12 @@ opponentBoard.onclick = function() {
           if (!selectedCarte.etat.hide) { // no spell on hidden card
             applySpellEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
             manaBoard.remove(playerHand.selectedCarte.cout); // remove mana
+            playerHand.remove(playerHand.selectedCaseId);
+            // compute playable cards
+            playerHand.activateAll();
           }
         }
         // reset
-        playerHand.remove(playerHand.selectedCaseId);
         playerHand.initSelectedCarte();
         selectedCarte.init();
         selectedCaseId = -1;
@@ -88,6 +91,9 @@ opponentBoard.onclick = function() {
           }
           else {console.log('Provocation on board!');}
         }
+        playerBoard.initSelectedCarte();
+        selectedCarte.init();
+        selectedCaseId = -1;
         break;
       case 4: // received attack from player power
         this.selectedCarte = selectedCarte.clone();
@@ -103,20 +109,23 @@ opponentBoard.onclick = function() {
             applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId);
             playerPower.inactivateAll(); // inactive power player
             manaBoard.remove(power.cout); // remove mana
+            // compute playable cards
+            playerHand.activateAll();
           }
         }
         // reset
-        playerBoard.initSelectedCarte();
+        playerPower.initSelectedCarte();
         selectedCarte.init();
         selectedCaseId = -1;
         break;
       default:
         console.log("Can't select carte!");
     }
-    // check hand
-    playerHand.activateAll();
     // clean
     cleanHand();
+  }
+  else {
+    console.log("Can't select carte!");
   }
 }
 opponentBoard.provocate = function() {
@@ -161,6 +170,8 @@ playerBoard.onclick = function() {
           // remove
           playerHand.remove(playerHand.selectedCaseId);
           manaBoard.remove(hand.cout);
+          // compute playable cards
+          playerHand.activateAll();
           console.log('Put a carte on board : ' + this.get(selectedCaseId));
           // prepare msg
           var thecarte = hand.clone();
@@ -196,6 +207,8 @@ playerBoard.onclick = function() {
           // add new invocation
           var invocus = invocusCard.clone();
           manaBoard.remove(invocus.cout);
+          // compute playable cards
+          playerHand.activateAll();
           InvocateCard(this.id, invocus, selectedCaseId);
         }
         // reset
@@ -232,6 +245,8 @@ playerBoard.onclick = function() {
         applySpellEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
         manaBoard.remove(playerHand.selectedCarte.cout); // remove mana
         playerHand.remove(playerHand.selectedCaseId);
+        // compute playable cards
+        playerHand.activateAll();
         // reset
         playerHand.initSelectedCarte();
         selectedCarte.init();
@@ -254,6 +269,8 @@ playerBoard.onclick = function() {
         applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId);
         manaBoard.remove(playerPower.get(0).cout); // remove mana
         playerPower.inactivateAll();
+        // compute playable cards
+        playerHand.activateAll();
         // reset
         playerPower.initSelectedCarte();
         selectedCarte.init();
@@ -273,8 +290,6 @@ playerBoard.onclick = function() {
     selectedCarte.init();
     selectedCaseId = -1;
   }
-  // check hand
-  playerHand.activateAll();
   // clean
   cleanHand(playerBoard.id);
 }
@@ -306,6 +321,7 @@ playerHand.onclick = function() {
     }
   }
   else {console.log("Can't select carte!");}
+  // reset
   cleanHand(playerHand.id);
   selectedCarte.init();
   selectedCaseId = -1;
@@ -322,9 +338,9 @@ playerHand.activateAll = function(){
   for (var caseid = 0; caseid < this.cases.length; caseid++) {
     if (this.cases[caseid].carte.visible) {
       if (manaBoard.getMana() >= this.cases[caseid].carte.cout) {
-        this.cases[caseid].carte.activate(true);
+        this.cases[caseid].carte.active = true;
       }
-      else {this.cases[caseid].carte.activate(false);}
+      else {this.cases[caseid].carte.active = false;}
     }
     this.cases[caseid].draw();
   }
@@ -345,22 +361,21 @@ opponent.onclick = function() {
       console.log(player.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
           'From case : ' + player.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
       // resolve attack here
-        var attackerBoard  = player.id;
-        var defenderBoard = this.id;
-        var attackerCaseId = player.selectedCaseId;
-        var defenderCaseId = selectedCaseId;
-        if (player.selectedCarte.visible && player.selectedCarte.active) {
-          // no provocate on board ?
-          if (!opponentBoard.provocate()) {
-            resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
-          }
-          else if (selectedCarte.etat.provoke) { // attack provoke
-            resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
-          }
-          else {console.log('Provocation on board!');}
+      var attackerBoard  = player.id;
+      var defenderBoard = this.id;
+      var attackerCaseId = player.selectedCaseId;
+      var defenderCaseId = selectedCaseId;
+      if (player.selectedCarte.visible && player.selectedCarte.active) {
+        // no provocate on board ?
+        if (!opponentBoard.provocate()) {
+          resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
         }
+        else if (selectedCarte.etat.provoke) { // attack provoke
+          resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
+        }
+        else {console.log('Provocation on board!');}
+      }
       // reset
-      player.inactivateAll();
       player.initSelectedCarte();
       selectedCarte.init();
       selectedCaseId = -1;
@@ -376,9 +391,11 @@ opponent.onclick = function() {
       if (playerHand.selectedCarte.type == 'Spell') {
         applySpellEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
         manaBoard.remove(playerHand.selectedCarte.cout); // remove mana
+        playerHand.remove(playerHand.selectedCaseId);
+        // compute playable cards
+        playerHand.activateAll();
       }
       // reset
-      playerHand.remove(playerHand.selectedCaseId);
       playerHand.initSelectedCarte();
       selectedCarte.init();
       selectedCaseId = -1;
@@ -421,6 +438,8 @@ opponent.onclick = function() {
         applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId);
         manaBoard.remove(playerPower.selectedCarte.cout); // remove mana
         playerPower.inactivateAll();
+        // compute playable cards
+        playerHand.activateAll();
       }
       // reset
       playerPower.initSelectedCarte();
@@ -430,11 +449,9 @@ opponent.onclick = function() {
     default:
       console.log("Can't select carte!");
     }
-    // check hand
-    playerHand.activateAll();
-    // clean
-    cleanHand(); // clean all selected carte
   }
+  // clean
+  cleanHand(); // clean all selected carte
 }
 opponent.setName = function(){
   this.get(0).description = opponentName;
@@ -451,23 +468,32 @@ player.onclick = function() {
       case 0: // select a carte from player
         this.selectedCarte = selectedCarte.clone();
         this.selectedCaseId = selectedCaseId;
-        console.log('Selected player : ' + selectedCarte);
+        console.log('Selected player : ' + this.selectedCarte);
+        selectedCarte.init();
+        selectedCaseId = -1;
       break;
       case 1: // unselect
         this.initSelectedCarte();
+        selectedCarte.init();
+        selectedCaseId = -1;
         console.log('Unselected player : ' + selectedCarte);
       break;
       case 2: // spell from hand
         if (playerHand.selectedCarte.type == 'Spell') { // if its spell
           applySpellEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
           manaBoard.remove(playerHand.selectedCarte.cout); // remove mana
+          playerHand.remove(playerHand.selectedCaseId); // remove the card in the hand
+          // compute playable cards
+          playerHand.activateAll();
         }
         if (playerHand.selectedCarte.type == 'Equipment') { // if it Equipment
           applyEquipmentEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
           manaBoard.remove(playerHand.selectedCarte.cout); // remove mana
+          playerHand.remove(playerHand.selectedCaseId); //remove the card in the hand
+          // compute playable cards
+          playerHand.activateAll();
         }
         // reset
-        playerHand.remove(playerHand.selectedCaseId);
         playerHand.initSelectedCarte();
         selectedCarte.init();
         selectedCaseId = -1;
@@ -487,6 +513,8 @@ player.onclick = function() {
           applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId);
           manaBoard.remove(playerPower.selectedCarte.cout); // remove mana
           playerPower.inactivateAll();
+          // compute playable cards
+          playerHand.activateAll();
         }
         // reset
         playerPower.initSelectedCarte();
@@ -497,8 +525,6 @@ player.onclick = function() {
         console.log("Can't select carte!");
     }
   }
-  // check hand
-  playerHand.activateAll();
   // clean
   cleanHand(player.id);
   selectedCarte.init();
@@ -940,11 +966,12 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   // apply for defender
   if (defLife <= 0) {
     if (defCarte.effet.declencheur == 'Die') { // apply effect on Die
+      // in this case we have to translate board
       if (defCarte.effet.impact == 'player') {
-        applySpellEffect(defenderBoard, defenderCaseId, 'player', 0);
+        applySpellEffect(defenderBoard, defenderCaseId, 'opponent', 0);
       }
       if (defCarte.effet.impact == 'opponent') {
-        applySpellEffect(defenderBoard, defenderCaseId, 'opponent', 0);
+        applySpellEffect(defenderBoard, defenderCaseId, 'player', 0);
       }
     }
     defCarte.init(); // carte is dead
@@ -961,10 +988,10 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   }
   else {
     if (defCarte.effet.declencheur == 'Defense') { // apply effect on Defense
-      if (defCarte.effet.impact == 'playerBoard' || defCarte.effet.impact == 'any') {
+      if (defCarte.effet.impact == 'playerBoard') {
         applySpellEffect(defenderBoard, defenderCaseId, defenderBoard, defenderCaseId);
       }
-      if (defCarte.effet.impact == 'opponentBoard' || defCarte.effet.impact == 'any') {
+      if (defCarte.effet.impact == 'opponentBoard') {
         applySpellEffect(defenderBoard, defenderCaseId, attackerBoard, attackerCaseId);
       }
     }
@@ -984,10 +1011,10 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   // apply for attacker
   if (attLife <= 0) { // attack is dead
     if (attCarte.effet.declencheur == 'Die') { // apply effect on Die
-      if (attCarte.effet.impact == 'player' || attCarte.effet.impact == 'any') {
+      if (attCarte.effet.impact == 'player') {
         applySpellEffect(attackerBoard, attackerCaseId, 'player', 0);
       }
-      if (attCarte.effet.impact == 'opponent' || attCarte.effet.impact == 'any') {
+      if (attCarte.effet.impact == 'opponent') {
         applySpellEffect(attackerBoard, attackerCaseId, 'opponent', 0);
       }
     }

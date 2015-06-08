@@ -139,11 +139,20 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     if (this.defense < 0) {this.defense = 0;}
     if (effect.modifVie < 0) {
       var defense = this.defense + effect.modifVie;
-      var life = this.vie + defense;
-      if (defense >= 0) {this.defense = defense;}
-      else {this.defense = 0;}
-      if (life > 0) {this.vie = life;}
-      else {this.vie = 0;}
+      var life = this.vie;
+      if (defense >= 0) {
+        this.defense = defense;
+      }
+      else {
+        this.defense = 0;
+        life += defense;
+      }
+      if (life > 0) {
+        this.vie = life;
+      }
+      else {
+        this.vie = 0;
+      }
     }
     else {
       this.vie += effect.modifVie;

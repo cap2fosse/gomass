@@ -126,6 +126,9 @@ socket.on('startgame', function(message) {
   // add avatar to the board
   opponent.addClone(0, srvCardOp);
   player.addClone(0, srvCardPl);
+  // set name of players
+  player.setName();
+  opponent.setName();
   // add power
   playerPower.addClone(0, srvPowerPl);
   opponentPower.addClone(0, srvPowerOp);
@@ -137,7 +140,6 @@ socket.on('startgame', function(message) {
     opponentPower.inactivateAll();
     player.activateAll();
     opponent.inactivateAll();
-    playerHand.activateAll();
     console.log('You start the game : ' + message.game);
   }
   else {
@@ -168,6 +170,7 @@ socket.on('newhandcard', function(data) {
   finishSelectB.hide(true);
   // replace the hand
   playerHand.fill(newCards);
+  playerHand.activateAll();
   // set hiding opponent hand
   var backC = [backCard, backCard, backCard];
   opponentHand.fill(backC);
@@ -181,9 +184,6 @@ socket.on('showgame', function(data) {
   endTurnB.style.visibility = "visible";
   if (myTurn) {endTurnB.disabled  = false;}
   else {endTurnB.disabled  = true;}
-  // set name of players
-  player.setName();
-  opponent.setName();
   // show the game
   showGameBoards(true);
 })
