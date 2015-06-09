@@ -66,6 +66,7 @@ opponentBoard.onclick = function() {
             playerHand.remove(playerHand.selectedCaseId);
             // compute playable cards
             playerHand.activateAll();
+            playerPower.activateAll();
           }
         }
         // reset
@@ -139,6 +140,17 @@ opponentBoard.provocate = function() {
   }
   return false;
 }
+opponentBoard.activateAll = function(){
+  var card;
+  for (var caseid = 0; caseid < this.cases.length; caseid++) {
+    card = this.get(caseid);
+    if (card.visible && card.attaque > 0) {
+      card.activate(true);
+    }
+    else {card.activate(false);}
+    this.getCase(caseid).draw();
+  }
+}
 
 var playerBoard = new Board('playerBoard', 0, 320, 100, 150);
 playerBoard.create(6, 1, 0);
@@ -172,6 +184,7 @@ playerBoard.onclick = function() {
           manaBoard.remove(hand.cout);
           // compute playable cards
           playerHand.activateAll();
+          playerPower.activateAll();
           console.log('Put a carte on board : ' + this.get(selectedCaseId));
           // prepare msg
           var thecarte = hand.clone();
@@ -207,6 +220,7 @@ playerBoard.onclick = function() {
           // add new invocation
           var invocus = invocusCard.clone();
           manaBoard.remove(invocus.cout);
+          playerPower.inactivateAll();
           // compute playable cards
           playerHand.activateAll();
           InvocateCard(this.id, invocus, selectedCaseId);
@@ -247,6 +261,7 @@ playerBoard.onclick = function() {
         playerHand.remove(playerHand.selectedCaseId);
         // compute playable cards
         playerHand.activateAll();
+        playerPower.activateAll();
         // reset
         playerHand.initSelectedCarte();
         selectedCarte.init();
@@ -293,6 +308,23 @@ playerBoard.onclick = function() {
   // clean
   cleanHand(playerBoard.id);
 }
+playerBoard.activateAll = function(){
+  var card;
+  for (var caseid = 0; caseid < this.cases.length; caseid++) {
+    card = this.get(caseid);
+    if (card.visible && card.attaque > 0) {
+      if (card.effet.declencheur == 'Activated') {
+        card.applyEffect(card.effet);
+      }
+      if (card.etat.maxfury > 0) {
+        card.etat.fury = card.etat.maxfury;
+      }
+      card.activate(true);
+    }
+    else {card.activate(false);}
+    this.getCase(caseid).draw();
+  }
+}
 
 var playerHand = new Board('playerHand', 0, 490, 100, 150);
 playerHand.create(6, 1, 0);
@@ -335,14 +367,16 @@ playerHand.fill = function(cardList){
   //this.setVisibility(true);
 }
 playerHand.activateAll = function(){
+  var card;
   for (var caseid = 0; caseid < this.cases.length; caseid++) {
-    if (this.cases[caseid].carte.visible) {
-      if (manaBoard.getMana() >= this.cases[caseid].carte.cout) {
-        this.cases[caseid].carte.active = true;
+    card = this.get(caseid);
+    if (card.visible) {
+      if (manaBoard.getMana() >= card.cout) {
+        card.activate(true);
       }
-      else {this.cases[caseid].carte.active = false;}
+      else {card.activate(false);}
     }
-    this.cases[caseid].draw();
+    this.getCase(caseid).draw();
   }
 }
 
@@ -394,6 +428,7 @@ opponent.onclick = function() {
         playerHand.remove(playerHand.selectedCaseId);
         // compute playable cards
         playerHand.activateAll();
+        playerPower.activateAll();
       }
       // reset
       playerHand.initSelectedCarte();
@@ -456,6 +491,15 @@ opponent.onclick = function() {
 opponent.setName = function(){
   this.get(0).description = opponentName;
 }
+opponent.activateAll = function() {
+  if (this.get(0).attaque > 0) {
+    this.get(0).activate(true);
+  }
+  else {
+    this.get(0).activate(false);
+  }
+  this.getCase(0).draw();
+}
 
 var player = new Board('player', 760, 330, 100, 150);
 player.create(1, 1, 0);
@@ -485,6 +529,7 @@ player.onclick = function() {
           playerHand.remove(playerHand.selectedCaseId); // remove the card in the hand
           // compute playable cards
           playerHand.activateAll();
+          playerPower.activateAll();
         }
         if (playerHand.selectedCarte.type == 'Equipment') { // if it Equipment
           applyEquipmentEffect(playerHand.id, playerHand.selectedCaseId, this.id, selectedCaseId);
@@ -492,6 +537,7 @@ player.onclick = function() {
           playerHand.remove(playerHand.selectedCaseId); //remove the card in the hand
           // compute playable cards
           playerHand.activateAll();
+          playerPower.activateAll();
         }
         // reset
         playerHand.initSelectedCarte();
@@ -530,10 +576,18 @@ player.onclick = function() {
   selectedCarte.init();
   selectedCaseId = -1;
 }
-player.setName = function(){
+player.setName = function() {
   this.get(0).description = playerName;
 }
-
+player.activateAll = function() {
+  if (this.get(0).attaque > 0) {
+    this.get(0).activate(true);
+  }
+  else {
+    this.get(0).activate(false);
+  }
+  this.getCase(0).draw();
+}
 var allCarte = new Board('allCarte', 100, 0, 100, 150);
 allCarte.create(5, 3, 0);
 document.body.appendChild(allCarte);
@@ -676,10 +730,35 @@ playerPower.onclick = function() {
   selectedCarte.init();
   selectedCaseId = -1;
 }
+playerPower.activateAll = function(){
+  var powerIdx = 0;
+  if (this.get(powerIdx).visible) {
+    if (manaBoard.getMana() >= this.get(powerIdx).cout) {
+      this.get(powerIdx).activate(true);
+    }
+    else {this.get(powerIdx).activate(false);}
+  }
+  this.getCase(powerIdx).draw();
+}
 
 var opponentPower = new Board('opponentPower', 650, 260, 60, 60);
 opponentPower.create(1, 1, 2);
 document.body.appendChild(opponentPower);
+opponentPower.activateAll = function(){
+  var powerIdx = 0;
+  this.get(powerIdx).activate(true);
+  this.getCase(powerIdx).draw();
+}
+opponentPower.activateAll = function(){
+  var powerIdx = 0;
+  if (this.get(powerIdx).visible) {
+    if (manaBoard.getMana() >= this.get(powerIdx).cout) {
+      this.get(powerIdx).activate(true);
+    }
+    else {this.get(powerIdx).activate(false);}
+  }
+  this.getCase(powerIdx).draw();
+}
 
 var manaBoard = new ManageMana(650, 510, 10, 1);
 manaBoard.create();
@@ -974,6 +1053,14 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
         applySpellEffect(defenderBoard, defenderCaseId, 'player', 0);
       }
     }
+    // the opponent is dead
+    if (defCarte.type == 'Player') {
+      // send the end game message
+      socket.emit('endgame', {
+        name: gameName,
+        player: opponentName
+      });
+    }
     defCarte.init(); // carte is dead
     // emit the remove message
     socket.emit('remove', {
@@ -1017,6 +1104,14 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
       if (attCarte.effet.impact == 'opponent') {
         applySpellEffect(attackerBoard, attackerCaseId, 'opponent', 0);
       }
+    }
+    // the player is dead
+    if (attCarte.type == 'Player') {
+      // send the end game message
+      socket.emit('endgame', {
+        name: gameName,
+        player: playerName
+      });
     }
     attCarte.init();
     socket.emit('remove', {

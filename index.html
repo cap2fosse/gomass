@@ -133,11 +133,10 @@ clearB.onclick = function() {
   allCarte.unselectAll();
 }
 // Down area
-/*
-var gomassChat = new gomassBox(820, 500, "chatArea");
-var sendT = new gomassButton(820, 580, "text", "talk");
-  sendT.size = 20;sendT.value = '';
-var sendB = new gomassButton(980, 580, "button", "send");
+var gomassChat = new gomassBox(20, 700, "chatArea");
+var sendT = new gomassButton(20, 660, "text", "talk");
+  sendT.size = 80;sendT.value = 'chat here !';
+var sendB = new gomassButton(650, 660, "button", "send");
 sendB.onclick = function() {
   socket.emit('newmessage', {
       message: sendT.value,
@@ -145,7 +144,6 @@ sendB.onclick = function() {
     }
   );
 }
-*/
 // disable all buttons
 disableCommands(true);
 resetGameBoards();
@@ -175,8 +173,8 @@ function gomassButton(x, y, type, val) {
 }
 function gomassBox(x, y, val) {
   var element = document.createElement("textarea");
-  element.cols = 30;
-  element.rows = 3;
+  element.cols = 100;
+  element.rows = 4;
   element.id = val;
   element.name = val;
   element.readonly = true;

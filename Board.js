@@ -177,12 +177,14 @@ function Board(name, posx, posy, caseW, caseH) {
   };
   // active all visible carte
   objBoard.activateAll = function() {
+    var card;
     for (var caseid = 0; caseid < this.cases.length; caseid++) {
-      if (this.cases[caseid].carte.visible) {
-        this.cases[caseid].carte.activate(true);
+      card = this.get(caseid);
+      if (card.visible) {
+        card.activate(true);
       }
-      else {this.cases[caseid].carte.activate(false);}
-      this.cases[caseid].draw();
+      else {card.activate(false);}
+      this.getCase(caseid).draw();
     }
   };
   // inactive all carte

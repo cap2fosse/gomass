@@ -120,12 +120,6 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   };
   this.activate = function(on) {
     this.active = on;
-    if (on && this.etat.maxfury > 0) {
-      this.etat.fury = this.etat.maxfury;
-    }
-    if (on && this.effet.declencheur == 'Activated') {
-      this.applyEffect(this.effet);
-    }
   };
   this.toMini = function() {
     this.typeimg = 'Mini';
