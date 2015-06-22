@@ -53,8 +53,6 @@ createB.onclick = function(game) {
       name: gameName,
       player: playerName
     });
-    // show info
-    displayInfo(5, 'Fr');
     console.log('create game : ' + createT.value);
   }
 }
@@ -122,9 +120,6 @@ finishDeckB.onclick = function() {
   this.hide(true);
   clearB.hide(true);
   hideCommands(false);
-  // show info
-  displayInfo(4, 'Fr');
-  infoDiv.visible(true);
 }
 var clearB = new gomassButton(360, 550, "button", ".clear.");
 clearB.style.visibility = "hidden";

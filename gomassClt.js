@@ -61,8 +61,12 @@ socket.on('avatarok', function(message) {
 })
 socket.on('deckok', function(message) {
   if (message.accepted) {
+    // hide
     showDeckBuilder(false);
     disableCommands(false);
+    // show info
+    displayInfo(4, 'Fr');
+    infoDiv.visible(true);
     console.log('Received deckok : ' + message.accepted);
   }
   else {
@@ -73,6 +77,8 @@ socket.on('newgameok', function(message) {
   if (message.accepted) {
     gameName = message.game;
     disableCommands(true);
+    // show info
+    displayInfo(5, 'Fr');
     console.log('Received newgameok : ' + message.validated);
   }
   else {
