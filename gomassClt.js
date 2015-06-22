@@ -52,7 +52,7 @@ socket.on('avatarok', function(message) {
     // hide avatar board
     playerSelector.setVisibility(false);
     // change info
-    displayInfo(3);
+    displayInfo(3, 'Fr');
     console.log('Received avatarok : ' + message.accepted);
   }
   else {
@@ -159,7 +159,7 @@ socket.on('startgame', function(message) {
   playerHand.fill(cltcarte);
   // active button
   finishSelectB.hide(false);
-  displayInfo(6);
+  displayInfo(6, 'Fr');
 })
 socket.on('newhandcard', function(data) {
   console.log('Received newhandcard : ' + data.message + data.game + ' from player : ' + data.player);
@@ -174,7 +174,7 @@ socket.on('newhandcard', function(data) {
   // set hiding opponent hand
   var backC = [backCard, backCard, backCard];
   opponentHand.fill(backC);
-  displayInfo(7);
+  displayInfo(7, 'Fr');
 })
 socket.on('showgame', function(data) {
   console.log('Received showgame : ' + data.message + data.game + ' from player : ' + data.player);
@@ -297,19 +297,19 @@ socket.on('endgameok', function(message) {
   console.log('Received endgameok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
   // win the game?
   if (message.win) {
-    infoTxt = '<h2>6 - End of game</h2><p>You <b>win</b> the game : ' + message.game + ' you are the boss ' + playerName + '</p>';
+    // display info of end of game
+    displayInfo(8, 'Fr');
+    infoDiv.visible(true);
   }
   else {
-    infoTxt = '<h2>6 - End of game</h2><p>You <b>loose</b> the game : ' + message.game + ' may be next time ' + playerName + '</p>';
+    // display info of end of game
+    displayInfo(9, 'Fr');
+    infoDiv.visible(true);
   }
   // game is finish
   endTurnB.disabled = true;
   // hide all
   showGameBoards(false);
-  // display info of end of game
-  infoDiv.setText(infoTxt);
-  infoDiv.setButton();
-  infoDiv.visible(true);
 })
 //END GAME
 

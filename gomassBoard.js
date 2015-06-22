@@ -640,7 +640,7 @@ playerDeck.onclick = function() {
   selectedCaseId = -1;
 }
 // fill the deck randomly
-playerDeck.fill = function() {
+playerDeck.fill = function(isDraw) {
   var fid = 0;
   var idxCard;
   var srvCard;
@@ -651,7 +651,12 @@ playerDeck.fill = function() {
       srvCard = allCarte.getRandom();
       miniCard = srvCard.clone();
       miniCard.toMini();
-      this.addLast(miniCard);
+      if (isDraw) {
+        this.addLast(miniCard);
+      }
+      else {
+        this.addLastNoDraw(miniCard);
+      }
     }
     fid++;
   }
@@ -785,6 +790,7 @@ function cleanHand(except) {
 }
 function showDeckBuilder(on) {
   allCarte.setVisibility(on);
+  playerDeck.display();
   playerDeck.setVisibility(on);
   pageBoard.visible(on);
   deckB.hide(on);

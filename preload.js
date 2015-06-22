@@ -6,6 +6,7 @@ var playerName = 'DEFAULT';
 var opponentName = 'DEFAULT';
 var creator = false; // if player create the game
 var gameName = 'DEFAULT';
+var langage = ['En', 'Fr'];
 var myTurn = false; // if it's player turn
 // store the current selected case id
 var selectedCaseId = -1;
@@ -26,6 +27,13 @@ var allPlayerSpellImagesOn = [];
 var allPlayerSpellImagesOff = [];
 var whiteImage = new Image();
 var blackImage = new Image();
+// all colors
+var allPlayersColorsOn = ["rgb(255,0,0)", "rgb(255,255,0)", "rgb(0,255,255)", "rgb(0,255,156)"];
+var allPlayersColorsOff = ["rgb(85,0,0)", "rgb(128,128,0)", "rgb(0,0,255)", "rgb(0,128,93)"];
+var allCartesColorsOn = ["rgb(255,204,170)", "rgb(172,147,147)", "rgb(67,137,188)", "rgb(255,127,42)", 
+                          "rgb(0,128,0)", "rgb(85,68,0)", "rgb(128,0,128)", "rgb(85,34,0)"];
+var allCartesColorsOff = ["rgb(255,204,170)", "rgb(172,147,147)", "rgb(67,137,188)", "rgb(255,127,42)", 
+                          "rgb(0,128,0)", "rgb(85,68,0)", "rgb(128,0,128)", "rgb(85,34,0)"];
 function loadImages() {
   var maxInvocationImage = 8;
   var maxSpellImage = 8;

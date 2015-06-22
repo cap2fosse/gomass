@@ -41,39 +41,57 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
       if (this.type == 'Invocation') {
         this.image1 = allCartesImages[this.imgid];
         this.image2 = allCartesImages[this.imgid];
+        this.activeColor = allCartesColorsOn[this.imgid];
+        this.inactiveColor = allCartesColorsOn[this.imgid];
       }
       else if (this.type == 'Spell') {
         this.image1 = allCartesImages[this.imgid];
         this.image2 = allCartesImages[this.imgid];
+        this.activeColor = allCartesColorsOn[this.imgid];
+        this.inactiveColor = allCartesColorsOn[this.imgid];
       }
       else if (this.type == 'Equipment') {
         this.image1 = allCartesImages[this.imgid];
         this.image2 = allCartesImages[this.imgid];
+        this.activeColor = allCartesColorsOn[this.imgid];
+        this.inactiveColor = allCartesColorsOn[this.imgid];
       }
       else if (this.type == 'Player') {
         this.image1 = allPlayersImages[this.imgid];
         this.image2 = allPlayersImages[this.imgid];
+        this.activeColor = allPlayersColorsOn[this.imgid];
+        this.inactiveColor = allPlayersColorsOn[this.imgid];
       }
       else if (this.type == 'PlayerSpell') {
         this.image1 = allPlayerSpellImagesOn[this.imgid];
         this.image2 = allPlayerSpellImagesOff[this.imgid];
+        this.activeColor = allPlayersColorsOn[this.imgid];
+        this.inactiveColor = allPlayersColorsOff[this.imgid];
       }
       else {
         this.image1 = Carte.prototype.image1;
         this.image2 = Carte.prototype.image2;
+        this.activeColor = Carte.prototype.activeColor;
+        this.inactiveColor = Carte.prototype.inactiveColor;
       }
     }
     else if (typeImg == 'Mini') {
       this.image1 = allImagesMini[this.imgid];
       this.image2 = allImagesMini[this.imgid];
+      this.activeColor = allCartesColorsOn[this.imgid];
+      this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (typeImg == 'Black') {
       this.image1 = blackImage;
       this.image2 = blackImage;
+      this.activeColor = "rgb(77,77,77)";
+      this.inactiveColor = "rgb(77,77,77)";
     }
     else if (typeImg == 'White') {
       this.image1 = whiteImage;
       this.image2 = whiteImage;
+      this.activeColor = "white";
+      this.inactiveColor = "white";
     }
   }
   else {this.typeimg = Carte.prototype.typeimg;}
@@ -102,6 +120,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.visible = false;
     this.image1 = whiteImage;
     this.image2 = whiteImage;
+    this.activeColor = "white";
+    this.inactiveColor = "white";
     this.imgid = 0;
     this.typeimg = 'Normal'; // Normal | Mini
     this.type = ''; // 'Invocation' | 'Spell' | 'Equipment' | 'Player' | PlayerSpell
@@ -125,6 +145,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.typeimg = 'Mini';
     this.image1 = allImagesMini[this.imgid];
     this.image2 = allImagesMini[this.imgid];
+    this.activeColor = allCartesColorsOn[this.imgid];
+    this.inactiveColor = allCartesColorsOn[this.imgid];
   };
   this.applyEffect = function(effect) {
     this.attaque += effect.modifAttack;
@@ -163,22 +185,32 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     if (this.type == 'Invocation') {
       this.image1 = allInvocationImages[this.imgid];
       this.image2 = allInvocationImages[this.imgid];
+      this.activeColor = allCartesColorsOn[this.imgid];
+      this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (this.type == 'Spell') {
       this.image1 = allSpellImages[this.imgid];
       this.image2 = allSpellImages[this.imgid];
+      this.activeColor = allCartesColorsOn[this.imgid];
+      this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (this.type == 'Equipment') {
       this.image1 = allEquipmentImages[this.imgid];
       this.image2 = allEquipmentImages[this.imgid];
+      this.activeColor = allCartesColorsOn[this.imgid];
+      this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (this.type == 'Player') {
       this.image1 = allPlayersImages[imgid];
       this.image2 = allPlayersImages[imgid];
+      this.activeColor = allPlayersColorsOn[this.imgid];
+      this.inactiveColor = allPlayersColorsOn[this.imgid];
     }
     else {
       this.image1 = Carte.prototype.image1;
       this.image2 = Carte.prototype.image2;
+      this.activeColor = Carte.prototype.activeColor;
+      this.inactiveColor = Carte.prototype.inactiveColor;
     }
   };
   this.isNull = function() {
@@ -241,6 +273,8 @@ Carte.prototype = {
   id : -1,
   image1 : whiteImage,
   image2 : whiteImage,
+  activeColor : "white",
+  inactiveColor : "white",
   imgid : 0,
   type : '',
   typeimg : 'Normal',

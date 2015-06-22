@@ -24,7 +24,7 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 // BEGIN UI
 var infoDiv = new gomassInfo(150, 250, 'info');
-displayInfo(1);
+displayInfo(1, 'Fr');
 // Up area
 var userNameT = new gomassButton(650, 10, "text", '');
 var userNameB = new gomassButton(800, 10, "button", "connect");
@@ -38,7 +38,7 @@ userNameB.onclick = function() {
     userNameB.disabled = true;
     userNameT.disabled = true;
     // change info
-    displayInfo(2);
+    displayInfo(2, 'Fr');
   }
 }
 var createT = new gomassButton(650, 40, "text", '');
@@ -54,7 +54,7 @@ createB.onclick = function(game) {
       player: playerName
     });
     // show info
-    displayInfo(5);
+    displayInfo(5, 'Fr');
     console.log('create game : ' + createT.value);
   }
 }
@@ -108,7 +108,7 @@ finishDeckB.style.visibility = "hidden";
 finishDeckB.onclick = function() {
   // check if deck is complete
   if (!playerDeck.isComplete()) {
-    playerDeck.fill();
+    playerDeck.fill(false);
   }
   // get all and change type img
   var myDeck = playerDeck.changeImgType('Normal');
@@ -123,7 +123,7 @@ finishDeckB.onclick = function() {
   clearB.hide(true);
   hideCommands(false);
   // show info
-  displayInfo(4);
+  displayInfo(4, 'Fr');
   infoDiv.visible(true);
 }
 var clearB = new gomassButton(360, 550, "button", ".clear.");
@@ -286,44 +286,94 @@ function loadNewGame() {
   // choose a new avatar
   playerSelector.setVisibility(true);
   // change info
-  displayInfo(2);
+  displayInfo(2, 'Fr');
 }
-function displayInfo(num) {
+function displayInfo(num, lang) {
   var txt = '';
-  switch (num) {
-    case 1:
-    txt = '<h2>1 - Connect to Gomass Game</h2>'+
-    '<p>To begin, choose a name and click <b>connect</b> button.</p>';
-    break;
-    case 2:
-    txt = '<h2>2 - Avatar selection</h2><p>Choose your Avatar : <ul>'+
-    '<li>Invocus : Invocate a new creature 1/1 for 2 mana.</li>'+
-    '<li>Spellus : Do 1 damage on creature or on player for 2 mana.</li>'+
-    '<li>Healus : Add 1 life on creature or on player for 2 mana.</li>'+
-    '<li>Armorus : Add 1 defense on creature or on player for 2 mana.</li>'+
-    '</ul></p>';
-    break;
-    case 3:
-    txt = '<h2>3 - Deck selection</h2><p>Choose your Deck : </p>'+
-    '<p>Click <b>.deck.</b> button and choose your card.</p>'+
-    '<p>Click <b>finish</b> button to complete selection.</p>';
-    break;
-    case 4:
-    txt = '<h2>4 - Create or Join a game</h2>'+
-    '<ul><li>Choose a game name and click <b>.create.</b> button.</li>'+
-    '<li>Or select a game and click <b>.join.</b> button.</li>'+
-    '<li>You can also modify your deck with <b>.deck.</b> button.</li>';
-    break;
-    case 5:
-    txt = '<h2>5 - Wait until someone join the game.</h2>';
-    break;
-    case 6:
-    txt = '<h2>6 - Choose your cards.</h2>';
-    break;
-    case 7:
-    txt = '<h2>7 - Wait until player choose the cards.</h2>';
-    break;
-    default:
+  if (lang = langage[0]) { // english
+    switch (num) {
+      case 1:
+      txt = '<h2>1 - Connect to Gomass Game</h2>'+
+      '<p>To begin, choose a name and click <b>connect</b> button.</p>';
+      break;
+      case 2:
+      txt = '<h2>2 - Avatar selection</h2><p>Choose your Avatar : <ul>'+
+      '<li>Invocus : Invocate a new creature 1/1 for 2 mana.</li>'+
+      '<li>Spellus : Do 1 damage on creature or on player for 2 mana.</li>'+
+      '<li>Healus : Add 1 life on creature or on player for 2 mana.</li>'+
+      '<li>Armorus : Add 1 defense on creature or on player for 2 mana.</li>'+
+      '</ul></p>';
+      break;
+      case 3:
+      txt = '<h2>3 - Deck selection</h2><p>Choose your Deck : </p>'+
+      '<p>Click <b>.deck.</b> button and choose your card.</p>'+
+      '<p>Click <b>finish</b> button to complete selection.</p>';
+      break;
+      case 4:
+      txt = '<h2>4 - Create or Join a game</h2>'+
+      '<ul><li>Choose a game name and click <b>.create.</b> button.</li>'+
+      '<li>Or select a game and click <b>.join.</b> button.</li>'+
+      '<li>You can also modify your deck with <b>.deck.</b> button.</li>';
+      break;
+      case 5:
+      txt = '<h2>5 - Wait until someone join the game.</h2>';
+      break;
+      case 6:
+      txt = '<h2>6 - Choose your cards.</h2>';
+      break;
+      case 7:
+      txt = '<h2>7 - Wait until player choose the cards.</h2>';
+      break;
+      case 8:
+      txt = '<h2>8 - End of game</h2><p>You <b>win</b> the game : ' + gameName + ' you are the boss ' + playerName + '</p>';
+      break;
+      case 9:
+      txt = '<h2>8 - End of game</h2><p>You <b>loose</b> the game : ' + gameName + ' may be next time ' + playerName + '</p>';
+      break;
+      default:
+    }
+  }
+  if (lang = langage[1]) { // français
+    switch (num) {
+      case 1:
+      txt = '<h2>1 - Connecte toi au jeu Gomass</h2>'+
+      '<p>Choisi un nom et click sur le bouton <b>connect</b>.</p>';
+      break;
+      case 2:
+      txt = "<h2>2 - Choisi ton avatar :</h2><p>Il existe 4 type d'avatar : <ul>"+
+      '<li>Invocus : Il invoque une créature 1/1 pour 2 mana.</li>'+
+      '<li>Spellus : Il retire 1 point de vie à une créature ou un joueur pour 2 mana.</li>'+
+      '<li>Healus : Il ajoute 1 point de vie à une créature ou un joueur pour 2 mana.</li>'+
+      "<li>Armorus : Il ajoute 1 point d'armure à une créature ou un joueur pour 2 mana.</li>"+
+      '</ul></p>';
+      break;
+      case 3:
+      txt = '<h2>3 - Compose ton deck </h2>'+
+      '<p>Click sur le bouton <b>.deck.</b> et choisi tes cartes.</p>'+
+      '<p>Click sur le bouton <b>finish</b> pour compléter la selection.</p>';
+      break;
+      case 4:
+      txt = '<h2>4 - Créé ou rejoind une partie </h2>'+
+      '<ul><li>Choisi le nom de ta partie puis click sur le bouton <b>.create.</b></li>'+
+      '<li>Ou séletionne une partie et click sur le bouton <b>.join.</b></li>';
+      break;
+      case 5:
+      txt = "<h2>5 - Attend jusqu'à ce que quelqu'un rejoingne la partie.</h2>";
+      break;
+      case 6:
+      txt = '<h2>6 - Choisi les cartes de ta main.</h2>';
+      break;
+      case 7:
+      txt = "<h2>7 - Attend jusqu'à ce que l'autre joueur ai choisi ses cartes.</h2>";
+      break;
+      case 8:
+      txt = '<h2>8 - Fin du jeu</h2><p>Tu as <b>gagné</b> la partie : ' + gameName + " c'est toi le patron " + playerName + '</p>';
+      break;
+      case 9:
+      txt = '<h2>8 - Fin du jeu</h2><p>Tu as <b>perdu</b> la partie : ' + gameName + ' essai encore ' + playerName + '</p>';
+      break;
+      default:
+    }
   }
   infoDiv.setText(txt);
   infoDiv.visible(true);

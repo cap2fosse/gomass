@@ -175,6 +175,16 @@ function Board(name, posx, posy, caseW, caseH) {
       }
     }
   };
+  // add carte in first empty carte
+  objBoard.addLastNoDraw = function(myCarte) {
+    var caseid = 0;
+    while (caseid < this.cases.length && this.cases[caseid].carte.visible) {
+      caseid++;
+    }
+    if (caseid < this.cases.length) {
+      this.cases[caseid].add(myCarte);
+    }
+  };
   // active all visible carte
   objBoard.activateAll = function() {
     var card;
@@ -325,13 +335,20 @@ function Case(casex, casey, id, boardName, width, height) {
     if (this.carte.visible) {
       // clear all first
       this.ctx.clearRect(0, 0, this.width, this.height);
-      // and draw
-      this.ctx.beginPath();
-      this.ctx.drawImage(this.carte.image1, 4, 4);
+      // background
+      var y1 = Math.floor(Math.random() * 150);  // [0, 149]
+      var y2 = Math.floor(Math.random() * 150);  // [0, 149]
+      var grd = this.ctx.createLinearGradient(0,y1,100,y2);
+      grd.addColorStop(0, "white");
+      grd.addColorStop(1, this.carte.activeColor);
+      this.ctx.fillStyle = grd;
+      this.ctx.fillRect(2, 2, 98, 148);
+      // shadows params
       this.ctx.shadowOffsetX = 2;
       this.ctx.shadowOffsetY = 2;
       this.ctx.shadowBlur = 2;
       this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      // informations
       if (this.carte.isPlayable()) {
         // cout
         this.ctx.font = "16px serif";
@@ -367,7 +384,7 @@ function Case(casex, casey, id, boardName, width, height) {
         if (this.carte.type != '') {
           this.ctx.font = "10px serif";
           this.ctx.fillStyle = "rgb(77,77,77)";
-          this.ctx.fillText(this.carte.type, 20, 20);
+          this.ctx.fillText(this.carte.type, 20, 18);
         }
         if (this.carte.description != '') {
           var desc = this.carte.description.split(';');
@@ -396,7 +413,7 @@ function Case(casex, casey, id, boardName, width, height) {
           this.fillBorder();
         }
       }
-      this.ctx.stroke();
+      //this.ctx.stroke();
     }
     else {
       this.clear();
@@ -464,12 +481,13 @@ function MiniCase(casex, casey, id, boardName, width, height) {
       this.ctx.shadowBlur = 2;
       this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
       if (this.carte.cout != '') {
-        //this.clear();
-        this.ctx.beginPath();
-        this.ctx.drawImage(this.carte.image1, 0, 0);
+        var grd = this.ctx.createLinearGradient(0,10,100,10);
+        grd.addColorStop(0, "white");
+        grd.addColorStop(1, this.carte.activeColor);
+        this.ctx.fillStyle = grd;
+        this.ctx.fillRect(0, 0, 100, 20);
         this.ctx.fillStyle = "rgb(255,255,0)";
         this.ctx.fillText(this.carte.cout, 5, 15);
-        this.ctx.stroke();
       }
       if (this.carte.titre != '') {
         this.ctx.fillStyle = "rgb(77,77,77)";
@@ -489,17 +507,29 @@ function SpellCase(casex, casey, id, boardName, width, height) {
     var lineW = 4;
     if (this.carte.visible) {
       this.ctx.font = "12px serif";
-      this.ctx.beginPath();
-      this.ctx.fillStyle = "rgb(255,255,0)";
       if (this.carte.active) {
-        this.ctx.drawImage(this.carte.image1, 0, 0);
-        this.ctx.fillText(this.carte.cout, 5, 30);
+        //this.ctx.beginPath();
+        var grd = this.ctx.createLinearGradient(0,30,60,30);
+        //grd.addColorStop(0,"rgb(0,255,156)");
+        grd.addColorStop(0, "white");
+        grd.addColorStop(1, this.carte.activeColor);
+        this.ctx.fillStyle = grd;
+        this.ctx.arc(30, 30, 25, 0, Math.PI*2, true);
+        this.ctx.fill();
+        this.ctx.fillStyle = this.carte.inactiveColor;
+        this.ctx.fillText(this.carte.cout, 10, 35);
       }
       else {
-        this.ctx.drawImage(this.carte.image2, 0, 0);
-        this.ctx.fillText(this.carte.cout, 5, 30);
+        var grd = this.ctx.createLinearGradient(0,30,60,30);
+        //grd.addColorStop(0,"rgb(0,128,93)");
+        grd.addColorStop(0, "white");
+        grd.addColorStop(1, this.carte.inactiveColor);
+        this.ctx.fillStyle = grd;
+        this.ctx.arc(30, 30, 25, 0, Math.PI*2, true);
+        this.ctx.fill();
+        this.ctx.fillStyle = this.carte.activeColor;
+        this.ctx.fillText(this.carte.cout, 10, 35);
       }
-      this.ctx.stroke();
     }
     else {
       this.clear();
