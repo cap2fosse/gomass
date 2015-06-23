@@ -81,10 +81,15 @@ function Board(name, posx, posy, caseW, caseH) {
       this.cases[i].clear();
     }
   };
-  // unselect all cartes 
-  objBoard.unselectAll = function() {
+  // select all cartes 
+  objBoard.selectAll = function(on) {
+    for (var i = 0; i < this.cases.length; i++) {
+      if (on) {this.cases[i].carte.selected = true;}
+      else {this.cases[i].carte.selected = false;}
+    }
     for (var i = 0; i < this.cartes.length; i++) {
-      this.cartes[i].selected = false;
+      if (on) {this.cartes[i].selected = true;}
+      else {this.cartes[i].selected = false;}
     }
   };
   // get a carte clone from board 
@@ -144,14 +149,23 @@ function Board(name, posx, posy, caseW, caseH) {
     return carteArray;
   };
   // change typeimg on all carte from board 'Normal' | 'Mini'
-  objBoard.changeImgType = function(typeimg) {
+  objBoard.changeCardType = function(typeimg) {
     var originalArray = this.getAll();
-    if (typeimg == 'Normal' || typeimg == 'Mini') {
+    if (typeimg == 'Normal') {
       var tmpCarte;
       var finalArray = [];
       for (var caseid = 0; caseid < originalArray.length; caseid++) {
         tmpCarte = this.get(caseid);
-        tmpCarte.typeimg = typeimg;
+        tmpCarte.toNormal();
+        finalArray.push(tmpCarte);
+      }
+    }
+    if (typeimg == 'Mini') {
+      var tmpCarte;
+      var finalArray = [];
+      for (var caseid = 0; caseid < originalArray.length; caseid++) {
+        tmpCarte = this.get(caseid);
+        tmpCarte.toMini();
         finalArray.push(tmpCarte);
       }
     }
@@ -428,8 +442,8 @@ function Case(casex, casey, id, boardName, width, height) {
         this.ctx.strokeStyle = "rgb(255,0,0)";
         this.ctx.lineWidth = 4;
         this.ctx.beginPath();
-        this.ctx.moveTo(80,20);
-        this.ctx.lineTo(20,80);
+        this.ctx.moveTo(80,40);
+        this.ctx.lineTo(20,100);
         this.ctx.stroke();
       }
       //this.ctx.stroke();

@@ -645,9 +645,6 @@ playerDeck.onclick = function() {
     var carteid = selectedCarte.id;
     var caseId = allCarte.getCaseByCarteId(carteid);
     allCarte.selectCard(false, caseId, carteid);
-    //var unselect = allCarte.getByCarteId(carteid);
-    //unselect.selected = false;
-    //this.getCase(selectedCaseId).draw();
     this.remove(selectedCaseId);
     console.log("Select carte : " + selectedCarte);
   }
@@ -804,6 +801,7 @@ function cleanHand(except) {
   if (except != opponentPower.id) {opponentPower.initSelectedCarte();}
 }
 function showDeckBuilder(on) {
+  allCarte.display();
   allCarte.setVisibility(on);
   playerDeck.display();
   playerDeck.setVisibility(on);

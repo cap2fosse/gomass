@@ -108,8 +108,10 @@ finishDeckB.onclick = function() {
   if (!playerDeck.isComplete()) {
     playerDeck.fill(false);
   }
-  // get all and change type img
-  var myDeck = playerDeck.changeImgType('Normal');
+  // unselect all
+  playerDeck.selectAll(false);
+  // get all and change type
+  var myDeck = playerDeck.changeCardType('Normal');
   console.log(myDeck);
   // send deck to server
   socket.emit('deck', {
@@ -125,7 +127,8 @@ var clearB = new gomassButton(360, 550, "button", ".clear.");
 clearB.style.visibility = "hidden";
 clearB.onclick = function() {
   playerDeck.clearAll();
-  allCarte.unselectAll();
+  allCarte.selectAll(false);
+  allCarte.display();
 }
 // Down area
 var gomassChat = new gomassBox(20, 700, "chatArea");
