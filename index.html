@@ -81,7 +81,7 @@ endTurnB.onclick = function() {
   });
   endTurnB.disabled = true;
 }
-var finishSelectB = new gomassButton(450, 250, "button", "ok");
+var finishSelectB = new gomassButton(450, 250, "button", ".ok.");
 finishSelectB.style.visibility = "hidden";
 finishSelectB.onclick = function() {
   socket.emit('removedhandcard', {
@@ -353,10 +353,12 @@ function displayInfo(num, lang) {
       '<li>Ou séletionne une partie et click sur le bouton <b>.join.</b></li>';
       break;
       case 5:
-      txt = "<h2>5 - Attend jusqu'à ce que quelqu'un rejoingne la partie.</h2>";
+      txt = "<h2>5 - Attend jusqu'à ce que quelqu'un rejoigne la partie.</h2>";
       break;
       case 6:
       txt = '<h2>6 - Choisi les cartes de ta main.</h2>';
+      '<ul><li>Clique sur les cartes que tu ne souhaites pas conserver,</li>'+
+      '<li>puis clique sur le bouton <b>.ok.</b>, lorsque tu as fini.</li>';
       break;
       case 7:
       txt = "<h2>7 - Attend jusqu'à ce que l'autre joueur ai choisi ses cartes.</h2>";

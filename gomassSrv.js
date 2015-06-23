@@ -298,13 +298,15 @@ io.on('connection', function (socket) {
     // game exist?
     var idx = gameExist(data.room);
     if (idx != -1) {
+      var p1 = allGames[idx].player1;
+      var p2 = allGames[idx].player2;
       if (data.iscreator) {
-        cards = allGames[idx].player1.getCarte(data.numbercard);
-        allGames[idx].player1.cardSelectDone = true;
+        cards = p1.getCarte(data.numbercard);
+        p1.cardSelectDone = true;
       }
       else {
-        cards = allGames[idx].player2.getCarte(data.numbercard);
-        allGames[idx].player2.cardSelectDone = true;
+        cards = p2.getCarte(data.numbercard);
+        p2.cardSelectDone = true;
       }
       // send new cards to the requester
       socket.emit('newhandcard', {
@@ -314,7 +316,7 @@ io.on('connection', function (socket) {
         game: data.room
       });
       // send show game
-      if (allGames[idx].player1.cardSelectDone && allGames[idx].player2.cardSelectDone) {
+      if (p1.cardSelectDone && p2.cardSelectDone) {
         socket.emit('showgame', {
           message: "the game begin now.",
           player: data.player,

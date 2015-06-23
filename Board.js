@@ -298,6 +298,8 @@ function Case(casex, casey, id, boardName, width, height) {
   canvasCase.y = casey;
   canvasCase.boardName = boardName;
   canvasCase.carte = emptyCarte;
+  canvasCase.y1 = Math.floor(Math.random() * 150);  // [0, 149]
+  canvasCase.y2 = Math.floor(Math.random() * 150);  // [0, 149]
   // overwrite canvas properties
   canvasCase.ctx = canvasCase.getContext("2d");
   canvasCase.id = id;
@@ -336,9 +338,7 @@ function Case(casex, casey, id, boardName, width, height) {
       // clear all first
       this.ctx.clearRect(0, 0, this.width, this.height);
       // background
-      var y1 = Math.floor(Math.random() * 150);  // [0, 149]
-      var y2 = Math.floor(Math.random() * 150);  // [0, 149]
-      var grd = this.ctx.createLinearGradient(0,y1,100,y2);
+      var grd = this.ctx.createLinearGradient(0, this.y1, 100, this.y2);
       grd.addColorStop(0, "white");
       grd.addColorStop(1, this.carte.activeColor);
       this.ctx.fillStyle = grd;
