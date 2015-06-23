@@ -125,6 +125,16 @@ function Board(name, posx, posy, caseW, caseH) {
       return this.cases[caseid];
     }
   };
+  // get a Case from carte id 
+  objBoard.getCaseByCarteId = function(carteid) {
+    for (var caseid = 0; caseid < this.cases.length; caseid++) {
+      var checkedCard = this.get(caseid);
+      if (checkedCard.id == carteid) {
+        return caseid;
+      }
+    }
+    return 0;
+  };
   // get all cartes on board
   objBoard.getAll = function() {
     var carteArray = [];
@@ -412,6 +422,15 @@ function Case(casex, casey, id, boardName, width, height) {
         if (this.carte.special != '') {
           this.fillBorder();
         }
+      }
+      if (this.carte.selected) {
+        this.ctx.fillStyle = "rgb(255,0,0)";
+        this.ctx.strokeStyle = "rgb(255,0,0)";
+        this.ctx.lineWidth = 4;
+        this.ctx.beginPath();
+        this.ctx.moveTo(80,20);
+        this.ctx.lineTo(20,80);
+        this.ctx.stroke();
       }
       //this.ctx.stroke();
     }

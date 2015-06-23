@@ -594,8 +594,9 @@ document.body.appendChild(allCarte);
 allCarte.onclick = function() {
   if (selectedCarte.visible && !selectedCarte.selected) { // player select a carte to put on deck
     this.selectedCarte = selectedCarte.clone();
-    this.get(selectedCaseId).selected = true; // force to selected
-    this.getByCarteId(selectedCarte.id).selected = true; // force to selected
+    // draw the selection
+    this.selectCard(true, selectedCaseId, selectedCarte.id);
+    // cast to mini & show
     var myMini = selectedCarte.clone();
     myMini.toMini();
     playerDeck.addLast(myMini);
@@ -614,6 +615,17 @@ allCarte.fill = function(page){
     idC++;
   }
 }
+allCarte.selectCard = function(on, caseId, cardId){
+  if (on) {
+    this.get(caseId).selected = true; // force to selected
+    this.getByCarteId(cardId).selected = true; // force to selected
+  }
+  else {
+    this.get(caseId).selected = false; // force to selected
+    this.getByCarteId(cardId).selected = false; // force to selected
+  }
+  this.getCase(caseId).draw();
+}
 
 var pageBoard = new manageCoutButton(200, 500, 10, 1);
 pageBoard.create();
@@ -631,8 +643,11 @@ document.body.appendChild(playerDeck);
 playerDeck.onclick = function() {
   if (selectedCarte.visible) {
     var carteid = selectedCarte.id;
-    var unselect = allCarte.getByCarteId(carteid);
-    unselect.selected = false;
+    var caseId = allCarte.getCaseByCarteId(carteid);
+    allCarte.selectCard(false, caseId, carteid);
+    //var unselect = allCarte.getByCarteId(carteid);
+    //unselect.selected = false;
+    //this.getCase(selectedCaseId).draw();
     this.remove(selectedCaseId);
     console.log("Select carte : " + selectedCarte);
   }

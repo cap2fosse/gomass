@@ -305,11 +305,13 @@ socket.on('endgameok', function(message) {
   if (message.win) {
     // display info of end of game
     displayInfo(8, 'Fr');
+    infoDiv.setButton();
     infoDiv.visible(true);
   }
   else {
     // display info of end of game
     displayInfo(9, 'Fr');
+    infoDiv.setButton();
     infoDiv.visible(true);
   }
   // game is finish
