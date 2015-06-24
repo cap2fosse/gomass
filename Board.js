@@ -375,24 +375,24 @@ function Case(casex, casey, id, boardName, width, height) {
       // informations
       if (this.carte.isPlayable()) {
         // cout
-        this.ctx.font = "16px serif";
+        this.ctx.font = "bold 16px serif";
         this.ctx.fillStyle = "rgb(255,255,0)";
         this.ctx.fillText(this.carte.cout, 8, 20);
         // vie
-        this.ctx.font = "16px serif";
+        this.ctx.font = "bold 16px serif";
         this.ctx.fillStyle = "rgb(255,51,51)";
         this.ctx.fillText(this.carte.vie, this.width-25, this.height-8);
         // attack
-        this.ctx.font = "16px serif";
+        this.ctx.font = "bold 16px serif";
         this.ctx.fillStyle = "rgb(128,255,0)";
         this.ctx.fillText(this.carte.attaque, 8, this.height-8);
         // defense
-        this.ctx.font = "16px serif";
+        this.ctx.font = "bold 16px serif";
         this.ctx.fillStyle = "rgb(235,80,0)";
         this.ctx.fillText(this.carte.defense, this.width-25, 20);
 
         if (this.carte.titre != '') {
-          this.ctx.font = "12px serif";
+          this.ctx.font = "bold 12px serif";
           // hight light title & borders
           if (this.carte.active) {
             this.ctx.fillStyle = "rgb(45,255,45)";
@@ -508,7 +508,7 @@ function MiniCase(casex, casey, id, boardName, width, height) {
   miniCaz.carte = emptyMiniCarte;
   miniCaz.draw = function() {
     if (this.carte.visible) {
-      this.ctx.font = "12px serif";
+      this.ctx.font = "bold 12px serif";
       this.ctx.shadowOffsetX = 1;
       this.ctx.shadowOffsetY = 1;
       this.ctx.shadowBlur = 2;
@@ -521,6 +521,7 @@ function MiniCase(casex, casey, id, boardName, width, height) {
         this.ctx.fillRect(0, 0, 100, 20);
         this.ctx.fillStyle = "rgb(255,255,0)";
         this.ctx.fillText(this.carte.cout, 5, 15);
+        this.ctx.fillText(this.carte.cout, 90, 15);
       }
       if (this.carte.titre != '') {
         this.ctx.fillStyle = "rgb(77,77,77)";

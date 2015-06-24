@@ -63,7 +63,9 @@ socket.on('deckok', function(message) {
   if (message.accepted) {
     // hide
     showDeckBuilder(false);
+    // active and show commands
     disableCommands(false);
+    hideCommands(false);
     // show info
     displayInfo(4, 'Fr');
     infoDiv.visible(true);

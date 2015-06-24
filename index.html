@@ -121,7 +121,6 @@ finishDeckB.onclick = function() {
   // hide finish and clear buttons
   this.hide(true);
   clearB.hide(true);
-  hideCommands(false);
 }
 var clearB = new gomassButton(360, 550, "button", ".clear.");
 clearB.style.visibility = "hidden";
@@ -367,10 +366,10 @@ function displayInfo(num, lang) {
       txt = "<h2>7 - Attend jusqu'à ce que l'autre joueur ai choisi ses cartes.</h2>";
       break;
       case 8:
-      txt = '<h2>8 - Fin du jeu</h2><p>Tu as <b>gagné</b> la partie : ' + gameName + " c'est toi le patron " + playerName + '</p>';
+      txt = '<h2>8 - Fin du jeu</h2><p>Tu as <b>gagné</b> la partie : ' + gameName + " c'est toi le patron <b>" + playerName + '</b></p>';
       break;
       case 9:
-      txt = '<h2>8 - Fin du jeu</h2><p>Tu as <b>perdu</b> la partie : ' + gameName + ' essai encore ' + playerName + '</p>';
+      txt = '<h2>8 - Fin du jeu</h2><p>Tu as <b>perdu</b> la partie : ' + gameName + ' essai encore <b>' + playerName + '</b></p>';
       break;
       default:
     }

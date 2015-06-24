@@ -177,6 +177,14 @@ playerBoard.onclick = function() {
             hand.active = true;
             hand.etat.charge = false;
           }
+          // if has active & onActivated apply effect
+          if (hand.active && hand.effet.declencheur == 'Activated') {
+            applySpellEffect(this.id, selectedCaseId, this.id, selectedCaseId);
+          }
+          // if has onPlayed effect
+          if (newcard.effet.declencheur == 'Played') { // apply effect on myself
+            applySpellEffect(this.id, selectedCaseId, this.id, selectedCaseId);
+          }
           // clone it and put it on board
           this.addClone(selectedCaseId, hand);
           // remove
@@ -198,12 +206,6 @@ playerBoard.onclick = function() {
             carte: thecarte,
             game: gameName
           });
-          // get the new card
-          var newcard = this.get(selectedCaseId);
-          // if has onPlayed effect
-          if (newcard.effet.declencheur == 'Played') { // apply effect on myself
-            applySpellEffect(this.id, selectedCaseId, this.id, selectedCaseId);
-          }
         }
         else {
           console.log("Can't play this card on board : " + this.get(selectedCaseId));
