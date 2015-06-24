@@ -182,7 +182,7 @@ playerBoard.onclick = function() {
             applySpellEffect(this.id, selectedCaseId, this.id, selectedCaseId);
           }
           // if has onPlayed effect
-          if (newcard.effet.declencheur == 'Played') { // apply effect on myself
+          if (hand.effet.declencheur == 'Played') { // apply effect on myself
             applySpellEffect(this.id, selectedCaseId, this.id, selectedCaseId);
           }
           // clone it and put it on board
