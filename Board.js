@@ -12,6 +12,7 @@ var selectedCarte = emptyCarte;
 var allGameCartes = [];
 var allAvatarsCartes = [];
 var allPowerCartes = [];
+var allManaCartes = [];
 var selectedButton = 0; // id of the clicked button
 // create a new Board at posx, posy absolute position
 function Board(name, posx, posy, caseW, caseH) {
@@ -52,6 +53,9 @@ function Board(name, posx, posy, caseW, caseH) {
         else if (type == 2) {
           var caseInstance = new SpellCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
         }
+        else if (type == 3) {
+          var caseInstance = new ManaCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
+        }
         else {
           console.log('not a correct case type!');
           return;
@@ -71,13 +75,13 @@ function Board(name, posx, posy, caseW, caseH) {
   };
   // display all cartes 
   objBoard.display = function() {
-    for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
+    for (var i = 0; i < this.cases.length; i++) {
       this.cases[i].draw();
     }
   };
   // clear all cartes 
   objBoard.clearAll = function() {
-    for (var i = 0; i < (this.nbCasesx*this.nbCasesy); i++) {
+    for (var i = 0; i < this.cases.length; i++) {
       this.cases[i].clear();
     }
   };
@@ -208,6 +212,23 @@ function Board(name, posx, posy, caseW, caseH) {
     if (caseid < this.cases.length) {
       this.cases[caseid].add(myCarte);
     }
+  };
+  // fill case array with carte
+  objBoard.fillCard = function(listOfCard) {
+    for (var i = 0; i < listOfCard.length; i++) {
+      this.addClone(i, listOfCard[i]);
+    }
+  };
+  // shift card array by 1
+  objBoard.insertFirstCard = function(card) {
+    var tmpArray = [];
+    tmpArray[0] = card;
+    for (var i = 0; i < this.cases.length-1; i++) {
+      if (this.get(i).visible) {
+        tmpArray[i+1] = this.get(i);
+      }
+    }
+    this.fillCard(tmpArray);
   };
   // active all visible carte
   objBoard.activateAll = function() {
@@ -541,6 +562,8 @@ function SpellCase(casex, casey, id, boardName, width, height) {
     var lineW = 4;
     if (this.carte.visible) {
       this.ctx.font = "12px serif";
+      // clear all first
+      this.ctx.clearRect(0, 0, this.width, this.height);
       if (this.carte.active) {
         //this.ctx.beginPath();
         var grd = this.ctx.createLinearGradient(0,30,60,30);
@@ -570,6 +593,34 @@ function SpellCase(casex, casey, id, boardName, width, height) {
     }
   };
   return spellCaz;
+}
+function ManaCase(casex, casey, id, boardName, width, height) {
+  var manaCaz = new Case(casex, casey, id, boardName, width, height);
+  manaCaz.carte = emptyCarte;
+  manaCaz.draw = function() {
+    var lineW = 2;
+    if (this.carte.visible) {
+      this.ctx.font = "8px serif";
+      // clear all first
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      if (this.carte.active) {
+        this.ctx.fillStyle = this.carte.activeColor;
+        this.ctx.arc(12, 12, 12, 0, Math.PI*2, true);
+        this.ctx.fill();
+      }
+      else {
+        this.ctx.strokeStyle = this.carte.activeColor;
+        this.ctx.arc(12, 12, 12, 0, Math.PI*2, true);
+        this.ctx.stroke();
+      }
+      this.ctx.fillStyle = this.carte.inactiveColor;
+      this.ctx.fillText(this.carte.cout, 10, 10);
+    }
+    else {
+      this.clear();
+    }
+  };
+  return manaCaz;
 }
 function Mana(id, posx, posy) {
   var aMana = document.createElement("div");
@@ -702,14 +753,15 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
   };
   return allMana;
 }
-function coutButton(x, y, type, val) {
+function coutButton(type, val) {
   var element = document.createElement("input");
   element.type = type;
   element.value = val;
   element.id = val;
-  element.style.position = "absolute";
-  element.style.left = x;
-  element.style.top = y;
+  element.style.marginLeft = '2px';
+  //element.style.position = "absolute";
+  //element.style.left = x;
+  //element.style.top = y;
   element.disabled = false;
   element.hide = function(on) {
     this.disabled = on;
@@ -730,10 +782,11 @@ function manageCoutButton(posx, posy, nbButtonX, nbButtonY) {
   var allCoutB = document.createElement("div");
   allCoutB.id = 'ManageCoutButton';
   allCoutB.style.position = "absolute";
-  allCoutB.style.width = 10 * nbButtonX;
-  allCoutB.style.height = 10 * nbButtonY;
+  allCoutB.style.width = 34 * nbButtonX;
+  allCoutB.style.height = 30;
   allCoutB.style.left = posx;
   allCoutB.style.top = posy;
+  //allCoutB.style.border = "1px solid grey";
   allCoutB.style.visibility = "hidden";
   allCoutB.nbButtonX = nbButtonX;
   allCoutB.nbButtonY = nbButtonY;
@@ -742,7 +795,8 @@ function manageCoutButton(posx, posy, nbButtonX, nbButtonY) {
     var id = 0;
     for (var x = 0; x < this.nbButtonX; x++) {
       for (var y = 0; y < this.nbButtonY; y++) {
-        var b = new coutButton(x+(30*id), y, 'button', id+1);
+        //var b = new coutButton(x+(30*id), y, 'button', id+1);
+        var b = new coutButton('button', id+1);
         this.buttons[id] = b;
         this.appendChild(b);
         id++;

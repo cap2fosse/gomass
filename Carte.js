@@ -6,7 +6,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
   else {this.imgid = Carte.prototype.imgid;}
-  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player' || type == 'PlayerSpell') {this.type = type;}
+  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player' || type == 'PlayerSpell' || type == 'Mana') {this.type = type;}
   else {this.type = Carte.prototype.type;}
   if (cout != undefined){this.cout = cout;}
   else {this.cout = Carte.prototype.cout;}
@@ -68,6 +68,12 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
         this.activeColor = allPlayersColorsOn[this.imgid];
         this.inactiveColor = allPlayersColorsOff[this.imgid];
       }
+      else if (this.type == 'Mana') {
+        this.image1 = Carte.prototype.image1;
+        this.image2 = Carte.prototype.image2;
+        this.activeColor = manaColorsOn[this.imgid];
+        this.inactiveColor = manaColorsOff[this.imgid];
+      }
       else {
         this.image1 = Carte.prototype.image1;
         this.image2 = Carte.prototype.image2;
@@ -124,7 +130,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.inactiveColor = "white";
     this.imgid = 0;
     this.typeimg = 'Normal'; // Normal | Mini
-    this.type = ''; // 'Invocation' | 'Spell' | 'Equipment' | 'Player' | PlayerSpell
+    this.type = ''; // 'Invocation' | 'Spell' | 'Equipment' | 'Player' | PlayerSpell | Mana
     this.cout = 0;
     this.attaque = 0;
     this.defense = 0;
@@ -149,9 +155,9 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.inactiveColor = allCartesColorsOn[this.imgid];
   };
   this.applyEffect = function(effect) {
-    this.attaque += effect.modifAttack;
+    if (effect.modifAttack != 0) {this.attaque += effect.modifAttack;}
     if (this.attaque < 0) {this.attaque = 0;}
-    this.defense += effect.modifDefense;
+    if (effect.modifDefense != 0) {this.defense += effect.modifDefense;}
     if (this.defense < 0) {this.defense = 0;}
     if (effect.modifVie < 0) {
       var defense = this.defense + effect.modifVie;
@@ -285,12 +291,12 @@ Carte.prototype = {
   vie : 0,
   titre : '',
   description : '',
+  active : false,
+  selected : false,
   special : '',
   effet : Effet.prototype,
   etat : Etat.prototype,
-  equipement : Equipement.prototype,
-  active : false,
-  selected : false,
+  equipement : Equipement.prototype
 };
 
 function Etat(provocator, charge, silent, fury, divine, stun, rage, hide) {

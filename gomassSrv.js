@@ -68,9 +68,11 @@ var allMoves = [];
 var allCartes = [];
 var allAvatars = [];
 var allPowers = [];
+var allManas = [];
 // load all cartes of the game
 loadCartes();
 loadPlayer();
+loadManas();
 // default namespace
 io.on('connection', function (socket) {
   console.log('connection to the soket : ' + socket.id);
@@ -94,7 +96,8 @@ io.on('connection', function (socket) {
         numUsers: allUsers.length,
         cartes: allCartes,
         avatar: allAvatars,
-        power: allPowers
+        power: allPowers,
+        mana: allManas
       });
       // echo globally (all clients) that a person has connected
       socket.broadcast.emit('userjoined', {
@@ -506,6 +509,40 @@ io.on('connection', function (socket) {
     }
   });
 
+  // when the client emits 'cardplayed'
+  socket.on('defausseattack', function (data) {
+    var gameName = data.game;
+    var player = data.player;
+    var defausse = data.defausse;
+    console.log('receveived cmd defausseattack from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      socket.broadcast.to(gameName).emit('defausseattackok', {
+        validated: "opponent play.",
+        game: gameName,
+        player: player,
+        defausse: defausse
+      });
+    }
+  });
+
+  // when the client emits 'cardplayed'
+  socket.on('defaussedefense', function (data) {
+    var gameName = data.game;
+    var player = data.player;
+    var defausse = data.defausse;
+    console.log('receveived cmd defaussedefense from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      socket.broadcast.to(gameName).emit('defaussedefenseok', {
+        validated: "opponent play.",
+        game: gameName,
+        player: player,
+        defausse: defausse
+      });
+    }
+  });
+
   // when the client emits 'endgame'
   socket.on('endgame', function (game) {
     var gameName = game.name;
@@ -526,6 +563,32 @@ io.on('connection', function (socket) {
         game: gameName,
         player: player,
         win: false
+      });
+      allGames[idx].player1.cardSelectDone = false;
+      allGames[idx].player2.cardSelectDone = false;
+    }
+  });
+
+    // when the client emits 'surrender'
+  socket.on('surrender', function (game) {
+    var gameName = game.name;
+    var player = game.player;
+    console.log('receveived cmd surrender from : ' + player + ' in room : ' + gameName);
+    var idx = gameExist(gameName);
+    if (idx != -1) {
+      console.log('End game : ' + game.name + ' from player : ' + game.player);
+      // answer to the winner
+      socket.emit('endgameok', {
+        validated: "The game is over.",
+        game: gameName,
+        player: player,
+        win: false
+      });
+      socket.broadcast.to(game.name).emit('endgameok', {
+        validated: "The game is over.",
+        game: gameName,
+        player: player,
+        win: true
       });
       allGames[idx].player1.cardSelectDone = false;
       allGames[idx].player2.cardSelectDone = false;
@@ -646,6 +709,13 @@ function loadPlayer() {
   allPowers = [invocusSpell, spellusSpell, healusSpell, armorusSpell];
   console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus + ' Avatar 4 : ' + armorus);
   console.log('AvatarSpell 1 : ' + invocusSpell + ' AvatarSpell 2 : ' + spellusSpell + ' AvatarSpell 3 : ' + healusSpell + ' AvatarSpell 4 : ' + armorusSpell);
+}
+
+function loadManas() {
+  for (var i = 1; i <= 10; i++) {
+    var mana = new Carte(i, 'Normal', 'Mana', 0, true, i);
+    allManas.push(mana);
+  }
 }
 
 function loadCartes() {

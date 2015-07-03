@@ -6,7 +6,7 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
   else {this.imgid = Carte.prototype.imgid;}
-  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player' || type == 'PlayerSpell') {this.type = type;}
+  if (type == 'Invocation' || type == 'Spell' || type == 'Equipment' || type == 'Player' || type == 'PlayerSpell' || type == 'Mana') {this.type = type;}
   else {this.type = Carte.prototype.type;}
   if (cout != undefined){this.cout = cout;}
   else {this.cout = Carte.prototype.cout;}
@@ -116,22 +116,24 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
 }
 Carte.prototype = {
   id : -1,
-  visible : false,
-  typeimg : 'Normal', 
+  activeColor : "white",
+  inactiveColor : "white",
   imgid : 0,
   type : '',
+  typeimg : 'Normal',
+  visible : false,
   cout : 0,
   attaque : 0,
   defense : 0,
   vie : 0,
   titre : '',
   description : '',
+  active : false,
+  selected : false,
   special : '',
   effet : Effet.prototype,
   etat : Etat.prototype,
-  equipement : Equipement.prototype,
-  active : false,
-  selected : false
+  equipement : Equipement.prototype
 };
 function Effet(id, zone, impact, declencheur, attack, defense, vie, description) {
   if (id != undefined) {this.id = id;}

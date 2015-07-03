@@ -10,13 +10,17 @@ socket.on('login', function(message) {
     var srvAllGameCartes = message.cartes;
     var srvAllAvatarsCartes = message.avatar;
     var srvAllPowerCartes = message.power;
+    var srvAllManaCartes = message.mana;
     createArrayCarte(srvAllGameCartes, allGameCartes);
     createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes);
     createArrayCarte(srvAllPowerCartes, allPowerCartes);
-    //show all avatars
-    playerSelector.fill();
+    createArrayCarte(srvAllManaCartes, allManaCartes);
     //set all cartes
     allCarte.setAll(allGameCartes);
+    //enable player selection
+    playersB.disabled = false;
+    // change info
+    displayInfo(2);
   }
   else {
     console.log('Received login : login already exist : ' + message.player);
@@ -48,11 +52,11 @@ socket.on('newmessageok', function(message) {
 socket.on('avatarok', function(message) {
   if (message.accepted) {
     // active deck button
-    deckB.disabled = false;
+    cardsB.disabled = false;
     // hide avatar board
     playerSelector.setVisibility(false);
     // change info
-    displayInfo(3, 'Fr');
+    displayInfo(3);
     console.log('Received avatarok : ' + message.accepted);
   }
   else {
@@ -67,7 +71,7 @@ socket.on('deckok', function(message) {
     disableCommands(false);
     hideCommands(false);
     // show info
-    displayInfo(4, 'Fr');
+    displayInfo(4);
     infoDiv.visible(true);
     console.log('Received deckok : ' + message.accepted);
   }
@@ -80,7 +84,7 @@ socket.on('newgameok', function(message) {
     gameName = message.game;
     disableCommands(true);
     // show info
-    displayInfo(5, 'Fr');
+    displayInfo(5);
     console.log('Received newgameok : ' + message.validated);
   }
   else {
@@ -140,6 +144,8 @@ socket.on('startgame', function(message) {
   // add power
   playerPower.addClone(0, srvPowerPl);
   opponentPower.addClone(0, srvPowerOp);
+  // fill mana board
+  manaBoard.fill();
   // who play in first ?
   if (message.first == playerName) {
     myTurn = true;
@@ -161,13 +167,15 @@ socket.on('startgame', function(message) {
   // get first selection of hand
   var cltcarte = [];
   createArrayCarte(message.hand, cltcarte);
+  // fill the first hand
+  //playerHand.fill(cltcarte);
   // fill & show cardSelector
   cardSelector.fill(cltcarte);
-  // fill the first hand
-  playerHand.fill(cltcarte);
   // active button
-  finishSelectB.hide(false);
-  displayInfo(6, 'Fr');
+  cardSelectorCommandsDiv.visible(true);
+  //finishSelectB.hide(false);
+  //finishAllSelectB.hide(false);
+  displayInfo(6);
 })
 socket.on('newhandcard', function(data) {
   console.log('Received newhandcard : ' + data.message + data.game + ' from player : ' + data.player);
@@ -175,22 +183,26 @@ socket.on('newhandcard', function(data) {
   createArrayCarte(data.newcards, newCards);
   // hide cardSelector & button
   cardSelector.setVisibility(false);
-  finishSelectB.hide(true);
-  // replace the hand
+  cardSelectorCommandsDiv.visible(false);
+  // get the rest
+  playerHand.fill(cardSelector.getAll());
+  // add new hand & active
   playerHand.fill(newCards);
   playerHand.activateAll();
   // set hiding opponent hand
   var backC = [backCard, backCard, backCard];
   opponentHand.fill(backC);
-  displayInfo(7, 'Fr');
+  displayInfo(7);
 })
 socket.on('showgame', function(data) {
   console.log('Received showgame : ' + data.message + data.game + ' from player : ' + data.player);
   // hide the info
   infoDiv.visible(false);
-  // set my turn button
-  endTurnB.style.visibility = "visible";
-  if (myTurn) {endTurnB.disabled  = false;}
+  // show commands
+  gameCommandsDiv.visible(true);
+  if (myTurn) {
+    endTurnB.disabled  = false;
+  }
   else {endTurnB.disabled  = true;}
   // show the game
   showGameBoards(true);
@@ -280,9 +292,10 @@ socket.on('endturnok', function(message) {
   player.inactivateAll();
   opponent.activateAll();
   playerHand.inactivateAll();
+  manaBoard.inactivateAll();
 })
 socket.on('newturn', function(message) {
-  console.log('Received newturn : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
+  console.log('Received newturn : ' + message.player + ' game : ' + message.game + ' mana : ' + message.mana + ' message : ' + message.validated);
   myTurn = true;
   endTurnB.disabled = false;
   // get mana
@@ -300,24 +313,39 @@ socket.on('newturn', function(message) {
   opponentBoard.inactivateAll();
   opponent.inactivateAll();
 })
+socket.on('defausseattackok', function(message) {
+  console.log('Received defausseattackok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
+  var srvDefausse = message.defausse;
+  var cltDefausse = [];
+  createArrayCarte(srvDefausse, cltDefausse);
+  defausseAttack.fillCard(cltDefausse);
+})
+socket.on('defaussedefenseok', function(message) {
+  console.log('Received defaussedefenseok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
+  var srvDefausse = message.defausse;
+  var cltDefausse = [];
+  createArrayCarte(srvDefausse, cltDefausse);
+  defausseDefense.fillCard(cltDefausse);
+})
 socket.on('endgameok', function(message) {
   var infoTxt = '';
   console.log('Received endgameok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
   // win the game?
   if (message.win) {
     // display info of end of game
-    displayInfo(8, 'Fr');
+    displayInfo(8);
     infoDiv.setButton();
     infoDiv.visible(true);
   }
   else {
     // display info of end of game
-    displayInfo(9, 'Fr');
+    displayInfo(9);
     infoDiv.setButton();
     infoDiv.visible(true);
   }
   // game is finish
-  endTurnB.disabled = true;
+  gameCommandsDiv.visible(false);
+  //endTurnB.disabled = true;
   // hide all
   showGameBoards(false);
 })

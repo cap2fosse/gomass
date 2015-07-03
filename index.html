@@ -22,12 +22,15 @@ console.log('Start index.js');
 ////////////////////////////////MAIN/////////////////////////
 //-----------------------------------------------------------
 //-----------------------------------------------------------
-// BEGIN UI
-var infoDiv = new gomassInfo(150, 250, 'info');
-displayInfo(1, 'Fr');
-// Up area
-var userNameT = new gomassButton(650, 10, "text", '');
-var userNameB = new gomassButton(800, 10, "button", "connect");
+//BEGIN UI
+var commandDiv = new gomassDiv(250, 0, 250, 120, 'commands');
+var infoDiv = new gomassInfo(200, 350, 'info');
+displayInfo(1);
+//COMMANDS DIV
+var userNameT = new gomassButton("text", nameOfText[0]);
+userNameT.size = 15;
+commandDiv.addElement(userNameT);
+var userNameB = new gomassButton("button", nameOfButton[0]);
 userNameB.onclick = function() {
   if (userNameT.value != '') {
     // init playerName
@@ -37,12 +40,32 @@ userNameB.onclick = function() {
     });
     userNameB.disabled = true;
     userNameT.disabled = true;
-    // change info
-    displayInfo(2, 'Fr');
   }
 }
-var createT = new gomassButton(650, 40, "text", '');
-var createB = new gomassButton(800, 40, "button", ".create.");
+commandDiv.addElement(userNameB);
+var playersB = new gomassButton("button", nameOfButton[1]);
+playersB.onclick = function() {
+  // hide info
+  infoDiv.visible(false);
+  //disable player selection
+  playersB.disabled = true;
+  //show all avatars
+  playerSelector.fill();
+}
+commandDiv.addElement(playersB);
+var cardsB = new gomassButton("button", nameOfButton[2]);
+cardsB.onclick = function() {
+  // hide info
+  infoDiv.visible(false);
+  // show deck ui
+  showDeckBuilder(true);
+  hideCommands(true);
+}
+commandDiv.addElement(cardsB);
+var createT = new gomassButton("text", nameOfText[1]);
+createT.size = 15;
+commandDiv.addElement(createT);
+var createB = new gomassButton("button", nameOfButton[3]);
 createB.onclick = function(game) {
   if (createT.value != '') {
     // init gameName
@@ -56,8 +79,11 @@ createB.onclick = function(game) {
     console.log('create game : ' + createT.value);
   }
 }
-var gomassListGame = new gomassCombo(650, 70, "gameList");
-var joinB = new gomassButton(800, 70, "button", ".join.");
+commandDiv.addElement(createB);
+var gomassListGame = new gomassCombo("gameList");
+gomassListGame.addOpt(nameOfText[2]);
+commandDiv.addElement(gomassListGame);
+var joinB = new gomassButton("button", nameOfButton[4]);
 joinB.onclick = function(game) {
   if (gomassListGame.value != '') {
     disableCommands(true);
@@ -70,70 +96,14 @@ joinB.onclick = function(game) {
     console.log('join game : ' + gomassListGame.value);
   }
 }
-// Middle area
-var endTurnB = new gomassButton(650, 570, "button", "end turn");
-endTurnB.style.visibility = "hidden";
-endTurnB.onclick = function() {
-  socket.emit('endturn', {
-    name: gameName,
-    player: playerName,
-    opponent: opponentName
-  });
-  endTurnB.disabled = true;
-}
-var finishSelectB = new gomassButton(450, 250, "button", ".ok.");
-finishSelectB.style.visibility = "hidden";
-finishSelectB.onclick = function() {
-  socket.emit('removedhandcard', {
-    player: playerName,
-    iscreator: creator,
-    myturn: myTurn,
-    numbercard: cardSelector.numberOfCardAsked,
-    room: gameName
-  });
-  console.log('ask for new cards');
-}
-var deckB = new gomassButton(650, 620, "button", ".deck.");
-deckB.onclick = function() {
-  // hide info
-  infoDiv.visible(false);
-  // show deck ui
-  showDeckBuilder(true);
-  hideCommands(true);
-}
-var finishDeckB = new gomassButton(300, 550, "button", "finish");
-finishDeckB.style.visibility = "hidden";
-finishDeckB.onclick = function() {
-  // check if deck is complete
-  if (!playerDeck.isComplete()) {
-    playerDeck.fill(false);
-  }
-  // unselect all
-  playerDeck.selectAll(false);
-  // get all and change type
-  var myDeck = playerDeck.changeCardType('Normal');
-  console.log(myDeck);
-  // send deck to server
-  socket.emit('deck', {
-    player: playerName,
-    deck: myDeck
-  });
-  // hide finish and clear buttons
-  this.hide(true);
-  clearB.hide(true);
-}
-var clearB = new gomassButton(360, 550, "button", ".clear.");
-clearB.style.visibility = "hidden";
-clearB.onclick = function() {
-  playerDeck.clearAll();
-  allCarte.selectAll(false);
-  allCarte.display();
-}
-// Down area
-var gomassChat = new gomassBox(20, 700, "chatArea");
-var sendT = new gomassButton(20, 660, "text", "talk");
-  sendT.size = 80;sendT.value = 'chat here !';
-var sendB = new gomassButton(650, 660, "button", "send");
+commandDiv.addElement(joinB);
+
+//CHAT DIV
+var chatDiv = new gomassDiv(550, 0, 350, 120, 'chat');
+var sendT = new gomassButton("text", nameOfText[3]);
+sendT.size = 40;
+chatDiv.addElement(sendT);
+var sendB = new gomassButton("button", nameOfButton[7]);
 sendB.onclick = function() {
   socket.emit('newmessage', {
       message: sendT.value,
@@ -141,136 +111,44 @@ sendB.onclick = function() {
     }
   );
 }
+chatDiv.addElement(sendB);
+var gomassChat = new gomassBox("chatArea");
+chatDiv.addElement(gomassChat);
+
+//RULES DIV
+var rulesDiv = new gomassDiv(900, 0, 120, 60, 'rules');
+var rulesB = new gomassButton("button", nameOfButton[5]);
+rulesB.onclick = function() {
+  // show the rules here
+  rulesB.disabled = true;
+}
+rulesDiv.addElement(rulesB);
+var trainingB = new gomassButton("button", nameOfButton[6]);
+trainingB.onclick = function() {
+  // launch training here
+  trainingB.disabled = true;
+}
+rulesDiv.addElement(trainingB);
+//INIT
 // disable all buttons
 disableCommands(true);
 resetGameBoards();
-//-----------------------------------------------------------
-////////////////////////////////USEFULL//////////////////////
-//-----------------------------------------------------------
-function gomassButton(x, y, type, val) {
-  var element = document.createElement("input");
-  element.type = type;
-  element.value = val;
-  element.id = val;
-  element.style.position = "absolute";
-  element.style.left = x;
-  element.style.top = y;
-  element.disabled = false;
-  element.hide = function(on) {
-    this.disabled = on;
-    if (on) {
-      this.style.visibility = "hidden";
-    }
-    else {
-      this.style.visibility = "visible";
-    }
-  };
-  document.body.appendChild(element);
-  return element;
-}
-function gomassBox(x, y, val) {
-  var element = document.createElement("textarea");
-  element.cols = 100;
-  element.rows = 4;
-  element.id = val;
-  element.name = val;
-  element.readonly = true;
-  element.style.position = "absolute";
-  element.style.left = x;
-  element.style.top = y;
-  element.disabled = false;
-  element.hide = function(on) {
-    this.disabled = on;
-    if (on) {
-      this.style.visibility = "hidden";
-    }
-    else {
-      this.style.visibility = "visible";
-    }
-  };
-  document.body.appendChild(element);
-  return element;
-}
-function gomassInfo(x, y, id) {
-  var element = document.createElement("div");
-  element.id = id;
-  element.readonly = true;
-  element.style.position = "absolute";
-  element.style.left = x;
-  element.style.top = y;
-  element.style.width = 500;
-  element.style.height = 200;
-  //element.style.border = "1px solid grey";
-  element.disabled = false;
-  element.setText = function(info) {
-    this.innerHTML = info;
-  };
-  element.setButton = function() {
-    var b = document.createElement("input");
-    b.type = "button";
-    b.value = ".end.";
-    b.id = ".end."; 
-    this.appendChild(b);
-    b.onclick = function() {
-      // create a new game
-      loadNewGame();
-      showGameBoards(false);
-    };
-  };
-  element.visible = function(on) {
-    this.disabled = on;
-    if (on) {
-      this.style.visibility = "visible";
-    }
-    else {
-      this.style.visibility = "hidden";
-    }
-  };
-  document.body.appendChild(element);
-  return element;
-}
-function gomassCombo(x, y, val) {
-  var element = document.createElement("select");
-  element.id = val;
-  element.name = val;
-  element.readonly = true;
-  element.style.position = "absolute";
-  element.style.left = x;
-  element.style.top = y;
-  element.disabled = false;
-  document.body.appendChild(element);
-  element.addOpt = function(name) {
-    var opt = document.createElement("option");
-    opt.value = name;
-    opt.text = name;
-    opt.selected = true;
-    this.add(opt);
-  };
-  element.hide = function(on) {
-    this.disabled = on;
-    if (on) {
-      this.style.visibility = "hidden";
-    }
-    else {
-      this.style.visibility = "visible";
-    }
-  };
-  return element;
-}
 //-----------------------------------------------------------
 function disableCommands(b) {
   createB.disabled = b;
   createT.disabled = b;
   joinB.disabled = b;
   gomassListGame.disabled = b;
-  deckB.disabled = b;
+  cardsB.disabled = b;
+  playersB.disabled = b;
 }
 function hideCommands(b) {
   createB.hide(b);
   createT.hide(b);
   joinB.hide(b);
   gomassListGame.hide(b);
-  deckB.hide(b);
+  cardsB.hide(b);
+  playersB.hide(b);
 }
 function loadNewGame() {
   // reset all
@@ -278,16 +156,17 @@ function loadNewGame() {
   myTurn = false;
   creator = false;
   createT.value = '';
-  endTurnB.hide(true);
+  gameCommandsDiv.visible(false);
+  //endTurnB.hide(true);
   resetGameBoards();
   // choose a new avatar
   playerSelector.setVisibility(true);
   // change info
-  displayInfo(2, 'Fr');
+  displayInfo(2);
 }
-function displayInfo(num, lang) {
+function displayInfo(num) {
   var txt = '';
-  if (lang = langage[0]) { // english
+  if (langage == 'En') { // english
     switch (num) {
       case 1:
       txt = '<h2>1 - Connect to Gomass Game</h2>'+
@@ -330,7 +209,7 @@ function displayInfo(num, lang) {
       default:
     }
   }
-  if (lang = langage[1]) { // français
+  if (langage == 'Fr') { // français
     switch (num) {
       case 1:
       txt = '<h2>1 - Connecte toi au jeu Gomass</h2>'+
