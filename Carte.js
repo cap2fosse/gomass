@@ -166,8 +166,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
         this.defense = defense;
       }
       else {
-        this.defense = 0;
         life += defense;
+        this.defense = 0;
       }
       if (life > 0) {
         this.vie = life;

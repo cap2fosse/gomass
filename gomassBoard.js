@@ -197,15 +197,16 @@ playerBoard.onclick = function() {
           }
           // if has active & onActivated apply effect
           if (hand.active && hand.effet.declencheur == 'Activated') {
-            applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
+            applySpellEffect(playerHand.id, playerHand.selectedCaseId, playerHand.id, playerHand.selectedCaseId);
           }
           // if has onPlayed effect
           if (hand.effet.declencheur == 'Played') { // apply effect on myself
-            applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
+            applySpellEffect(playerHand.id, playerHand.selectedCaseId, playerHand.id, playerHand.selectedCaseId);
           }
           // clone it and put it on board
+          hand = playerHand.get(playerHand.selectedCaseId);
           this.addClone(this.selectedCaseId, hand);
-          // remove
+          // remove from hand
           playerHand.remove(playerHand.selectedCaseId);
           manaBoard.remove(hand.cout);
           // compute playable cards
@@ -1107,7 +1108,6 @@ function getBoard(name) {
   if (name == opponentPower.id) return opponentPower;
   return;
 }
-
 function InvocateCard(onBoard, card, caseId) {
   var board = getBoard(onBoard);
   board.add(caseId, card);
@@ -1121,7 +1121,6 @@ function InvocateCard(onBoard, card, caseId) {
     game: gameName
   });
 }
-
 function applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId) {
   var attBoard = getBoard(attackerBoard);
   var defBoard = getBoard(defenderBoard);
