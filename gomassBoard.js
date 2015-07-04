@@ -190,6 +190,7 @@ playerBoard.onclick = function() {
         this.selectedCaseId = selectedCaseId;
         var hand = playerHand.selectedCarte;
         if (hand.type == 'Invocation') {
+          /*
           // if charge change to active
           if (hand.etat.charge) {
             hand.active = true;
@@ -197,14 +198,14 @@ playerBoard.onclick = function() {
           }
           // if has active & onActivated apply effect
           if (hand.active && hand.effet.declencheur == 'Activated') {
-            applySpellEffect(playerHand.id, playerHand.selectedCaseId, playerHand.id, playerHand.selectedCaseId);
+            applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
           }
           // if has onPlayed effect
           if (hand.effet.declencheur == 'Played') { // apply effect on myself
-            applySpellEffect(playerHand.id, playerHand.selectedCaseId, playerHand.id, playerHand.selectedCaseId);
+            applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
           }
+          */
           // clone it and put it on board
-          hand = playerHand.get(playerHand.selectedCaseId);
           this.addClone(this.selectedCaseId, hand);
           // remove from hand
           playerHand.remove(playerHand.selectedCaseId);
@@ -371,6 +372,21 @@ playerHand.onclick = function() {
         // clone and inactive it
         this.selectedCarte = selectedCarte.clone();
         this.selectedCarte.activate(false);
+        // if charge active it
+        if (this.selectedCarte.etat.charge) {
+          this.selectedCarte.active = true;
+          this.selectedCarte.etat.charge = false;
+        }
+        // if has active & onActivated apply effect
+        if (this.selectedCarte.active && this.selectedCarte.effet.declencheur == 'Activated') {
+          //applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
+          this.selectedCarte.applyEffect(this.selectedCarte.effet);
+        }
+        // if has onPlayed effect
+        if (this.selectedCarte.effet.declencheur == 'Played') { // apply effect on myself
+          //applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
+          this.selectedCarte.applyEffect(this.selectedCarte.effet);
+        }
         this.selectedCaseId = selectedCaseId;
         console.log('Select a Carte in Hand : ' + this.selectedCarte);
       }
@@ -699,7 +715,7 @@ opponentPower.activateAll = function(){
   this.getCase(powerIdx).draw();
 }
 
-var manaBoard = new Board('manaBoard', 900, 510, 25, 25);
+var manaBoard = new Board('manaBoard', 900, 510, 20, 20);
 manaBoard.create(10, 1, 3);
 document.body.appendChild(manaBoard);
 manaBoard.max = 0;

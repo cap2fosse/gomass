@@ -605,16 +605,16 @@ function ManaCase(casex, casey, id, boardName, width, height) {
       this.ctx.clearRect(0, 0, this.width, this.height);
       if (this.carte.active) {
         this.ctx.fillStyle = this.carte.activeColor;
-        this.ctx.arc(12, 12, 12, 0, Math.PI*2, true);
+        this.ctx.arc(10, 10, 9, 0, Math.PI*2, true);
         this.ctx.fill();
       }
       else {
         this.ctx.strokeStyle = this.carte.activeColor;
-        this.ctx.arc(12, 12, 12, 0, Math.PI*2, true);
+        this.ctx.arc(10, 10, 9, 0, Math.PI*2, true);
         this.ctx.stroke();
       }
       this.ctx.fillStyle = this.carte.inactiveColor;
-      this.ctx.fillText(this.carte.cout, 10, 10);
+      this.ctx.fillText(this.carte.cout, 8, 12);
     }
     else {
       this.clear();
