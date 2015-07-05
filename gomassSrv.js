@@ -683,21 +683,21 @@ function loadPlayer() {
   var armorus = new Carte(3, 'Normal', 'Player', 3, true, 2, 0, 0, 30, 'armorus');
   // spell players
   var invocusSpell = new Carte(0, 'Normal', 'PlayerSpell', 0, true, 2, 1, 0, 1, 'invocusSpell');
-  var spellusSpell = new Carte(1, 'Normal', 'PlayerSpell', 1, true, 2, 0, 0, 0, 'spellusSpell');
+  var spellusSpell = new Carte(1, 'Normal', 'PlayerSpell', 1, true, 2, 1, 0, 0, 'spellusSpell');
   spellusSpell.effet.id = 1;
   spellusSpell.effet.zone = 'Single';
   spellusSpell.effet.impact = 'any';
   spellusSpell.effet.declencheur = 'Immediat';
   spellusSpell.effet.modifVie = -1;
   spellusSpell.setDescription();
-  var healusSpell = new Carte(2, 'Normal', 'PlayerSpell', 2, true, 2, 0, 0, 0, 'healusSpell');
+  var healusSpell = new Carte(2, 'Normal', 'PlayerSpell', 2, true, 2, 0, 0, 1, 'healusSpell');
   healusSpell.effet.id = 2;
   healusSpell.effet.zone = 'Single';
   healusSpell.effet.impact = 'any';
   healusSpell.effet.declencheur = 'Immediat';
   healusSpell.effet.modifVie = 1;
   healusSpell.setDescription();
-  var armorusSpell = new Carte(3, 'Normal', 'PlayerSpell', 3, true, 2, 0, 0, 0, 'armorusSpell');
+  var armorusSpell = new Carte(3, 'Normal', 'PlayerSpell', 3, true, 2, 0, 1, 0, 'armorusSpell');
   armorusSpell.effet.id = 3;
   armorusSpell.effet.zone = 'Single';
   armorusSpell.effet.impact = 'any';

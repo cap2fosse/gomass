@@ -39,20 +39,21 @@ opponentBoard.onclick = function() {
         var attackerCaseId = player.selectedCaseId;
         var defenderCaseId = selectedCaseId;
         if (player.selectedCarte.visible && player.selectedCarte.active) {
-          // no provocate on board ?
-          if (!this.provocate()) {
+          // no provocate on board & not hide
+          if (!this.provocate() && !this.selectedCarte.etat.hide) {
             resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
             // fill defausse boards
             defausseAttack.addFirst(player.selectedCarte);
             defausseDefense.addFirst(this.selectedCarte);
           }
-          else if (selectedCarte.etat.provoke) { // attack provoke
+          // attack not hide provoke
+          else if (this.selectedCarte.etat.provoke && !this.selectedCarte.etat.hide) {
             resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
             // fill defausse boards
             defausseAttack.addFirst(player.selectedCarte);
             defausseDefense.addFirst(this.selectedCarte);
           }
-          else {console.log('Provocation on board!');}
+          else {console.log("Can't attack Provocation on board!");}
         }
         // reset
         player.initSelectedCarte();
@@ -95,13 +96,13 @@ opponentBoard.onclick = function() {
         // resolve attack here
         if (playerBoard.selectedCarte.visible && playerBoard.selectedCarte.active) {
           // no provocate on board ?
-          if (!this.provocate()) {
+          if (!this.provocate() && !this.selectedCarte.etat.hide) {
             resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
             // fill defausse boards
             defausseAttack.addFirst(playerBoard.selectedCarte);
             defausseDefense.addFirst(this.selectedCarte);
           }
-          else if (selectedCarte.etat.provoke) { // attack provoke
+          else if (this.selectedCarte.etat.provoke && !this.selectedCarte.etat.hide) { // attack provoke
             resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
             // fill defausse boards
             defausseAttack.addFirst(playerBoard.selectedCarte);
@@ -123,7 +124,7 @@ opponentBoard.onclick = function() {
           var defenderBoard = this.id;
           var attackerCaseId = playerPower.selectedCaseId;
           var defenderCaseId = selectedCaseId;
-          if (!selectedCarte.etat.hide) { // no spell on hidden card
+          if (!this.selectedCarte.etat.hide) { // no spell on hidden card
             applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId);
             playerPower.inactivateAll(); // inactive power player
             manaBoard.remove(power.cout); // remove mana
@@ -405,6 +406,7 @@ playerHand.onclick = function() {
   else {console.log("Can't select carte!");}
   // reset
   cleanHand(playerHand.id);
+  select.display();
   selectedCarte.init();
   selectedCaseId = -1;
 }
@@ -452,13 +454,13 @@ opponent.onclick = function() {
       var defenderCaseId = selectedCaseId;
       if (player.selectedCarte.visible && player.selectedCarte.active) {
         // no provocate on board ?
-        if (!opponentBoard.provocate()) {
+        if (!opponentBoard.provocate() && !this.selectedCarte.etat.hide) {
           resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
           // fill defausse boards
           defausseAttack.addFirst(player.selectedCarte);
           defausseDefense.addFirst(this.selectedCarte);
         }
-        else if (selectedCarte.etat.provoke) { // attack provoke
+        else if (this.selectedCarte.etat.provoke && !this.selectedCarte.etat.hide) { // attack provoke
           resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
           // fill defausse boards
           defausseAttack.addFirst(player.selectedCarte);
@@ -512,7 +514,7 @@ opponent.onclick = function() {
           defausseAttack.addFirst(playerBoard.selectedCarte);
           defausseDefense.addFirst(this.selectedCarte);
         }
-        else if (selectedCarte.etat.provoke) { // attack provoke
+        else if (this.selectedCarte.etat.provoke) { // attack provoke
           resolveAttackOpponent(attackerBoard, attackerCaseId);
           // fill defausse boards
           defausseAttack.addFirst(playerBoard.selectedCarte);
@@ -687,12 +689,16 @@ playerPower.onclick = function() {
       if (manaBoard.getMana() >= selectedCarte.cout) {
         this.selectedCarte = selectedCarte.clone();
         this.selectedCaseId = selectedCaseId;
+        // fill select board
+        select.add(0, this.selectedCarte);
         console.log('Selected power : ' + selectedCarte);
       }
       else {console.log('Not enougth mana!');}
       break;
       case 4: // unselect the carte
         this.initSelectedCarte();
+        // fill select board
+        select.display();
         console.log('Unselected power : ' + selectedCarte);
       break;
       default:
@@ -1311,10 +1317,6 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   var attLife = attCarte.vie;
 
   attCarte.active = false; // inactive attack carte
-  if (defCarte.etat.hide) { //hide nothing happen
-    attCarte.active = true;
-    return;
-  }
   if (attCarte.etat.hide) { // unhidden
     attCarte.etat.hide = false;
   }
