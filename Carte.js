@@ -113,12 +113,23 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   };
   this.toString = function() {
     return "Carte : " + "id : " + this.id + " - " + "cout : " + this.cout + " - " + "attaque: " + this.attaque
-            + " - " + "defense: " + this.defense + " - " + "titre: " + this.titre + " - " + "description: " + this.description
+            + " - " + "defense: " + this.defense + " - " + "vie: " + this.vie + " - " + "titre: " + this.titre + " - " + "description: " + this.description
             + " - " + "visible: " + this.visible  + " - " + "active: " + this.active  + " - " + "typeimg: " + this.typeimg
-            + " - " + "type : " + this.type + " - " + "image : " + this.image1.src + '|| ' + this.effet.toString() + '|| ' + this.etat.toString() + '|| ' + this.equipement.toString();;
+            + " - " + "type : " + this.type + '|| ' + this.effet.toString() + '|| ' + this.etat.toString() + '|| ' + this.equipement.toString();
   };
   this.equal = function(other) {
-    if (this.id == other.id && this.imgid == other.imgid && this.typeimg == other.typeimg && this.type == other.type) return true;
+    if (this.id == other.id && 
+    this.imgid == other.imgid && 
+    this.typeimg == other.typeimg && 
+    this.type == other.type &&
+    this.visible == other.visible &&
+    this.cout == other.cout &&
+    this.attaque == other.attaque &&
+    this.defense == other.defense &&
+    this.vie == other.vie &&
+    this.titre == other.titre &&
+    this.description == other.description &&
+    this.special == other.special) return true;
     else return false;
   };
   this.init = function() {
@@ -138,11 +149,11 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.titre = "";
     this.description = "";
     this.special = "";
+    this.active = false;
+    this.selected = false;
     this.effet = new Effet();
     this.etat = new Etat();
     this.equipement = new Equipement();
-    this.active = false;
-    this.selected = false;
   };
   this.activate = function(on) {
     this.active = on;

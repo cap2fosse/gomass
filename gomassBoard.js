@@ -7,6 +7,7 @@ document.body.appendChild(opponentHand);
 opponentHand.onclick = function() { 
   console.log("Can't select carte!");
   cleanHand();
+  select.display();
 }
 opponentHand.fill = function(cardList){
   var card;
@@ -140,6 +141,7 @@ opponentBoard.onclick = function() {
     }
     // clean
     cleanHand();
+    select.display();
   }
   else {
     console.log("Can't select carte!");
@@ -161,6 +163,12 @@ opponentBoard.activateAll = function(){
   for (var caseid = 0; caseid < this.cases.length; caseid++) {
     card = this.get(caseid);
     if (card.visible && card.attaque > 0) {
+      if (card.effet.declencheur == 'Activated') {
+        card.applyEffect(card.effet);
+      }
+      if (card.etat.maxfury > 0) {
+        card.etat.fury = card.etat.maxfury;
+      }
       card.activate(true);
     }
     else {card.activate(false);}
@@ -190,21 +198,6 @@ playerBoard.onclick = function() {
         this.selectedCaseId = selectedCaseId;
         var hand = playerHand.selectedCarte;
         if (hand.type == 'Invocation') {
-          /*
-          // if charge change to active
-          if (hand.etat.charge) {
-            hand.active = true;
-            hand.etat.charge = false;
-          }
-          // if has active & onActivated apply effect
-          if (hand.active && hand.effet.declencheur == 'Activated') {
-            applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
-          }
-          // if has onPlayed effect
-          if (hand.effet.declencheur == 'Played') { // apply effect on myself
-            applySpellEffect(this.id, this.selectedCaseId, this.id, this.selectedCaseId);
-          }
-          */
           // clone it and put it on board
           this.addClone(this.selectedCaseId, hand);
           // remove from hand
@@ -264,8 +257,11 @@ playerBoard.onclick = function() {
     switch (onHand) {
     case 0: // empty hand
       if (selectedCarte.active) {
+        // store it
         this.selectedCarte = selectedCarte.clone();
         this.selectedCaseId = selectedCaseId;
+        // fill select board
+        select.add(0, this.selectedCarte);
         console.log('Selected carte : ' + selectedCarte + ' at case id : ' + selectedCaseId);
         // reset
         selectedCarte.init();
@@ -302,6 +298,8 @@ playerBoard.onclick = function() {
       console.log('Unselected carte : ' + selectedCarte);
       // reset
       this.initSelectedCarte();
+      // fill select board
+      select.display();
       selectedCarte.init();
       selectedCaseId = -1;
     break;
@@ -339,6 +337,7 @@ playerBoard.onclick = function() {
   }
   // clean
   cleanHand(playerBoard.id);
+  select.display();
 }
 playerBoard.activateAll = function(){
   var card;
@@ -372,6 +371,8 @@ playerHand.onclick = function() {
         // clone and inactive it
         this.selectedCarte = selectedCarte.clone();
         this.selectedCarte.activate(false);
+        // fill select board
+        select.add(0, this.selectedCarte);
         // if charge active it
         if (this.selectedCarte.etat.charge) {
           this.selectedCarte.active = true;
@@ -395,6 +396,8 @@ playerHand.onclick = function() {
       default:
       if (selectedCarte.equal(this.selectedCarte)) {
         this.initSelectedCarte();
+        // fill select board
+        select.display();
         console.log('Unselected carte in Hand : ' + selectedCarte);
       }
     }
@@ -428,7 +431,7 @@ playerHand.activateAll = function(){
   }
 }
 
-var opponent = new Board('opponent', 1000, 150, 100, 150);
+var opponent = new Board('opponent', 1050, 150, 100, 150);
 opponent.create(1, 1, 0);
 opponent.type = 'Opponent';
 document.body.appendChild(opponent);
@@ -551,6 +554,7 @@ opponent.onclick = function() {
   }
   // clean
   cleanHand(); // clean all selected carte
+  select.display();
 }
 opponent.setName = function(){
   this.get(0).description = opponentName;
@@ -565,7 +569,7 @@ opponent.activateAll = function() {
   this.getCase(0).draw();
 }
 
-var player = new Board('player', 1000, 640, 100, 150);
+var player = new Board('player', 1050, 640, 100, 150);
 player.create(1, 1, 0);
 player.type = 'Allie';
 document.body.appendChild(player);
@@ -574,14 +578,18 @@ player.onclick = function() {
     var onHand = cardOnHand();
     switch (onHand) {
       case 0: // select a carte from player
+        // store it
         this.selectedCarte = selectedCarte.clone();
         this.selectedCaseId = selectedCaseId;
+        // fill select board
+        select.add(0, this.selectedCarte);
         console.log('Selected player : ' + this.selectedCarte);
         selectedCarte.init();
         selectedCaseId = -1;
       break;
       case 1: // unselect
         this.initSelectedCarte();
+        select.display(); // display unselection
         selectedCarte.init();
         selectedCaseId = -1;
         console.log('Unselected player : ' + selectedCarte);
@@ -647,6 +655,7 @@ player.onclick = function() {
   }
   // clean
   cleanHand(player.id);
+  select.display();
   selectedCarte.init();
   selectedCaseId = -1;
 }
@@ -662,6 +671,10 @@ player.activateAll = function() {
   }
   this.getCase(0).draw();
 }
+
+var select = new Board('select', 1050, 400, 100, 150);
+select.create(1, 1, 0);
+document.body.appendChild(select);
 
 var playerPower = new Board('playerPower', 900, 680, 60, 60);
 playerPower.create(1, 1, 2);
@@ -715,7 +728,7 @@ opponentPower.activateAll = function(){
   this.getCase(powerIdx).draw();
 }
 
-var manaBoard = new Board('manaBoard', 900, 510, 20, 20);
+var manaBoard = new Board('manaBoard', 900, 580, 20, 20);
 manaBoard.create(10, 1, 3);
 document.body.appendChild(manaBoard);
 manaBoard.max = 0;
@@ -775,11 +788,7 @@ manaBoard.getMana = function() {
   return myMana;
 };
 
-var manaBoard2 = new ManageMana(900, 510, 10, 1);
-manaBoard2.create();
-//document.body.appendChild(manaBoard2);
-
-var gameCommandsDiv = new gomassDiv(900, 400, 100, 70, 'gameCommands');
+var gameCommandsDiv = new gomassDiv(900, 480, 100, 70, 'gameCommands');
 var endTurnB = new gomassButton("button",  nameOfButton[12]);
 endTurnB.style.visibility = "hidden";
 endTurnB.onclick = function() {
@@ -802,7 +811,7 @@ capitulB.onclick = function() {
 }
 gameCommandsDiv.addElement(capitulB);
 gameCommandsDiv.visible(false);
-var manaBoardText = document.createElement("h3"); 
+var manaBoardText = document.createElement("h4");
 gameCommandsDiv.addElement(manaBoardText);
 
 var defausseAttack = new Board('defausseAttack', 0, 150, 100, 150);
@@ -819,7 +828,6 @@ defausseAttack.onclick = function() {
 defausseAttack.addFirst = function(card){
   card.active = false;
   this.insertFirstCard(card);
-  this.display();
   socket.emit('defausseattack', {
     game: gameName,
     player: playerName,
@@ -841,7 +849,6 @@ defausseDefense.onclick = function() {
 defausseDefense.addFirst = function(card){
   card.active = false;
   this.insertFirstCard(card);
-  this.display();
   socket.emit('defaussedefense', {
     game: gameName,
     player: playerName,
@@ -1055,6 +1062,7 @@ function cardOnHand() {
   else if (playerPower.selectedCarte.visible) return 4;
   else return 0;
 }
+
 function cleanHand(except) {
   if (except != playerHand.id) {playerHand.initSelectedCarte();}
   if (except != playerBoard.id) {playerBoard.initSelectedCarte();}
@@ -1065,6 +1073,7 @@ function cleanHand(except) {
   if (except != playerPower.id) {playerPower.initSelectedCarte();}
   if (except != opponentPower.id) {opponentPower.initSelectedCarte();}
 }
+
 function showDeckBuilder(on) {
   allCarte.display();
   allCarte.setVisibility(on);
@@ -1076,10 +1085,12 @@ function showDeckBuilder(on) {
     allCarte.fill(0);
   }
 }
+
 function resetDeckBuilder() {
   allCarte.initCartes();
   playerDeck.initCartes();
 }
+
 function showGameBoards(on) {
   opponentHand.setVisibility(on);
   opponentBoard.setVisibility(on);
@@ -1092,14 +1103,15 @@ function showGameBoards(on) {
   manaBoard.setVisibility(on);
   defausseAttack.setVisibility(on);
   defausseDefense.setVisibility(on);
+  select.setVisibility(on);
 }
+
 function resetGameBoards() {
   opponentHand.initCartes();
   opponentBoard.initCartes();
   playerBoard.initCartes();
   playerHand.initCartes();
   manaBoard.initCartes();
-  manaBoard2.reset();
   opponent.initCartes();
   player.initCartes();
   cardSelector.initCartes();
@@ -1108,7 +1120,9 @@ function resetGameBoards() {
   opponentPower.initCartes();
   defausseAttack.initCartes();
   defausseDefense.initCartes();
+  select.initCartes();
 }
+
 function getBoard(name) {
   if (name == opponentHand.id) return opponentHand;
   if (name == playerSelector.id) return playerSelector;
@@ -1122,8 +1136,10 @@ function getBoard(name) {
   if (name == playerSelector.id) return playerSelector;
   if (name == playerPower.id) return playerPower;
   if (name == opponentPower.id) return opponentPower;
+  if (name == select.id) return select;
   return;
 }
+
 function InvocateCard(onBoard, card, caseId) {
   var board = getBoard(onBoard);
   board.add(caseId, card);
@@ -1137,6 +1153,7 @@ function InvocateCard(onBoard, card, caseId) {
     game: gameName
   });
 }
+
 function applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId) {
   var attBoard = getBoard(attackerBoard);
   var defBoard = getBoard(defenderBoard);
@@ -1208,6 +1225,7 @@ function applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defender
     defBoard.getCase(defCaseId[i]).draw();
   }
 }
+
 function applyEquipmentEffect(attackerBoard, attackerCaseId, defenderBoard, defenderCaseId) {
   var attBoard = getBoard(attackerBoard);
   var defBoard = getBoard(defenderBoard);
@@ -1232,6 +1250,7 @@ function applyEquipmentEffect(attackerBoard, attackerCaseId, defenderBoard, defe
   attBoard.getCase(attackerCaseId).draw();
   defBoard.getCase(defenderCaseId).draw();
 }
+
 // attaque sans perte de vie
 function resolveAttackOpponent(attackerBoard, attackerCaseId) {
   var attBoard = getBoard(attackerBoard);
@@ -1280,6 +1299,7 @@ function resolveAttackOpponent(attackerBoard, attackerCaseId) {
   attBoard.getCase(attackerCaseId).draw();
   defBoard.getCase(0).draw();
 }
+
 function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId) {
   var attBoard = getBoard(attackerBoard);
   var defBoard = getBoard(defenderBoard);
@@ -1434,10 +1454,12 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
   attBoard.getCase(attackerCaseId).draw();
   defBoard.getCase(defenderCaseId).draw();
 }
+
 function fromSrvCarte(srvCard) {
   var localCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
   srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
   srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat, srvCard.equipement);
   return localCard;
 }
+
 console.log('Finish gomassBoard.js');
