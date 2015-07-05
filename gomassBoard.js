@@ -734,6 +734,64 @@ opponentPower.activateAll = function(){
   this.getCase(powerIdx).draw();
 }
 
+var timeCommandDiv = new gomassDiv(900, 400, 200, 40, 'timeCommand');
+var timeText = document.createElement("h3");
+timeCommandDiv.addElement(timeText);
+timeCommandDiv.visible(false);
+timeCommandDiv.set = function(sec) {
+  timeText.innerHTML = sec;
+}
+var timeInter = setInterval(function () {setTextTime()}, 1000);
+function setTextTime() {
+  if (startTime) {
+    if (currentTime > 0) {
+      timeText.innerHTML = nameOfText[5] + ' : ' + currentTime;
+      currentTime -= 1;
+    }
+    else { // time ended
+      startTime = false;
+      currentTime = 0;
+      window.clearInterval(timeInter);
+      // force end turn
+      socket.emit('endturn', {
+        name: gameName,
+        player: playerName,
+        opponent: opponentName
+      });
+      endTurnB.disabled = true;
+      // reload
+      timeInter = setInterval(function () {setTextTime()}, 1000);
+    }
+  }
+}
+
+var gameCommandsDiv = new gomassDiv(900, 480, 100, 70, 'gameCommands');
+var endTurnB = new gomassButton("button",  nameOfButton[12]);
+endTurnB.style.visibility = "hidden";
+endTurnB.onclick = function() {
+  socket.emit('endturn', {
+    name: gameName,
+    player: playerName,
+    opponent: opponentName
+  });
+  endTurnB.disabled = true;
+}
+gameCommandsDiv.addElement(endTurnB);
+var capitulB = new gomassButton("button",  nameOfButton[13]);
+capitulB.style.visibility = "hidden";
+capitulB.onclick = function() {
+  socket.emit('surrender', {
+    name: gameName,
+    player: playerName
+  });
+  capitulB.disabled = true;
+  startTime = false;
+}
+gameCommandsDiv.addElement(capitulB);
+gameCommandsDiv.visible(false);
+var manaBoardText = document.createElement("h4");
+gameCommandsDiv.addElement(manaBoardText);
+
 var manaBoard = new Board('manaBoard', 900, 580, 20, 20);
 manaBoard.create(10, 1, 3);
 document.body.appendChild(manaBoard);
@@ -793,32 +851,6 @@ manaBoard.getMana = function() {
   }
   return myMana;
 };
-
-var gameCommandsDiv = new gomassDiv(900, 480, 100, 70, 'gameCommands');
-var endTurnB = new gomassButton("button",  nameOfButton[12]);
-endTurnB.style.visibility = "hidden";
-endTurnB.onclick = function() {
-  socket.emit('endturn', {
-    name: gameName,
-    player: playerName,
-    opponent: opponentName
-  });
-  endTurnB.disabled = true;
-}
-gameCommandsDiv.addElement(endTurnB);
-var capitulB = new gomassButton("button",  nameOfButton[13]);
-capitulB.style.visibility = "hidden";
-capitulB.onclick = function() {
-  socket.emit('surrender', {
-    name: gameName,
-    player: playerName
-  });
-  capitulB.disabled = true;
-}
-gameCommandsDiv.addElement(capitulB);
-gameCommandsDiv.visible(false);
-var manaBoardText = document.createElement("h4");
-gameCommandsDiv.addElement(manaBoardText);
 
 var defausseAttack = new Board('defausseAttack', 0, 150, 100, 150);
 defausseAttack.create(1, 4, 0);

@@ -8,6 +8,8 @@ var opponentName = 'DEFAULT';
 var creator = false; // if player create the game
 var gameName = 'DEFAULT';
 var myTurn = false; // if it's player turn
+var startTime = false;
+var currentTime = 0; // store current time
 // store the current selected case id
 var selectedCaseId = -1;
 // max number  of carte in a deck
@@ -40,9 +42,9 @@ var manaColorsOff = ["rgb(0,0,0)"];
 var buttonNameFr = ["Connexion", "Joueurs", "Cartes", "Créer partie", "Joindre partie", "Règles", "Entrainement", "Envoyer", "OK", "Toutes", "Terminer", "Vider", "Fin de tour", "Capituler"];
 var buttonNameEn = ["Connect", "Players", "Cards", "Create game", "Join game", "Rules", "Training", "Send", "OK", "All", "Finish", "Clean", "End turn", "Surrender"];
 var buttonName = {'Fr' : buttonNameFr, 'En' : buttonNameEn}
-// "name", "game", "message", "all message"
-var textNameFr = ["Nom", "Partie", "RobotPartie", "Message", ""];
-var textNameEn = ["Name", "Game", "RobotGame", "Message", ""];
+//                 0      1         2              3          4   5     
+var textNameFr = ["Nom", "Partie", "RobotPartie", "Message", "", "Temps restant"];
+var textNameEn = ["Name", "Game", "RobotGame", "Message", "", "Time left"];
 var textName = {'Fr' : textNameFr, 'En' : textNameEn}
 var nameOfButton = buttonName[langage];
 var nameOfText = textName[langage];
@@ -186,7 +188,6 @@ function gomassInfo(x, y, id) {
     b.onclick = function() {
       // create a new game
       loadNewGame();
-      showGameBoards(false);
     };
   };
   element.visible = function(on) {

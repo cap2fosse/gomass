@@ -27,6 +27,7 @@ function Game(name) {
   this.player1; // create the game
   this.player2; // join the game
   this.turn = 0;
+  this.timer = 60;
   this.gameCard = []; // new carte created in the game
   this.state = ''; //'create', 'running', 'close'
   this.toString = function() {
@@ -198,11 +199,13 @@ io.on('connection', function (socket) {
         // update game
         allGames[idx].player1 = allPlayers[idP];
         allGames[idx].state = 'create';
+        var timerGame = allGames[idx].timer;
         // reply to the requester
         socket.emit('newgameok', {
           validated: "The game is created : " + game.name,
           accepted: true,
-          game: gameName
+          game: gameName,
+          time: timerGame
         });
         // send to all other
         socket.broadcast.emit('opengame', {
@@ -239,6 +242,7 @@ io.on('connection', function (socket) {
         // update game
         allGames[idx].player2 = allPlayers[idP];
         allGames[idx].state = 'running';
+        var timerGame = allGames[idx].timer;
         allGames[idx].addTurn();
         // who play first, update Player isFirst property
         var firstPlayer = whoPlayFirst(allGames[idx]);
@@ -259,7 +263,8 @@ io.on('connection', function (socket) {
         socket.emit('joingameok', {
           validated: "You join the game : ",
           game: gameName,
-          first: firstPlayer
+          first: firstPlayer,
+          time: timerGame
         });
         socket.emit('startgame', {
           validated: "The game start now : ",
@@ -481,6 +486,7 @@ io.on('connection', function (socket) {
       console.log('next turn is : ' + allGames[idx].turn);
       // add one round
       allGames[idx].addTurn();
+      var newtime = allGames[idx].timer;
       var newCarte;
       // get next player carte
       if (game.opponent == allGames[idx].player1.name) {
@@ -504,7 +510,8 @@ io.on('connection', function (socket) {
         game: gameName,
         mana: mana,
         carte: newCarte,
-        player: player
+        player: player,
+        time: newtime
       });
     }
   });

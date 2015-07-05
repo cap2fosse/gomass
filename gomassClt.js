@@ -82,6 +82,7 @@ socket.on('deckok', function(message) {
 socket.on('newgameok', function(message) {
   if (message.accepted) {
     gameName = message.game;
+    currentTime = message.time;
     disableCommands(true);
     // show info
     displayInfo(5);
@@ -93,6 +94,7 @@ socket.on('newgameok', function(message) {
 })
 socket.on('joingameok', function(message) {
   gameName = message.game;
+  currentTime = message.time;
   createT.value = gameName;
   disableCommands(true);
   console.log('Received joingameok : ' + message.validated + gameName + ' player : ' + message.first + ' start the game!');
@@ -167,14 +169,10 @@ socket.on('startgame', function(message) {
   // get first selection of hand
   var cltcarte = [];
   createArrayCarte(message.hand, cltcarte);
-  // fill the first hand
-  //playerHand.fill(cltcarte);
   // fill & show cardSelector
   cardSelector.fill(cltcarte);
   // active button
   cardSelectorCommandsDiv.visible(true);
-  //finishSelectB.hide(false);
-  //finishAllSelectB.hide(false);
   displayInfo(6);
 })
 socket.on('newhandcard', function(data) {
@@ -200,8 +198,10 @@ socket.on('showgame', function(data) {
   infoDiv.visible(false);
   // show commands
   gameCommandsDiv.visible(true);
+  timeCommandDiv.visible(true);
   if (myTurn) {
     endTurnB.disabled  = false;
+    startTime = true;
   }
   else {endTurnB.disabled  = true;}
   // show the game
@@ -279,6 +279,7 @@ socket.on('cardplayedok', function(message) {
 socket.on('endturnok', function(message) {
   console.log('Received endturnok : ' + message.player + ' game : ' + message.game + ' message : ' + message.validated);
   myTurn = false;
+  startTime = false;
   endTurnB.disabled = true;
   manaBoard.reset();
   // set hiding opponent hand
@@ -297,6 +298,8 @@ socket.on('endturnok', function(message) {
 socket.on('newturn', function(message) {
   console.log('Received newturn : ' + message.player + ' game : ' + message.game + ' mana : ' + message.mana + ' message : ' + message.validated);
   myTurn = true;
+  startTime = true;
+  currentTime = message.time;
   endTurnB.disabled = false;
   // get mana
   manaBoard.set(message.mana);
@@ -344,8 +347,9 @@ socket.on('endgameok', function(message) {
     infoDiv.visible(true);
   }
   // game is finish
+  startTime = false;
   gameCommandsDiv.visible(false);
-  //endTurnB.disabled = true;
+  timeCommandDiv.visible(false);
   // hide all
   showGameBoards(false);
 })
