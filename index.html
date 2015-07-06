@@ -2,7 +2,7 @@
 <head>
   <meta charset="utf-8">
   <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
-  <!--<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>-->
+  <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
   <script src="preload.js"></script>
   <script src="Carte.js"></script>
   <script src="Board.js"></script>
@@ -35,8 +35,23 @@ userNameB.onclick = function() {
   if (userNameT.value != '') {
     // init playerName
     playerName = userNameT.value;
-    socket.emit('adduser', {
-      name: playerName,
+    // send name to http server
+    $.ajax({
+      type: 'GET',
+      data: {
+          username: playerName,
+          password: 'password'
+      },
+        url: '/pname/:'+playerName
+    }).done(function (result) {
+        // get token
+        token = result.token;
+        // start socket
+        safeConnect();
+        // can login now
+        socket.emit('connectgomass', {
+          name: playerName,
+        });
     });
     userNameB.disabled = true;
     userNameT.disabled = true;
@@ -158,10 +173,10 @@ function loadNewGame() {
   creator = false;
   createT.value = '';
   gameCommandsDiv.visible(false);
-  //endTurnB.hide(true);
+  hideCommands(false);
   resetGameBoards();
   // choose a new avatar
-  playerSelector.setVisibility(true);
+  //playerSelector.setVisibility(true);
   // change info
   displayInfo(2);
 }

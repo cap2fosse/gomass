@@ -1,85 +1,49 @@
 'use strict';
 console.log('Start gomassSrv.js');
-// Setup basic express server
 var express = require('express');
-var app = express();
-var server = require('http').createServer(app);
-//var server = require('http').createServer();
-var io = require('socket.io')(server);
-var Carte = require('./srvCarte.js');
-//var PlayerCarte = require('./srvPlayer.js');
-var port = process.env.PORT || 3333;
-server.listen(port, function () {
-  console.log('Server listening at port %d', port);
-});
-// Routing
-app.use(express.static(__dirname));
-// Movement
-function Move(user, srcx, srcy, dstx, dsty) {
-  this.userName = user;
-  this.srcx = srcx;
-  this.srcy = srcy;
-  this.dstx = dstx;
-  this.dsty = dsty;
-}
-function Game(name) {
-  this.name = name;
-  this.player1; // create the game
-  this.player2; // join the game
-  this.turn = 0;
-  this.timer = 60;
-  this.gameCard = []; // new carte created in the game
-  this.state = ''; //'create', 'running', 'close'
-  this.toString = function() {
-    return " name : " + this.name + " turn : " + this.turn + " state : " + this.state;
-  }
-  this.addTurn = function() {
-    this.turn++;
-    console.log('New turn ! ' + this.turn);
-  }
-  this.whoIsNextPlayer = function() {
-    if (this.player1.myTurn == true) {return this.player1.name}
-    else {return this.player2.name}
-  }
-}
-function Player(name) {
-  this.name = name;
-  this.isFirst = false;
-  this.myTurn = false;
-  this.cardSelectDone = false;
-  this.deck = [];
-  this.imgid = 0;
-  this.getCarte = function(nbCarte) {
-    var carte = [];
-    if (this.deck.length > 0) {
-      for (var i = 0; i < nbCarte; i++) {
-        carte[i] = this.deck.pop();
-        console.log('it left ' + this.deck.length + ' on player : ' + this.name + ' hand.\n');
-      }
-    }
-    return carte;
-  }
-}
-var maxCartes = 120;
-var maxPlayer = 3;
-var allUsers = [];
-var allPlayers = [];
-var allGames = [];
-var allMoves = [];
-var allCartes = [];
-var allAvatars = [];
-var allPowers = [];
-var allManas = [];
-// load all cartes of the game
-loadCartes();
-loadPlayer();
-loadManas();
-// default namespace
-io.on('connection', function (socket) {
-  console.log('connection to the soket : ' + socket.id);
+var http = require('http');
 
-  // when the client emits 'add user', this listens and executes
-  socket.on('adduser', function (user) {
+var socketIo = require('socket.io');
+var socketio_jwt = require('socketio-jwt');
+
+var jwt = require('jsonwebtoken');
+var jwt_secret = 'The Gomass Password';
+
+var app = express();
+
+var Carte = require('./srvCarte.js');
+
+app.use(express.static(__dirname));
+
+// get username check existence and password
+app.get('/pname/:username', function(req, res){
+  var username = req.params.username.substring(1, req.params.username.length);
+  console.log('user ' + username);
+    var profile = {
+    first_name: username,
+    last_name: 'gomass',
+    email: username+'@gomass.org',
+    id: 0
+  };
+  // We are sending the profile inside the token
+  var token = jwt.sign(profile, jwt_secret, { expiresInMinutes: 60*5 });
+  res.json({token: token});
+});
+
+var server = http.createServer(app);
+var sio = socketIo.listen(server);
+
+sio.use(socketio_jwt.authorize({
+  secret: jwt_secret,
+  handshake: true
+}));
+
+sio.sockets
+  .on('connection', function (socket) {
+  console.log(socket.decoded_token.email, 'connected');
+
+  // when the client emits 'connectgomass'
+  socket.on('connectgomass', function (user) {
     console.log('received cmd adduser : ' + user.name);
     // we store the username in the socket session for this client
     socket.username = user.name;
@@ -88,6 +52,12 @@ io.on('connection', function (socket) {
     // and send all cards of the game
     var idx = addToArray(allUsers, user.name);
     if (idx != -1) {
+      var profile = {
+        first_name: user.name,
+        last_name: 'gomass',
+        email: user.name+'@gomass.org',
+        id: idx
+      };
       // store new player
       allPlayers.push(new Player(user.name));
       //emit welcome
@@ -601,10 +571,81 @@ io.on('connection', function (socket) {
       allGames[idx].player2.cardSelectDone = false;
     }
   });
+});
+//OUTSIDE SOCKET//
+setInterval(function () {
+  sio.emit('time', Date());
+}, 5000);
 
+var port = process.env.PORT || 3333;
+server.listen(port, function () {
+  console.log('Server listening at port %d', port);
 });
 
-//OUTSIDE SOCKET//
+//////////////////////////////USE FULL///////////////////////
+// Movement
+function Move(user, srcx, srcy, dstx, dsty) {
+  this.userName = user;
+  this.srcx = srcx;
+  this.srcy = srcy;
+  this.dstx = dstx;
+  this.dsty = dsty;
+}
+function Game(name) {
+  this.name = name;
+  this.player1; // create the game
+  this.player2; // join the game
+  this.turn = 0;
+  this.timer = 60;
+  this.gameCard = []; // new carte created in the game
+  this.state = ''; //'create', 'running', 'close'
+  this.toString = function() {
+    return " name : " + this.name + " turn : " + this.turn + " state : " + this.state;
+  }
+  this.addTurn = function() {
+    this.turn++;
+    console.log('New turn ! ' + this.turn);
+  }
+  this.whoIsNextPlayer = function() {
+    if (this.player1.myTurn == true) {return this.player1.name}
+    else {return this.player2.name}
+  }
+}
+function Player(name) {
+  this.name = name;
+  this.isFirst = false;
+  this.myTurn = false;
+  this.cardSelectDone = false;
+  this.deck = [];
+  this.imgid = 0;
+  this.getCarte = function(nbCarte) {
+    var carte = [];
+    if (this.deck.length > 0) {
+      for (var i = 0; i < nbCarte; i++) {
+        carte[i] = this.deck.pop();
+        console.log('it left ' + this.deck.length + ' on player : ' + this.name + ' hand.\n');
+      }
+    }
+    return carte;
+  }
+}
+var maxCartes = 120;
+var maxPlayer = 3;
+var allUsers = [];
+var allPlayers = [];
+var allGames = [];
+var allMoves = [];
+var allCartes = [];
+var allAvatars = [];
+var allPowers = [];
+var allManas = [];
+// load all cartes of the game
+loadCartes();
+loadPlayer();
+loadManas();
+
+
+
 
 // return name of the winner
 function whoPlayFirst(game) {
