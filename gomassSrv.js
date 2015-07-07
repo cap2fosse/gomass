@@ -7,7 +7,7 @@ var socketIo = require('socket.io');
 var socketio_jwt = require('socketio-jwt');
 
 var jwt = require('jsonwebtoken');
-var jwt_secret = 'The Gomass Password';
+var jwt_secret = '3jlVXE1V3GHBRQMjQlcxcaTlPKW805HasbKqS3B5ihmkeutPnAqZriyUL3y3yjxg';
 
 var app = express();
 
@@ -20,13 +20,12 @@ app.get('/pname/:username', function(req, res){
   var username = req.params.username.substring(1, req.params.username.length);
   console.log('user ' + username);
     var profile = {
-    first_name: username,
-    last_name: 'gomass',
+    name: username,
     email: username+'@gomass.org',
     id: 0
   };
   // We are sending the profile inside the token
-  var token = jwt.sign(profile, jwt_secret, { expiresInMinutes: 60*5 });
+  var token = jwt.sign(profile, jwt_secret, {expiresInMinutes: 60});
   res.json({token: token});
 });
 
@@ -40,7 +39,10 @@ sio.use(socketio_jwt.authorize({
 
 sio.sockets
   .on('connection', function (socket) {
-  console.log(socket.decoded_token.email, 'connected');
+    var tok = socket.decoded_token;
+    console.log(tok.email, 'connected');
+    //var decoded = jwt.verify(tok, jwt_secret);
+    //console.log(decoded.name);
 
   // when the client emits 'connectgomass'
   socket.on('connectgomass', function (user) {

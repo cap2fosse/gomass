@@ -173,10 +173,10 @@ function loadNewGame() {
   creator = false;
   createT.value = '';
   gameCommandsDiv.visible(false);
-  hideCommands(false);
-  resetGameBoards();
+  hideCommands(true);
+  resetGameBoards(); 
   // choose a new avatar
-  //playerSelector.setVisibility(true);
+  playerSelector.setVisibility(true);
   // change info
   displayInfo(2);
 }

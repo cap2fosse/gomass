@@ -362,6 +362,12 @@ function safeConnect() {
   socket.on('time', function (data) {
     console.log('- broadcast: ' + data);
   })
+  socket.on("error", function(error) {
+    if (error.type == "UnauthorizedError" || error.code == "invalid_token") {
+      // redirect user to login page perhaps?
+      console.log("User's token has expired");
+    }
+  })
 }
 function createArrayCarte(srvCarteArray, cltCarteArray) {
   for (var i = 0; i < srvCarteArray.length; i++) {
