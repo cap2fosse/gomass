@@ -7,7 +7,7 @@ var socketIo = require('socket.io');
 var socketio_jwt = require('socketio-jwt');
 
 var jwt = require('jsonwebtoken');
-var jwt_secret = '3jlVXE1V3GHBRQMjQlcxcaTlPKW805HasbKqS3B5ihmkeutPnAqZriyUL3y3yjxg';
+var jwt_secret = 'The Gomass Password';
 
 var app = express();
 
