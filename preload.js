@@ -42,9 +42,9 @@ var manaColorsOff = ["rgb(0,0,0)"];
 var buttonNameFr = ["Connexion", "Joueurs", "Cartes", "Créer partie", "Joindre partie", "Règles", "Entrainement", "Envoyer", "OK", "Toutes", "Terminer", "Vider", "Fin de tour", "Capituler"];
 var buttonNameEn = ["Connect", "Players", "Cards", "Create game", "Join game", "Rules", "Training", "Send", "OK", "All", "Finish", "Clean", "End turn", "Surrender"];
 var buttonName = {'Fr' : buttonNameFr, 'En' : buttonNameEn}
-//                 0      1         2              3          4   5     
-var textNameFr = ["Nom", "Partie", "RobotPartie", "Message", "", "Temps restant"];
-var textNameEn = ["Name", "Game", "RobotGame", "Message", "", "Time left"];
+//                 0      1         2              3          4   5                6
+var textNameFr = ["Nom", "Partie", "RobotPartie", "Message", "", "Temps restant", "Mot de passe"];
+var textNameEn = ["Name", "Game", "RobotGame", "Message", "", "Time left", "Password"];
 var textName = {'Fr' : textNameFr, 'En' : textNameEn}
 var nameOfButton = buttonName[langage];
 var nameOfText = textName[langage];

@@ -7,7 +7,6 @@ var socketIo = require('socket.io');
 var socketio_jwt = require('socketio-jwt');
 
 var jwt = require('jsonwebtoken');
-var jwt_secret = 'The Gomass Password';
 
 var app = express();
 
@@ -15,34 +14,83 @@ var Carte = require('./srvCarte.js');
 
 app.use(express.static(__dirname));
 
-// get username check existence and password
-app.get('/pname/:username', function(req, res){
-  var username = req.params.username.substring(1, req.params.username.length);
-  console.log('user ' + username);
-    var profile = {
-    name: username,
-    email: username+'@gomass.org',
-    id: 0
-  };
-  // We are sending the profile inside the token
-  var token = jwt.sign(profile, jwt_secret, {expiresInMinutes: 60});
-  res.json({token: token});
+var fs = require('fs');
+var cert_pub = fs.readFileSync(__dirname + '/rsa-public-key.pem', 'utf8');
+var cert_priv = fs.readFileSync(__dirname + '/rsa-private.pem', 'utf8');
+
+var GomassClient = require('mongodb').MongoClient;
+var assert = require('assert');
+var allUsers = [];
+
+var ObjectId = require('mongodb').ObjectID;
+var url = 'mongodb://cap2fosse:27017/gomass';
+
+GomassClient.connect(url, function(err, db) {
+  assert.equal(null, err);
+  findUsers(db, function() {
+    db.close();
+  });
 });
+
+var findUsers = function(db, callback) {
+   var cursor = db.collection('user').find( );
+   cursor.each(function(err, auser) {
+      assert.equal(err, null);
+      if (auser != null) {
+         console.dir(auser);
+         allUsers.push(auser);
+      } else {
+         callback();
+      }
+   });
+};
+
+// get username check existence and password
+app.get('/login/:username:password', function(req, res){
+  var login = req.params.password.split(':');
+  var user = login[0];
+  var pass = login[1];
+  console.log('user ' + user + ' pass : ' + pass + '\n');
+  var isVerified = profileVerified(user, pass);
+  if (isVerified) {
+    var profile = {
+        name: user,
+        password: pass
+      };
+    // We are sending the profile inside the token
+    var token = jwt.sign(profile, cert_priv, {expiresInMinutes: 60, algorithm: 'RS256'});
+    // verify token
+    var decoded = jwt.verify(token, cert_pub);
+    console.log('Decoded name : ' + decoded.name);
+    res.json({token: token});
+  }
+});
+
+function profileVerified(username, password) {
+  for (var i = 0; i < allUsers.length; i++) {
+    if (username == allUsers[i].name && password == allUsers[i].password) {
+      console.log("User " + username + " is verified!");
+      return true;
+    }
+    else {
+      console.log("User " + username + " isn't verified!");
+    }
+  }
+  return false;
+}
 
 var server = http.createServer(app);
 var sio = socketIo.listen(server);
 
 sio.use(socketio_jwt.authorize({
-  secret: jwt_secret,
+  secret: cert_pub,
   handshake: true
 }));
 
 sio.sockets
   .on('connection', function (socket) {
-    var tok = socket.decoded_token;
-    console.log(tok.email, 'connected');
-    //var decoded = jwt.verify(tok, jwt_secret);
-    //console.log(decoded.name);
+    var token = socket.decoded_token;
+    console.log(token.email, 'connected');
 
   // when the client emits 'connectgomass'
   socket.on('connectgomass', function (user) {
@@ -633,7 +681,6 @@ function Player(name) {
 }
 var maxCartes = 120;
 var maxPlayer = 3;
-var allUsers = [];
 var allPlayers = [];
 var allGames = [];
 var allMoves = [];

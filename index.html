@@ -23,26 +23,40 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 //-----------------------------------------------------------
 //BEGIN UI
-var commandDiv = new gomassDiv(250, 0, 250, 120, 'commands');
 var infoDiv = new gomassInfo(200, 350, 'info');
 displayInfo(1);
-//COMMANDS DIV
+//LOGIN DIV
+var loginDiv = new gomassDiv(150, 0, 350, 30, 'login');
 var userNameT = new gomassButton("text", nameOfText[0]);
 userNameT.size = 15;
-commandDiv.addElement(userNameT);
+userNameT.onclick = function() {
+  if (!this.disabled) {
+    this.value = '';
+  }
+};
+loginDiv.addElement(userNameT);
+var userPassT = new gomassButton("password", nameOfText[6]);
+userPassT.size = 15;
+userPassT.onclick = function() {
+  if (!this.disabled) {
+    this.value = '';
+  }
+};
+loginDiv.addElement(userPassT);
 var userNameB = new gomassButton("button", nameOfButton[0]);
 userNameB.onclick = function() {
   if (userNameT.value != '') {
     // init playerName
     playerName = userNameT.value;
+    var playerPass = userPassT.value;
     // send name to http server
     $.ajax({
       type: 'GET',
       data: {
           username: playerName,
-          password: 'password'
+          password: userPassT.value
       },
-        url: '/pname/:'+playerName
+        url: '/login/:'+playerName+':'+userPassT.value
     }).done(function (result) {
         // get token
         token = result.token;
@@ -57,7 +71,9 @@ userNameB.onclick = function() {
     userNameT.disabled = true;
   }
 }
-commandDiv.addElement(userNameB);
+loginDiv.addElement(userNameB);
+//COMMANDS DIV
+var commandDiv = new gomassDiv(250, 30, 250, 90, 'commands');
 var playersB = new gomassButton("button", nameOfButton[1]);
 playersB.onclick = function() {
   // hide info
