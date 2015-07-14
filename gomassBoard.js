@@ -1229,7 +1229,8 @@ function applySpellEffect(attackerBoard, attackerCaseId, defenderBoard, defender
         // send the end game message
         socket.emit('endgame', {
           name: gameName,
-          player: playerName
+          player: playerName,
+          creator: creator
         });
       }
       else {
@@ -1316,7 +1317,8 @@ function resolveAttackOpponent(attackerBoard, attackerCaseId) {
     // send the end game message
     socket.emit('endgame', {
       name: gameName,
-      player: playerName
+      player: playerName,
+      creator: creator
     });
   }
   else {
@@ -1397,7 +1399,8 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
       // send the end game message
       socket.emit('endgame', {
         name: gameName,
-        player: opponentName
+        player: opponentName,
+        creator: creator
       });
     }
     defCarte.init(); // carte is dead
@@ -1449,7 +1452,8 @@ function resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, def
       // send the end game message
       socket.emit('endgame', {
         name: gameName,
-        player: playerName
+        player: playerName,
+        creator: creator
       });
     }
     attCarte.init();

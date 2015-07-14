@@ -58,17 +58,23 @@ userNameB.onclick = function() {
       },
         url: '/login/:'+playerName+':'+userPassT.value
     }).done(function (result) {
+      if (result.verified) {
         // get token
         token = result.token;
         // start socket
         safeConnect();
         // can login now
         socket.emit('connectgomass', {
-          name: playerName,
+          name: playerName
         });
+        userNameB.disabled = true;
+        userNameT.disabled = true;
+        userPassT.disabled = true;
+      }
+      else {
+        userNameT.value = 'Not authorized!';
+      }
     });
-    userNameB.disabled = true;
-    userNameT.disabled = true;
   }
 }
 loginDiv.addElement(userNameB);

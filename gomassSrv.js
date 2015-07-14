@@ -20,31 +20,39 @@ var cert_priv = fs.readFileSync(__dirname + '/rsa-private.pem', 'utf8');
 
 var GomassClient = require('mongodb').MongoClient;
 var assert = require('assert');
+var ObjectId = require('mongodb').ObjectID;
+var url = 'mongodb://localhost:27017/gomass';
 var allUsers = [];
 
-var ObjectId = require('mongodb').ObjectID;
-var url = 'mongodb://cap2fosse:27017/gomass';
-
+// load list of user in allUsers
 GomassClient.connect(url, function(err, db) {
   assert.equal(null, err);
   findUsers(db, function() {
     db.close();
   });
 });
-
 var findUsers = function(db, callback) {
    var cursor = db.collection('user').find( );
    cursor.each(function(err, auser) {
       assert.equal(err, null);
       if (auser != null) {
-         console.dir(auser);
-         allUsers.push(auser);
+        console.dir(auser);
+        allUsers.push(auser);
       } else {
-         callback();
+        callback();
       }
    });
 };
-
+var updatePlayerPlayedGame = function(db, player, callback) {
+  db.collection('user').updateOne(
+    {"name" : player.name},
+      {$set: {"playedGame": player.playedGame, "nbWinGame": player.nbWinGame}}
+    , function(err, results) {
+      console.log("The player "+player.name+" is updated!");
+      callback();
+    }
+  );
+}
 // get username check existence and password
 app.get('/login/:username:password', function(req, res){
   var login = req.params.password.split(':');
@@ -62,7 +70,11 @@ app.get('/login/:username:password', function(req, res){
     // verify token
     var decoded = jwt.verify(token, cert_pub);
     console.log('Decoded name : ' + decoded.name);
-    res.json({token: token});
+    res.json({verified: true, token: token});
+  }
+  else {
+    console.log('Return to index!');
+    res.json({verified: false});
   }
 });
 
@@ -90,25 +102,21 @@ sio.use(socketio_jwt.authorize({
 sio.sockets
   .on('connection', function (socket) {
     var token = socket.decoded_token;
-    console.log(token.email, 'connected');
+    console.log(token.name, 'connected');
 
   // when the client emits 'connectgomass'
   socket.on('connectgomass', function (user) {
-    console.log('received cmd adduser : ' + user.name);
+    console.log('received cmd connectgomass : ' + user.name);
     // we store the username in the socket session for this client
     socket.username = user.name;
     socket.register = true;
     // add the client's username to the global list
     // and send all cards of the game
-    var idx = addToArray(allUsers, user.name);
+    var idx = userExist(user.name);
+    // check
     if (idx != -1) {
-      var profile = {
-        first_name: user.name,
-        last_name: 'gomass',
-        email: user.name+'@gomass.org',
-        id: idx
-      };
-      // store new player
+      console.log('add new player : ' + user.name);
+      // store player
       allPlayers.push(new Player(user.name));
       //emit welcome
       socket.emit('login', {
@@ -145,7 +153,6 @@ sio.sockets
     if (idP != -1) {
       // store the player image
       allPlayers[idP].imgid = message.id;
-      console.log('imgid : ' + message.id);
       socket.emit('avatarok', {
         accepted: true,
         player: message.player,
@@ -216,8 +223,12 @@ sio.sockets
       // get id of player
       var idP = playerExist(player);
       if (idP != -1) {
-        // update game
+        // store player in game
         allGames[idx].player1 = allPlayers[idP];
+        allGames[idx].player1.curentGame = gameName;
+        // inc number of played game
+        allGames[idx].player1.playedGame++;
+        // update game
         allGames[idx].state = 'create';
         var timerGame = allGames[idx].timer;
         // reply to the requester
@@ -253,14 +264,18 @@ sio.sockets
     // game exist?
     var idx = gameExist(gameName);
     if (idx != -1) {
-      // store game and join
+      // store game and join the room
       socket.game = gameName;
       socket.join(gameName);
       // get id of player
       var idP = playerExist(player);
       if (idP != -1) {
-        // update game
+        // store player in game
         allGames[idx].player2 = allPlayers[idP];
+        allGames[idx].player2.curentGame = gameName;
+        // inc number of played game
+        allGames[idx].player2.playedGame++;
+        // update game
         allGames[idx].state = 'running';
         var timerGame = allGames[idx].timer;
         allGames[idx].addTurn();
@@ -578,6 +593,27 @@ sio.sockets
     var idx = gameExist(gameName);
     if (idx != -1) {
       console.log('End game : ' + game.name + ' from player : ' + game.player);
+      // update win game
+      if (game.creator) {
+        allGames[idx].player1.nbWinGame++;
+      }
+      else {
+        allGames[idx].player2.nbWinGame++;
+      }
+      // store player 1 in bdd
+      GomassClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        updatePlayerPlayedGame(db, allGames[idx].player1, function() {
+          db.close();
+        });
+      });
+      // store player 2 in bdd
+      GomassClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        updatePlayerPlayedGame(db, allGames[idx].player2, function() {
+          db.close();
+        });
+      });
       // answer to the winner
       socket.emit('endgameok', {
         validated: "The game is over.",
@@ -604,6 +640,27 @@ sio.sockets
     var idx = gameExist(gameName);
     if (idx != -1) {
       console.log('End game : ' + game.name + ' from player : ' + game.player);
+      // update win game
+      if (game.creator) {
+        allGames[idx].player1.nbWinGame++;
+      }
+      else {
+        allGames[idx].player2.nbWinGame++;
+      }
+      // store player 1 in bdd
+      GomassClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        updatePlayerPlayedGame(db, allGames[idx].player1, function() {
+          db.close();
+        });
+      });
+      // store player 2 in bdd
+      GomassClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        updatePlayerPlayedGame(db, allGames[idx].player2, function() {
+          db.close();
+        });
+      });
       // answer to the winner
       socket.emit('endgameok', {
         validated: "The game is over.",
@@ -668,6 +725,8 @@ function Player(name) {
   this.cardSelectDone = false;
   this.deck = [];
   this.imgid = 0;
+  this.playedGame = 0;
+  this.nbWinGame = 0;
   this.getCarte = function(nbCarte) {
     var carte = [];
     if (this.deck.length > 0) {
@@ -695,7 +754,6 @@ loadManas();
 
 
 
-
 // return name of the winner
 function whoPlayFirst(game) {
   var secret = (game.player1.name + game.player2.name).length;
@@ -710,6 +768,15 @@ function whoPlayFirst(game) {
     game.player2.isFirst = true;
     return game.player2.name;
   }
+}
+function userExist(username) {
+  for (var i = 0; i < allUsers.length; i++) {
+    if (allUsers[i].name == username) {
+      console.log('Users exist at index : ' + i);
+      return i;
+    }
+  }
+  return -1;
 }
 function playerExist(playername) {
   for (var i = 0; i < allPlayers.length; i++) {
