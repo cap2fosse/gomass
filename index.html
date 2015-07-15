@@ -2,12 +2,13 @@
 <head>
   <meta charset="utf-8">
   <script src="node_modules/socket.io/node_modules/socket.io-client/socket.io.js"></script>
+  <script src="node_modules/jwt-decode/build/jwt-decode.js"></script>
   <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+  <script src="hmac-sha256.js"></script>
   <script src="preload.js"></script>
   <script src="Carte.js"></script>
   <script src="Board.js"></script>
   <script src="gomassClt.js"></script>
-  <script>
 </script>
   <title>Gomass</title>
 </head>
@@ -48,28 +49,47 @@ userNameB.onclick = function() {
   if (userNameT.value != '') {
     // init playerName
     playerName = userNameT.value;
-    var playerPass = userPassT.value;
-    // send name to http server
+    // ask for secret
     $.ajax({
-      type: 'GET',
-      data: {
-          username: playerName,
-          password: userPassT.value
-      },
-        url: '/login/:'+playerName+':'+userPassT.value
+      type: 'POST',
+      data: {username: playerName},
+      url: '/secret'
     }).done(function (result) {
       if (result.verified) {
-        // get token
-        token = result.token;
-        // start socket
-        safeConnect();
-        // can login now
-        socket.emit('connectgomass', {
-          name: playerName
+        // get secret & decode
+        var esecret = result.secret;
+        var secret = jwt_decode(esecret);
+        console.log('secret : ' + secret.secret);
+        // get & H password
+        var playerPass = userPassT.value;
+        var hmac = CryptoJS.algo.HMAC.create(CryptoJS.algo.SHA256, secret.secret);
+        hmac.update(playerPass);
+        var hash = hmac.finalize();
+        var spass = hash.toString();
+        // send auth to http server
+        $.ajax({
+          type: 'POST',
+          data: {username: playerName,
+                password: spass},
+          url: '/login'
+        }).done(function (result) {
+          if (result.verified) {
+            // get token
+            token = result.token;
+            // start socket connexion
+            safeConnect();
+            // can login now
+            socket.emit('connectgomass', {
+              name: playerName
+            });
+            userNameB.disabled = true;
+            userNameT.disabled = true;
+            userPassT.disabled = true;
+          }
+          else {
+            userNameT.value = 'Not authorized!';
+          }
         });
-        userNameB.disabled = true;
-        userNameT.disabled = true;
-        userPassT.disabled = true;
       }
       else {
         userNameT.value = 'Not authorized!';

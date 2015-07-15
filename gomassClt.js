@@ -11,6 +11,8 @@ function safeConnect() {
   socket.on('login', function(message) {
     if (message.accepted) {
       console.log('Received login : you are accepted : ' + message.player);
+      var decoded = jwt_decode(token);
+      console.log('Decoded message : ' + decoded.name);
       // fill array of carte and avatar
       var srvAllGameCartes = message.cartes;
       var srvAllAvatarsCartes = message.avatar;

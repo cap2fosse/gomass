@@ -16,6 +16,8 @@ var selectedCaseId = -1;
 var maxDeckCarte = 30;
 // max number of cartes
 var maxCartes = 80;
+// the secret
+var secret = '';
 // END GLOBAL VAR
 // preload images
 var allPlayersImages = [];
