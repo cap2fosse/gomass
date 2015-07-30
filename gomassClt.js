@@ -18,7 +18,7 @@ function safeConnect() {
       var srvAllAvatarsCartes = message.avatar;
       var srvAllPowerCartes = message.power;
       var srvAllManaCartes = message.mana;
-      createArrayCarte(srvAllGameCartes, allGameCartes);
+      //createArrayCarte(srvAllGameCartes, allGameCartes);
       createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes);
       createArrayCarte(srvAllPowerCartes, allPowerCartes);
       createArrayCarte(srvAllManaCartes, allManaCartes);
@@ -374,9 +374,33 @@ function safeConnect() {
 function createArrayCarte(srvCarteArray, cltCarteArray) {
   for (var i = 0; i < srvCarteArray.length; i++) {
     var srvCard = srvCarteArray[i];
+    if (srvCard.effet != undefined) {
+      var cltCardEffect = new Effet(srvCard.effet.id, srvCard.effet.zone, srvCard.effet.impact, 
+      srvCard.effet.declencheur, srvCard.effet.modifAttack, srvCard.effet.modifDefense, 
+      srvCard.effet.modifVie, srvCard.effet.description);
+    }
+    else {
+      var cltCardEffect = new Effet();
+    }
+    if (srvCard.etat != undefined) {
+      var cltCardEtat = new Etat(srvCard.etat.provocator, srvCard.etat.charge, srvCard.etat.silent, 
+      srvCard.etat.fury, srvCard.etat.divine, srvCard.etat.stun, srvCard.etat.rage, srvCard.etat.hide, 
+      srvCard.etat.hide, srvCard.etat.maxfury);
+    }
+    else {
+      var cltCardEtat = new Etat();
+    }
+    if (srvCard.equipement != undefined) {
+      var cltCardEquipment = new Equipement(srvCard.equipement.id, srvCard.equipement.type, srvCard.equipement.impact, 
+      srvCard.equipement.durability, srvCard.equipement.modifAttack, srvCard.equipement.modifDefense, 
+      srvCard.equipement.description);
+    }
+    else {
+      var cltCardEquipment = new Equipement();
+    }
     var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
     srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
-    srvCard.selected, srvCard.special, srvCard.effet, srvCard.etat, srvCard.equipement);
+    srvCard.selected, srvCard.special, cltCardEffect, cltCardEtat, cltCardEquipment);
     cltCarteArray.push(cltCard);
   }
 }

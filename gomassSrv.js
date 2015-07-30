@@ -29,12 +29,19 @@ var allUsers = [];
 // load list of user in allUsers
 GomassClient.connect(url, function(err, db) {
   assert.equal(null, err);
-  findUsers(db, function() {
-    db.close();
+  loadUsers(db, function() {
+    loadAvatars(db, function() {
+      loadAvatarsPower(db, function() {
+        loadManas(db, function() {
+          db.close();
+        });
+      });
+    });
   });
 });
-var findUsers = function(db, callback) {
-   var cursor = db.collection('user').find( );
+// load all users
+var loadUsers = function(db, callback) {
+   var cursor = db.collection('user').find( ).sort({id: 1});
    cursor.each(function(err, auser) {
       assert.equal(err, null);
       if (auser != null) {
@@ -45,6 +52,45 @@ var findUsers = function(db, callback) {
       }
    });
 };
+// load all avatars
+var loadAvatars = function(db, callback) {
+  var cursor = db.collection('avatar').find( ).sort({id: 1});
+  cursor.each(function(err, anavatar) {
+    assert.equal(err, null);
+    if (anavatar != null) {
+      //console.dir(anavatar);
+      allAvatars.push(anavatar);
+    } else {
+      callback();
+    }
+  });
+}
+// load all avatars power
+var loadAvatarsPower = function(db, callback) {
+  var cursor = db.collection('avatar-power').find( ).sort({id: 1});
+  cursor.each(function(err, apower) {
+    assert.equal(err, null);
+    if (apower != null) {
+      //console.dir(apower);
+      allPowers.push(apower);
+    } else {
+      callback();
+    }
+  });
+}
+// load all manas
+var loadManas = function(db, callback) {
+  var cursor = db.collection('mana').find( ).sort({id: 1});
+  cursor.each(function(err, amana) {
+    assert.equal(err, null);
+    if (amana != null) {
+      //console.dir(apower);
+      allManas.push(amana);
+    } else {
+      callback();
+    }
+  });
+}
 var updatePlayerPlayedGame = function(db, player, callback) {
   db.collection('user').updateOne(
     {"name" : player.name},
@@ -54,12 +100,12 @@ var updatePlayerPlayedGame = function(db, player, callback) {
       callback();
     }
   );
-}
+};
 
 ////////AUTH////////
 var fs = require('fs');
-var cert_pub = fs.readFileSync(__dirname + '/rsa-public-key.pem', 'utf8');
-var cert_priv = fs.readFileSync(__dirname + '/rsa-private.pem', 'utf8');
+var cert_pub = fs.readFileSync(__dirname + '/cert/rsa-public-key.pem', 'utf8');
+var cert_priv = fs.readFileSync(__dirname + '/cert/rsa-private.pem', 'utf8');
 var gomassSecret = "Gomass Secret Passphrase";
 
 // get the secret
@@ -774,10 +820,9 @@ var allPowers = [];
 var allManas = [];
 // load all cartes of the game
 loadCartes();
-loadPlayer();
-loadManas();
-
-
+//loadAvatars();
+//loadAvatarsPower();
+//loadManas();
 
 // return name of the winner
 function whoPlayFirst(game) {
@@ -863,50 +908,6 @@ function rmToArray(myArray, elt) {
     return false;
   }
 }
-
-function loadPlayer() {
-  // players
-  var invocus = new Carte(0, 'Normal', 'Player', 0, true, 2, 0, 0, 30, 'invocus');
-  var spellus = new Carte(1, 'Normal', 'Player', 1, true, 2, 0, 0, 30, 'spellus');
-  var healus = new Carte(2, 'Normal', 'Player', 2, true, 2, 0, 0, 30, 'healus');
-  var armorus = new Carte(3, 'Normal', 'Player', 3, true, 2, 0, 0, 30, 'armorus');
-  // spell players
-  var invocusSpell = new Carte(0, 'Normal', 'PlayerSpell', 0, true, 2, 1, 0, 1, 'invocusSpell');
-  var spellusSpell = new Carte(1, 'Normal', 'PlayerSpell', 1, true, 2, 1, 0, 0, 'spellusSpell');
-  spellusSpell.effet.id = 1;
-  spellusSpell.effet.zone = 'Single';
-  spellusSpell.effet.impact = 'any';
-  spellusSpell.effet.declencheur = 'Immediat';
-  spellusSpell.effet.modifVie = -1;
-  spellusSpell.setDescription();
-  var healusSpell = new Carte(2, 'Normal', 'PlayerSpell', 2, true, 2, 0, 0, 1, 'healusSpell');
-  healusSpell.effet.id = 2;
-  healusSpell.effet.zone = 'Single';
-  healusSpell.effet.impact = 'any';
-  healusSpell.effet.declencheur = 'Immediat';
-  healusSpell.effet.modifVie = 1;
-  healusSpell.setDescription();
-  var armorusSpell = new Carte(3, 'Normal', 'PlayerSpell', 3, true, 2, 0, 1, 0, 'armorusSpell');
-  armorusSpell.effet.id = 3;
-  armorusSpell.effet.zone = 'Single';
-  armorusSpell.effet.impact = 'any';
-  armorusSpell.effet.declencheur = 'Immediat';
-  armorusSpell.effet.modifDefense = 1;
-  armorusSpell.setDescription();
-  // global arrays
-  allAvatars = [invocus, spellus, healus, armorus];
-  allPowers = [invocusSpell, spellusSpell, healusSpell, armorusSpell];
-  console.log('Avatar 1 : ' + invocus + ' Avatar 2 : ' + spellus + ' Avatar 3 : ' + healus + ' Avatar 4 : ' + armorus);
-  console.log('AvatarSpell 1 : ' + invocusSpell + ' AvatarSpell 2 : ' + spellusSpell + ' AvatarSpell 3 : ' + healusSpell + ' AvatarSpell 4 : ' + armorusSpell);
-}
-
-function loadManas() {
-  for (var i = 1; i <= 10; i++) {
-    var mana = new Carte(i, 'Normal', 'Mana', 0, true, i);
-    allManas.push(mana);
-  }
-}
-
 function loadCartes() {
   var c;
   for (var id = 0; id < maxCartes; id++) {

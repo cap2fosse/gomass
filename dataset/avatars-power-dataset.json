@@ -1,0 +1,4 @@
+{"id": 1, "typeimg": "Normal", "type": "PlayerSpell", "imgid": 0, "visible": true, "cout": 2, "attaque": 1, "defense": 0, "vie": 1, "titre": "invocusSpell"}
+{"id": 2, "typeimg": "Normal", "type": "PlayerSpell", "imgid": 1, "visible": true, "cout": 2, "attaque": 1, "defense": 0, "vie": 0, "titre": "spellusSpell", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifVie": -1}}
+{"id": 3, "typeimg": "Normal", "type": "PlayerSpell", "imgid": 2, "visible": true, "cout": 2, "attaque": 0, "defense": 0, "vie": 1, "titre": "healusSpell", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifVie": 1}}
+{"id": 4, "typeimg": "Normal", "type": "PlayerSpell", "imgid": 3, "visible": true, "cout": 2, "attaque": 0, "defense": 1, "vie": 0, "titre": "armorusSpell", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifDefense": 1}}

@@ -1,0 +1,4 @@
+{"id": 1, "typeimg": "Normal", "type": "Player", "imgid": 0, "visible": true, "cout": 2, "attaque": 0, "defense": 0, "vie": 30, "titre": "invocus"}
+{"id": 2, "typeimg": "Normal", "type": "Player", "imgid": 1, "visible": true, "cout": 2, "attaque": 0, "defense": 0, "vie": 30, "titre": "spellus"}
+{"id": 3, "typeimg": "Normal", "type": "Player", "imgid": 2, "visible": true, "cout": 2, "attaque": 0, "defense": 0, "vie": 30, "titre": "healus"}
+{"id": 4, "typeimg": "Normal", "type": "Player", "imgid": 3, "visible": true, "cout": 2, "attaque": 0, "defense": 0, "vie": 30, "titre": "armorus"}
