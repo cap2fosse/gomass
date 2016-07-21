@@ -895,7 +895,7 @@ defausseDefense.addFirst = function(card){
 }
 
 var allCarte = new Board('allCarte', 200, 150, 100, 150);
-allCarte.create(5, 3, 0);
+allCarte.create(5, 2, 0);
 document.body.appendChild(allCarte);
 allCarte.onclick = function() {
   if (selectedCarte.visible && !selectedCarte.selected) { // player select a carte to put on deck
@@ -911,12 +911,13 @@ allCarte.onclick = function() {
   selectedCarte.init();
   selectedCaseId = -1;
 }
-// fill the cartes array from server bye page start to 0
+// fill the cartes array from server by page start to 0
 allCarte.fill = function(page){
   var theCard;
   var idC = 0;
-  for (var id = page*15; id < (page*15)+15 ; id++) {
-    theCard = this.cartes[id];
+  var cardsByPage = 10;
+  for (var id = page*cardsByPage; id < (page*cardsByPage)+cardsByPage ; id++) {
+    theCard = this.getCarte(id);
     this.add(idC, theCard);
     idC++;
   }
@@ -933,17 +934,97 @@ allCarte.selectCard = function(on, caseId, cardId){
   this.getCase(caseId).draw();
 }
 
-var pageBoard = new manageCoutButton(300, 620, 10, 1);
+var carteCollection = new Board('carteCollection', 200, 150, 100, 150);
+carteCollection.create(5, 3, 0);
+document.body.appendChild(carteCollection);
+carteCollection.cardsByPage = 15;
+carteCollection.onclick = function() {
+  if (selectedCarte.visible && !selectedCarte.selected) { // player select a carte to put on deck
+    this.selectedCarte = selectedCarte.clone();
+    // draw the selection
+    this.selectCard(true, selectedCaseId, selectedCarte.id);
+    // cast to mini & show
+    var myMini = selectedCarte.clone();
+    myMini.toMini();
+    playerDeck.addLast(myMini);
+    console.log("Select carte : " + this.selectedCarte);
+  }
+  selectedCarte.init();
+  selectedCaseId = -1;
+}
+// fill the cartes array from server by page start to 0
+carteCollection.fill = function(page){
+  var theCard;
+  var idC = 0;
+  for (var id = page * this.cardsByPage; id < (page * this.cardsByPage) + this.cardsByPage; id++) {
+    theCard = this.getCarte(id);
+    this.add(idC, theCard);
+    idC++;
+  }
+}
+carteCollection.selectCard = function(on, caseId, cardId){
+  if (on) {
+    if (caseId != undefined) {this.get(caseId).selected = true;} // force to selected
+    if (cardId != undefined) {this.getByCarteId(cardId).selected = true;} // force to selected
+  }
+  else {
+    if (caseId != undefined) {this.get(caseId).selected = false;} // force to selected
+    if (cardId != undefined) {this.getByCarteId(cardId).selected = false;} // force to selected
+  }
+  if (caseId != undefined) {this.getCase(caseId).draw()};
+}
+var pageBoard = new gestionPage(200, 620);
 pageBoard.create();
 document.body.appendChild(pageBoard);
+pageBoard.currentPage = 0;
 pageBoard.onclick = function() {
-  if (selectedButton > 0 && selectedButton <= 8) {
-    allCarte.fill(selectedButton-1);
+  var cardNum = carteCollection.getNumberOfCards();
+  if (selectedButton == buttonNameFr[14]) { // Next button
+    if (cardNum > this.currentPage * carteCollection.cardsByPage + carteCollection.cardsByPage) {
+      this.currentPage++;
+      carteCollection.fill(this.currentPage);
+    }
   }
-  selectedButton = 0;
+  if (selectedButton == buttonNameFr[15]) { // Back button
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      carteCollection.fill(this.currentPage);
+    }
+  }
 }
 
-var deckBuilderCommandsDiv = new gomassDiv(450, 660, 150, 34, 'builderCommands');
+var deckBuilderCommandsDiv = new gomassDiv(550, 620, 150, 5*34, 'builderCommands');
+
+var nameDeckT = new gomassButton("text", nameOfButton[17]);
+nameDeckT.style.visibility = "hidden";
+deckBuilderCommandsDiv.addElement(nameDeckT);
+
+var createDeckB = new gomassButton("button", nameOfButton[16]);
+createDeckB.style.visibility = "hidden";
+createDeckB.onclick = function() {}
+deckBuilderCommandsDiv.addElement(createDeckB);
+
+var saveDeckB = new gomassButton("button", nameOfButton[18]);
+saveDeckB.style.visibility = "hidden";
+saveDeckB.onclick = function() {
+    // check if deck is complete
+  if (!playerDeck.isComplete()) {
+    playerDeck.fill(false);
+  }
+  // unselect all
+  playerDeck.selectAll(false);
+  // get all and change type
+  var myDeck = playerDeck.changeCardType('Normal');
+  console.log(myDeck);
+  // send deck to server
+  socket.emit('savedeck', {
+    player: playerName,
+    deck: myDeck,
+    deckname: nameDeckT.value,
+  });
+}
+deckBuilderCommandsDiv.addElement(saveDeckB);
+
 var finishDeckB = new gomassButton("button", nameOfButton[10]);
 finishDeckB.style.visibility = "hidden";
 finishDeckB.onclick = function() {
@@ -966,12 +1047,13 @@ finishDeckB.onclick = function() {
   clearB.hide(true);
 }
 deckBuilderCommandsDiv.addElement(finishDeckB);
+
 var clearB = new gomassButton("button", nameOfButton[11]);
 clearB.style.visibility = "hidden";
 clearB.onclick = function() {
   playerDeck.clearAll();
-  allCarte.selectAll(false);
-  allCarte.display();
+  carteCollection.selectAll(false);
+  carteCollection.display();
 }
 deckBuilderCommandsDiv.addElement(clearB);
 deckBuilderCommandsDiv.visible(false);
@@ -982,8 +1064,8 @@ document.body.appendChild(playerDeck);
 playerDeck.onclick = function() {
   if (selectedCarte.visible) {
     var carteid = selectedCarte.id;
-    var caseId = allCarte.getCaseByCarteId(carteid);
-    allCarte.selectCard(false, caseId, carteid);
+    var caseId = carteCollection.getCaseByCarteId(carteid);
+    carteCollection.selectCard(false, caseId, carteid);
     this.remove(selectedCaseId);
     console.log("Select carte : " + selectedCarte);
   }
@@ -993,13 +1075,12 @@ playerDeck.onclick = function() {
 // fill the deck randomly
 playerDeck.fill = function(isDraw) {
   var fid = 0;
-  var idxCard;
   var srvCard;
   var miniCard;
   while (fid < this.cases.length) {
     if (!this.cases[fid].carte.visible) {
-      // get a random carte from allCarte
-      srvCard = allCarte.getRandom();
+      // get a random carte from carteCollection
+      srvCard = carteCollection.getRandom();
       miniCard = srvCard.clone();
       miniCard.toMini();
       if (isDraw) {
@@ -1009,6 +1090,24 @@ playerDeck.fill = function(isDraw) {
         this.addLastNoDraw(miniCard);
       }
     }
+    fid++;
+  }
+}
+// set the deck from sever cards
+playerDeck.set = function(isDraw) {
+  var fid = 0;
+  var srvCard;
+  var miniCard;
+  var caseId;
+  while (fid < this.cases.length) {
+    srvCard = allDeckCartes[fid];
+    miniCard = srvCard.clone();
+    miniCard.toMini();
+    if (isDraw) {this.addLast(miniCard);}
+    else {this.addLastNoDraw(miniCard);}
+    // select collection cards
+    caseId = carteCollection.getCaseByCarteId(miniCard.id);
+    carteCollection.selectCard(true, caseId, miniCard.id);
     fid++;
   }
 }
@@ -1113,19 +1212,19 @@ function cleanHand(except) {
 }
 
 function showDeckBuilder(on) {
-  allCarte.display();
-  allCarte.setVisibility(on);
-  playerDeck.display();
+  carteCollection.display();
+  carteCollection.setVisibility(on);
+  playerDeck.set(on);
   playerDeck.setVisibility(on);
   pageBoard.visible(on);
   deckBuilderCommandsDiv.visible(on);
   if (on) {
-    allCarte.fill(0);
+    carteCollection.fill(0);
   }
 }
 
 function resetDeckBuilder() {
-  allCarte.initCartes();
+  carteCollection.initCartes();
   playerDeck.initCartes();
 }
 
@@ -1170,6 +1269,7 @@ function getBoard(name) {
   if (name == opponent.id) return opponent;
   if (name == player.id) return player;
   if (name == allCarte.id) return allCarte;
+  if (name == carteCollection.id) return carteCollection;
   if (name == playerDeck.id) return playerDeck;
   if (name == playerSelector.id) return playerSelector;
   if (name == playerPower.id) return playerPower;
@@ -1503,9 +1603,9 @@ function fromSrvCarte(srvCard) {
     var cltCardEffect = new Effet();
   }
   if (srvCard.etat != undefined) {
-    var cltCardEtat = new Etat(srvCard.etat.provocator, srvCard.etat.charge, srvCard.etat.silent, 
-    srvCard.etat.fury, srvCard.etat.divine, srvCard.etat.stun, srvCard.etat.rage, srvCard.etat.hide, 
-    srvCard.etat.hide, srvCard.etat.maxfury);
+    var cltCardEtat = new Etat(srvCard.etat.provoke, srvCard.etat.charge, srvCard.etat.silent, 
+    srvCard.etat.fury, srvCard.etat.divine, srvCard.etat.stun, srvCard.etat.replace, srvCard.etat.hide, 
+    srvCard.etat.maxfury);
   }
   else {
     var cltCardEtat = new Etat();
@@ -1518,11 +1618,12 @@ function fromSrvCarte(srvCard) {
   else {
     var cltCardEquipment = new Equipement();
   }
+  // create the card
   var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
   srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
   srvCard.selected, srvCard.special, cltCardEffect, cltCardEtat, cltCardEquipment);
-
+  // set the description
+  cltCard.setDescription();
   return cltCard;
 }
-
 console.log('Finish gomassBoard.js');

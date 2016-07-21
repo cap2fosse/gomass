@@ -25,7 +25,11 @@ console.log('Start index.js');
 //-----------------------------------------------------------
 //BEGIN UI
 var infoDiv = new gomassInfo(200, 350, 'info');
-displayInfo(1);
+//LAST SELECTED AVATAR
+var selectedAvatar = new Board('selectedAvatar', 25, 0, 100, 150);
+selectedAvatar.create(1, 1, 0);
+document.body.appendChild(selectedAvatar);
+selectedAvatar.setVisibility(true);
 //LOGIN DIV
 var loginDiv = new gomassDiv(150, 0, 350, 30, 'login');
 var userNameT = new gomassButton("text", nameOfText[0]);
@@ -82,9 +86,7 @@ userNameB.onclick = function() {
             socket.emit('connectgomass', {
               name: playerName
             });
-            userNameB.disabled = true;
-            userNameT.disabled = true;
-            userPassT.disabled = true;
+            disableLoginCmd(true);
           }
           else {
             userNameT.value = 'Not authorized!';
@@ -99,35 +101,41 @@ userNameB.onclick = function() {
 }
 loginDiv.addElement(userNameB);
 //COMMANDS DIV
-var commandDiv = new gomassDiv(250, 30, 250, 90, 'commands');
+var mainCmdDiv = new gomassDiv(150, 30, 250, 45, 'MainCmd');
 var playersB = new gomassButton("button", nameOfButton[1]);
 playersB.onclick = function() {
   // hide info
   infoDiv.visible(false);
-  //disable player selection
-  playersB.disabled = true;
+  //hide commands
+  disableCmd(true);
+  hideCmd(true);
   //show all avatars
   playerSelector.fill();
 }
-commandDiv.addElement(playersB);
+mainCmdDiv.addElement(playersB);
 var cardsB = new gomassButton("button", nameOfButton[2]);
 cardsB.onclick = function() {
   // hide info
   infoDiv.visible(false);
   // show deck ui
   showDeckBuilder(true);
-  hideCommands(true);
+  //hide commands
+  disableCmd(true);
+  hideCmd(true);
 }
-commandDiv.addElement(cardsB);
+mainCmdDiv.addElement(cardsB);
+
+var gameCmdDiv = new gomassDiv(150, 60, 250, 45, 'GameCmd');
 var createT = new gomassButton("text", nameOfText[1]);
 createT.size = 15;
-commandDiv.addElement(createT);
+gameCmdDiv.addElement(createT);
 var createB = new gomassButton("button", nameOfButton[3]);
 createB.onclick = function(game) {
   if (createT.value != '') {
     // init gameName
     gameName = createT.value;
-    disableCommands(true);
+    disableGameCmd(true);
+    disableMainCmd(true);
     creator = true;
     socket.emit('newgame', {
       name: gameName,
@@ -136,14 +144,15 @@ createB.onclick = function(game) {
     console.log('create game : ' + createT.value);
   }
 }
-commandDiv.addElement(createB);
+gameCmdDiv.addElement(createB);
 var gomassListGame = new gomassCombo("gameList");
 gomassListGame.addOpt(nameOfText[2]);
-commandDiv.addElement(gomassListGame);
+gameCmdDiv.addElement(gomassListGame);
 var joinB = new gomassButton("button", nameOfButton[4]);
 joinB.onclick = function(game) {
   if (gomassListGame.value != '') {
-    disableCommands(true);
+    disableGameCmd(true);
+    disableMainCmd(true);
     creator = false;
     socket.emit('joingame', {
       name: gomassListGame.value,
@@ -153,7 +162,7 @@ joinB.onclick = function(game) {
     console.log('join game : ' + gomassListGame.value);
   }
 }
-commandDiv.addElement(joinB);
+gameCmdDiv.addElement(joinB);
 
 //CHAT DIV
 var chatDiv = new gomassDiv(550, 0, 350, 120, 'chat');
@@ -171,6 +180,7 @@ sendB.onclick = function() {
 chatDiv.addElement(sendB);
 var gomassChat = new gomassBox("chatArea");
 chatDiv.addElement(gomassChat);
+displayInfo(1);
 
 //RULES DIV
 var rulesDiv = new gomassDiv(900, 0, 120, 60, 'rules');
@@ -188,10 +198,11 @@ trainingB.onclick = function() {
 rulesDiv.addElement(trainingB);
 //INIT
 // disable all buttons
-disableCommands(true);
+disableGameCmd(true);
+disableMainCmd(true);
 resetGameBoards();
 //-----------------------------------------------------------
-function disableCommands(b) {
+function disableCmd(b) {
   createB.disabled = b;
   createT.disabled = b;
   joinB.disabled = b;
@@ -199,11 +210,36 @@ function disableCommands(b) {
   cardsB.disabled = b;
   playersB.disabled = b;
 }
-function hideCommands(b) {
+function hideCmd(b) {
   createB.hide(b);
   createT.hide(b);
   joinB.hide(b);
   gomassListGame.hide(b);
+  cardsB.hide(b);
+  playersB.hide(b);
+}
+function disableLoginCmd(b) {
+  userNameB.disabled = b;
+  userNameT.disabled = b;
+  userPassT.disabled = b;
+}
+function disableGameCmd(b) {
+  createB.disabled = b;
+  createT.disabled = b;
+  joinB.disabled = b;
+  gomassListGame.disabled = b;
+}
+function disableMainCmd(b) {
+  cardsB.disabled = b;
+  playersB.disabled = b;
+}
+function hideGameCmd(b) {
+  createB.hide(b);
+  createT.hide(b);
+  joinB.hide(b);
+  gomassListGame.hide(b);
+}
+function hideMainCmd(b) {
   cardsB.hide(b);
   playersB.hide(b);
 }
@@ -214,13 +250,16 @@ function loadNewGame() {
   startTime = false;
   creator = false;
   createT.value = '';
-  gameCommandsDiv.visible(false);
-  hideCommands(true);
+  hideGameCmd(false);
+  hideMainCmd(false);
+  disableGameCmd(true);
+  disableMainCmd(false);
   resetGameBoards(); 
   // choose a new avatar
-  playerSelector.setVisibility(true);
+  //playerSelector.setVisibility(true);
   // change info
   displayInfo(2);
+  infoDiv.visible(false);
 }
 function displayInfo(num) {
   var txt = '';
@@ -274,7 +313,9 @@ function displayInfo(num) {
       '<p>Choisi un nom et click sur le bouton <b>connect</b>.</p>';
       break;
       case 2:
-      txt = "<h2>2 - Choisi ton avatar :</h2><p>Il existe 4 type d'avatar : <ul>"+
+      txt = '<h2>2 - Choisi ton avatar :</h2>'+
+      '<p>Click sur le bouton <b>.Joueurs.</b> et choisi ton avatar.</p>'+
+      "<p>Il existe 4 type d'avatar : <ul>"+
       '<li>Invocus : Il invoque une créature 1/1 pour 2 mana.</li>'+
       '<li>Spellus : Il retire 1 point de vie à une créature ou un joueur pour 2 mana.</li>'+
       '<li>Healus : Il ajoute 1 point de vie à une créature ou un joueur pour 2 mana.</li>'+
@@ -283,13 +324,13 @@ function displayInfo(num) {
       break;
       case 3:
       txt = '<h2>3 - Compose ton deck </h2>'+
-      '<p>Click sur le bouton <b>.deck.</b> et choisi tes cartes.</p>'+
+      '<p>Click sur le bouton <b>.Cartes.</b> et choisi tes cartes.</p>'+
       '<p>Click sur le bouton <b>finish</b> pour compléter la selection.</p>';
       break;
       case 4:
       txt = '<h2>4 - Créé ou rejoind une partie </h2>'+
-      '<ul><li>Choisi le nom de ta partie puis click sur le bouton <b>.create.</b></li>'+
-      '<li>Ou séletionne une partie et click sur le bouton <b>.join.</b></li>';
+      '<ul><li>Choisi le nom de ta partie puis click sur le bouton <b>.Créer partie.</b></li>'+
+      '<li>Ou séletionne une partie et click sur le bouton <b>.Joindre partie.</b></li>';
       break;
       case 5:
       txt = "<h2>5 - Attend jusqu'à ce que quelqu'un rejoigne la partie.</h2>";
@@ -311,8 +352,9 @@ function displayInfo(num) {
       default:
     }
   }
-  infoDiv.setText(txt);
-  infoDiv.visible(true);
+  gomassChat.value = txt;
+  //infoDiv.setText(txt);
+  //infoDiv.visible(true);
 }
 console.log('Finish index.js');
 //-----------------------------------------------------------

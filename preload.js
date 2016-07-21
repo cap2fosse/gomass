@@ -38,9 +38,9 @@ var allCartesColorsOff = ["rgb(255,204,170)", "rgb(172,147,147)", "rgb(67,137,18
                           "rgb(0,128,0)", "rgb(85,68,0)", "rgb(128,0,128)", "rgb(85,34,0)"];
 var manaColorsOn = ["rgb(0,0,255)"];
 var manaColorsOff = ["rgb(0,0,0)"];
-//                   0            1          2         3               4                 5         6               7          8     9         10          11       12             13
-var buttonNameFr = ["Connexion", "Joueurs", "Cartes", "Créer partie", "Joindre partie", "Règles", "Entrainement", "Envoyer", "OK", "Toutes", "Terminer", "Vider", "Fin de tour", "Capituler"];
-var buttonNameEn = ["Connect", "Players", "Cards", "Create game", "Join game", "Rules", "Training", "Send", "OK", "All", "Finish", "Clean", "End turn", "Surrender"];
+//                  0            1          2         3               4                 5         6               7          8     9         10               11            12             13           14         15           16            17             18
+var buttonNameFr = ["Connexion", "Joueurs", "Cartes", "Créer partie", "Joindre partie", "Règles", "Entrainement", "Envoyer", "OK", "Toutes", "Terminer Deck", "Vider Deck", "Fin de tour", "Capituler", "Suivant", "Précédent", "Créer Deck", "Nom du deck", "Sauver Deck"];
+var buttonNameEn = ["Connect", "Players", "Cards", "Create game", "Join game", "Rules", "Training", "Send", "OK", "All", "Finish Deck", "Clean Deck", "End turn", "Surrender", "Next", "Back", "Create Deck", "Name of deck", "Save Deck"];
 var buttonName = {'Fr' : buttonNameFr, 'En' : buttonNameEn}
 //                 0      1         2              3          4   5                6
 var textNameFr = ["Nom", "Partie", "RobotPartie", "Message", "", "Temps restant", "Mot de passe"];
@@ -137,7 +137,9 @@ function gomassButton(type, val) {
       this.style.visibility = "visible";
     }
   };
-  //document.body.appendChild(element);
+  element.onclick = function() {
+    selectedButton = this.id;
+  };  
   return element;
 }
 function gomassBox(val) {

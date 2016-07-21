@@ -271,11 +271,11 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
       if (this.equipement.type == 'Weapon') {this.description = 'Weapon';}
       else if (this.equipement.type == 'Armor') {this.description = 'Armor';}
       else {this.description += '';}
-      if (this.equipement.impact == 'playerBoard') {this.description += ' on playBoard';}
-      else if (this.equipement.impact == 'opponentBoard') {this.description += ' on opponBoard';}
-      else if (this.equipement.impact == 'player') {this.description += ' on player';}
-      else if (this.equipement.impact == 'opponent') {this.description += ' on opponent';}
-      else if (this.equipement.impact == 'any') {this.description += ' on any';}
+      if (this.equipement.impact == 'playerBoard') {this.description += ' on playBoard;';}
+      else if (this.equipement.impact == 'opponentBoard') {this.description += ' on opponBoard;';}
+      else if (this.equipement.impact == 'player') {this.description += ' on player;';}
+      else if (this.equipement.impact == 'opponent') {this.description += ' on opponent;';}
+      else if (this.equipement.impact == 'any') {this.description += ' on any;';}
       if (this.equipement.durability != 0) {this.description += 'Durability: ' + this.equipement.durability;}
     }
   };
@@ -310,9 +310,9 @@ Carte.prototype = {
   equipement : Equipement.prototype
 };
 
-function Etat(provocator, charge, silent, fury, divine, stun, rage, hide) {
-  if (provocator != undefined) {this.provocator = provocator;}
-  else {this.provocator = Etat.prototype.provocator;}
+function Etat(provoke, charge, silent, fury, divine, stun, replace, hide) {
+  if (provoke != undefined) {this.provoke = provoke;}
+  else {this.provoke = Etat.prototype.provoke;}
   if (charge != undefined) {this.charge = charge;}
   else {this.charge = Etat.prototype.charge;}
   if (silent != undefined) {this.silent = silent;}
@@ -323,16 +323,16 @@ function Etat(provocator, charge, silent, fury, divine, stun, rage, hide) {
   else {this.divine = Etat.prototype.divine;}
   if (stun != undefined) {this.stun = stun;}
   else {this.stun = Etat.prototype.stun;}
-  if (rage != undefined) {this.rage = rage;}
-  else {this.rage = Etat.prototype.rage;}
+  if (replace != undefined) {this.replace = replace;}
+  else {this.replace = Etat.prototype.replace;}
   if (hide != undefined) {this.hide = hide;}
   else {this.hide = Etat.prototype.hide;}
   if (this.fury > 0) {this.maxfury = 1;}
   else {this.maxfury = 0;}
   this.toString = function() {
-    return "Etat : " + "provocator : " + this.provocator + " - " + "charge : " + this.charge + " - " + "silent: " + this.silent
+    return "Etat : " + "provoke : " + this.provoke + " - " + "charge : " + this.charge + " - " + "silent: " + this.silent
             + " - " + "fury: " + this.fury + " - " + "divine: " + this.divine
-            + " - " + "stun: " + this.stun + " - " + "rage: " + this.rage + " - " + "hide: " + this.hide;
+            + " - " + "stun: " + this.stun + " - " + "replace: " + this.replace + " - " + "hide: " + this.hide;
   };
   this.activeFury = function() {
     this.maxfury = 1;
@@ -340,24 +340,25 @@ function Etat(provocator, charge, silent, fury, divine, stun, rage, hide) {
   };
   this.setDescription = function() {
     var description = '';
-    if (this.provocator) {description += 'Provocation';}
+    if (this.provoke) {description += 'Provocation';}
     if (this.charge) {description += 'Charge';}
     if (this.silent) {description += 'Silent';}
     if (this.fury) {description += 'Fury';}
     if (this.divine) {description += 'Divine';}
     if (this.stun) {description += 'Stun';}
     if (this.hide) {description += 'Hide';}
+    if (this.replace) {description += 'Replace';}
     return description;
   };
 }
 Etat.prototype = {
-  provocator : false,
+  provoke : false,
   charge : false,
   silent : false,
   fury : 0,
   divine : false,
   stun : false,
-  rage : false,
+  replace : false,
   hide : false,
   maxfury : 2
 };
@@ -422,7 +423,7 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
 }
 Effet.prototype = {
   id : -1,
-  zone : '', // 'Single' | 'Multi'
+  zone : '', // 'Single' | 'Multi' | 'Left' | 'Right'
   impact : '', // 'opponentBoard' | 'playerBoard' | 'any' | 'opponent' | 'player' | 'mySelf'
   declencheur : '', // 'Immediat' | 'Attack' | 'Die' | 'Defense' | 'Activated' | Played
   modifAttack : 0, // An integer

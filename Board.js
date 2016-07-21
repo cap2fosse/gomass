@@ -10,6 +10,8 @@ var invocusCard = new Carte(200, 'Normal', 'Invocation', 0, true, 2, 1, 0, 1, 'i
 var selectedCarte = emptyCarte;
 // store all cartes send by server
 var allGameCartes = [];
+var allCollectionCartes = [];
+var allDeckCartes = [];
 var allAvatarsCartes = [];
 var allPowerCartes = [];
 var allManaCartes = [];
@@ -66,6 +68,13 @@ function Board(name, posx, posy, caseW, caseH) {
         id++;
       }
     }
+  };
+  // get a carte 
+  objBoard.getCarte = function(cardId) {
+    if (this.cartes[cardId] != undefined) {
+      return this.cartes[cardId];
+    }
+    return emptyCarte;
   };
   // set all cartes 
   objBoard.setAll = function(cardArray) {
@@ -134,15 +143,15 @@ function Board(name, posx, posy, caseW, caseH) {
       return this.cases[caseid];
     }
   };
-  // get a Case from carte id 
+  // get a Case id from carte id 
   objBoard.getCaseByCarteId = function(carteid) {
+    var checkedCard;
     for (var caseid = 0; caseid < this.cases.length; caseid++) {
-      var checkedCard = this.get(caseid);
+      checkedCard = this.get(caseid);
       if (checkedCard.id == carteid) {
         return caseid;
       }
     }
-    return 0;
   };
   // get all cartes on board
   objBoard.getAll = function() {
@@ -152,6 +161,18 @@ function Board(name, posx, posy, caseW, caseH) {
     }
     return carteArray;
   };
+  // get clone of all cartes on board
+  objBoard.getAllClone = function() {
+    var carteArray = [];
+    for (var caseid = 0; caseid < this.cases.length; caseid++) {
+      carteArray.push(this.getClone(caseid));
+    }
+    return carteArray;
+  };
+  // get the number of card
+  objBoard.getNumberOfCards = function() {
+    return this.cartes.length;
+  };
   // change typeimg on all carte from board 'Normal' | 'Mini'
   objBoard.changeCardType = function(typeimg) {
     var originalArray = this.getAll();
@@ -159,7 +180,7 @@ function Board(name, posx, posy, caseW, caseH) {
       var tmpCarte;
       var finalArray = [];
       for (var caseid = 0; caseid < originalArray.length; caseid++) {
-        tmpCarte = this.get(caseid);
+        tmpCarte = this.getClone(caseid);
         tmpCarte.toNormal();
         finalArray.push(tmpCarte);
       }
@@ -168,7 +189,7 @@ function Board(name, posx, posy, caseW, caseH) {
       var tmpCarte;
       var finalArray = [];
       for (var caseid = 0; caseid < originalArray.length; caseid++) {
-        tmpCarte = this.get(caseid);
+        tmpCarte = this.getClone(caseid);
         tmpCarte.toMini();
         finalArray.push(tmpCarte);
       }
@@ -435,7 +456,7 @@ function Case(casex, casey, id, boardName, width, height) {
           var desc = this.carte.description.split(';');
           this.ctx.font = "10px serif";
           this.ctx.fillStyle = "rgb(77,77,77)";
-          if (desc[0] != undefined) { // declencheur || spell Effect || equipment effect
+          if (desc[0] != undefined) { // declencheur || spell effect || equipment effect
             this.ctx.fillText(desc[0], 8, this.height-100);
           }
           if (desc[1] != undefined && desc[1] != 0) { // zone || durability
@@ -454,10 +475,10 @@ function Case(casex, casey, id, boardName, width, height) {
             this.ctx.fillText(desc[5], 8, this.height-25);
           }
         }
-        if (this.carte.special != '') {
-          this.fillBorder();
-        }
+        // draw a rect depending of the state card
+        this.drawEtatCarte();
       }
+      // special selection case
       if (this.carte.selected) {
         this.ctx.fillStyle = "rgb(255,0,0)";
         this.ctx.strokeStyle = "rgb(255,0,0)";
@@ -467,46 +488,61 @@ function Case(casex, casey, id, boardName, width, height) {
         this.ctx.lineTo(20,100);
         this.ctx.stroke();
       }
-      //this.ctx.stroke();
     }
     else {
       this.clear();
     }
   };
-  canvasCase.fillBorder = function() {
+  canvasCase.drawEtatCarte = function() {
     var lineW = 2;
     if (this.carte.etat.provoke) {
-      this.ctx.strokeStyle = "rgb(44,35,218)";
+      this.ctx.strokeStyle = "rgb(44,35,218)"; // blue
       this.ctx.fillStyle = "rgb(44,35,218)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 30, 10, 10);
+      this.ctx.fillRect(80, 30, 8, 8);
     }
     if (this.carte.etat.charge) {
-      this.ctx.strokeStyle = "rgb(210,35,210)";
+      this.ctx.strokeStyle = "rgb(210,35,210)"; // purple
       this.ctx.fillStyle = "rgb(210,35,210)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 45, 10, 10);
+      this.ctx.fillRect(80, 40, 8, 8);
     }
     if (this.carte.etat.fury > 0) {
-      this.ctx.strokeStyle = "rgb(207,27,0)";
+      this.ctx.strokeStyle = "rgb(207,27,0)"; // red
       this.ctx.fillStyle = "rgb(207,27,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 60, 10, 10);
+      this.ctx.fillRect(80, 50, 8, 8);
     }
     if (this.carte.etat.divine) {
-      this.ctx.strokeStyle = "rgb(205,205,0)";
+      this.ctx.strokeStyle = "rgb(205,205,0)"; // yellow
       this.ctx.fillStyle = "rgb(205,205,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 75, 10, 10);
+      this.ctx.fillRect(80, 60, 8, 8);
     }
     if (this.carte.etat.hide) {
-      this.ctx.strokeStyle = "rgb(20,33,0)";
+      this.ctx.strokeStyle = "rgb(20,33,0)"; // black
       this.ctx.fillStyle = "rgb(20,33,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 90, 10, 10);
+      this.ctx.fillRect(80, 70, 8, 8);
     }
-    this.ctx.font = "10px serif";
-    this.ctx.fillText(this.carte.special, 20, this.height-10);
+    if (this.carte.etat.silent) {
+      this.ctx.strokeStyle = "rgb(250,250,250)"; // white
+      this.ctx.fillStyle = "rgb(250,250,250)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 80, 8, 8);
+    }
+    if (this.carte.etat.stun) {
+      this.ctx.strokeStyle = "rgb(153,153,153)"; // grey
+      this.ctx.fillStyle = "rgb(153,153,153)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 90, 8, 8);
+    }
+    if (this.carte.etat.replace) {
+      this.ctx.strokeStyle = "rgb(90,230,100)"; // green
+      this.ctx.fillStyle = "rgb(90,230,100)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(80, 100, 8, 8);
+    }
   };
   canvasCase.setVisibility = function(visible) {
     if (visible) {
@@ -753,71 +789,36 @@ function ManageMana(posx, posy, nbManaX, nbManaY) {
   };
   return allMana;
 }
-function coutButton(type, val) {
-  var element = document.createElement("input");
-  element.type = type;
-  element.value = val;
-  element.id = val;
-  element.style.marginLeft = '2px';
-  //element.style.position = "absolute";
-  //element.style.left = x;
-  //element.style.top = y;
-  element.disabled = false;
-  element.hide = function(on) {
-    this.disabled = on;
-    if (on) {
-      this.style.visibility = "hidden";
-    }
-    else {
-      this.style.visibility = "visible";
-    }
-  };
-  element.onclick = function() {
-    selectedButton = this.id;
-    //this.disabled = !this.disabled;
-  };
-  return element;
-}
-function manageCoutButton(posx, posy, nbButtonX, nbButtonY) {
-  var allCoutB = document.createElement("div");
-  allCoutB.id = 'ManageCoutButton';
-  allCoutB.style.position = "absolute";
-  allCoutB.style.width = 34 * nbButtonX;
-  allCoutB.style.height = 30;
-  allCoutB.style.left = posx;
-  allCoutB.style.top = posy;
-  //allCoutB.style.border = "1px solid grey";
-  allCoutB.style.visibility = "hidden";
-  allCoutB.nbButtonX = nbButtonX;
-  allCoutB.nbButtonY = nbButtonY;
-  allCoutB.buttons = new Array(10);
-  allCoutB.create = function() {
-    var id = 0;
-    for (var x = 0; x < this.nbButtonX; x++) {
-      for (var y = 0; y < this.nbButtonY; y++) {
-        //var b = new coutButton(x+(30*id), y, 'button', id+1);
-        var b = new coutButton('button', id+1);
-        this.buttons[id] = b;
-        this.appendChild(b);
-        id++;
-      }
-    }
-  };
-  allCoutB.visible = function(on) {
+
+function gestionPage(posx, posy) {
+  var gestPage = document.createElement("div");
+  gestPage.id = 'GestionPage';
+  gestPage.nextButton = new gomassButton('button', buttonNameFr[14]);
+  gestPage.backButton = new gomassButton('button', buttonNameFr[15]);
+  gestPage.style.position = "absolute";
+  gestPage.style.width = 34 * this.nbButton;
+  gestPage.style.height = 30;
+  gestPage.style.left = posx;
+  gestPage.style.top = posy;
+  //gestPage.style.border = "1px solid grey";
+  gestPage.style.visibility = "hidden";
+  gestPage.create = function() {
+    this.appendChild(this.backButton);
+    this.appendChild(this.nextButton);
+  }
+  gestPage.visible = function(on) {
     if (on) {
       this.style.visibility = "visible";
-      for (var i = 0; i < this.buttons.length; i++) {
-        this.buttons[i].hide(false);
-      }
+      this.nextButton.hide(false);
+      this.backButton.hide(false);
     }
     else {
       this.style.visibility = "hidden";
-      for (var i = 0; i < this.buttons.length; i++) {
-        this.buttons[i].hide(true);
-      }
+      this.nextButton.hide(true);
+      this.backButton.hide(true);
     }
   };
 
-  return allCoutB;
+  return gestPage;
 }
 console.log('Finish Board.js');

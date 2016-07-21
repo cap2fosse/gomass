@@ -185,7 +185,7 @@ function Effet(id, zone, impact, declencheur, attack, defense, vie, description)
 }
 Effet.prototype = {
   id : -1,
-  zone : '', // 'Single' | 'Multi'
+  zone : '', // 'Single' | 'Multi' | 'Left' | 'Right'
   impact : '', // 'opponentBoard' | 'playerBoard' | 'any' | 'opponent' | 'player' | 'mySelf'
   declencheur : '', // 'Immediat' | 'Attack' | 'Die' | 'Defense' | Played | Activated
   modifAttack : 0, // An integer
@@ -193,7 +193,7 @@ Effet.prototype = {
   modifVie : 0,
   description : ''
 };
-function Etat(provoke, charge, silent, fury, divine, stun, rage, hide) {
+function Etat(provoke, charge, silent, fury, divine, stun, replace, hide) {
   if (provoke != undefined) {this.provoke = provoke;}
   else {this.provoke = Etat.prototype.provoke;}
   if (charge != undefined) {this.charge = charge;}
@@ -206,8 +206,8 @@ function Etat(provoke, charge, silent, fury, divine, stun, rage, hide) {
   else {this.divine = Etat.prototype.divine;}
   if (stun != undefined) {this.stun = stun;}
   else {this.stun = Etat.prototype.stun;}
-  if (rage != undefined) {this.rage = rage;}
-  else {this.rage = Etat.prototype.rage;}
+  if (replace != undefined) {this.replace = replace;}
+  else {this.replace = Etat.prototype.replace;}
   if (hide != undefined) {this.hide = hide;}
   else {this.hide = Etat.prototype.hide;}
   if (this.fury > 0) {this.maxfury = 1;}
@@ -215,7 +215,7 @@ function Etat(provoke, charge, silent, fury, divine, stun, rage, hide) {
   this.toString = function() {
     return "Etat : " + "provoke : " + this.provoke + " - " + "charge : " + this.charge + " - " + "silent: " + this.silent
             + " - " + "fury: " + this.fury + " - " + "divine: " + this.divine
-            + " - " + "stun: " + this.stun + " - " + "rage: " + this.rage + " - " + "hide: " + this.hide;
+            + " - " + "stun: " + this.stun + " - " + "replace: " + this.replace + " - " + "hide: " + this.hide;
   };
   this.activeFury = function() {
     this.maxfury = 1;
@@ -230,6 +230,7 @@ function Etat(provoke, charge, silent, fury, divine, stun, rage, hide) {
     if (this.divine) {description += 'Divine';}
     if (this.stun) {description += 'Stun';}
     if (this.hide) {description += 'Hide';}
+    if (this.replace) {description += 'Replace';}
     return description;
   };
 }
@@ -240,7 +241,7 @@ Etat.prototype = {
   fury : 0,
   divine : false,
   stun : false,
-  rage : false,
+  replace : false,
   hide : false,
   maxfury : 2
 };

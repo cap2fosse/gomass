@@ -15,17 +15,26 @@ function safeConnect() {
       console.log('Decoded message : ' + decoded.name);
       // fill array of carte and avatar
       var srvAllGameCartes = message.cartes;
+      var srvAllCollectionCartes = message.collection;
+      var srvAllDeckCartes = message.deck;
       var srvAllAvatarsCartes = message.avatar;
       var srvAllPowerCartes = message.power;
       var srvAllManaCartes = message.mana;
-      //createArrayCarte(srvAllGameCartes, allGameCartes);
+      createArrayCarte(srvAllGameCartes, allGameCartes);
+      createArrayCarte(srvAllCollectionCartes, allCollectionCartes);
+      createArrayCarte(srvAllDeckCartes, allDeckCartes);
       createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes);
       createArrayCarte(srvAllPowerCartes, allPowerCartes);
       createArrayCarte(srvAllManaCartes, allManaCartes);
-      //set all cartes
+      // get last avatar and set it
+      var lastAvatar = allAvatarsCartes[message.avatarId];
+      selectedAvatar.addClone(0, lastAvatar);
+      //set all cartes in boards
       allCarte.setAll(allGameCartes);
+      carteCollection.setAll(allCollectionCartes);
       //enable player selection
-      playersB.disabled = false;
+      //playersB.disabled = false;
+      disableMainCmd(false);
       // change info
       displayInfo(2);
     }
@@ -58,11 +67,17 @@ function safeConnect() {
   //BEGIN CREATE GAME
   socket.on('avatarok', function(message) {
     if (message.accepted) {
+      // set new avatar
+      var avatarCard = allAvatarsCartes[message.avatarId];
+      selectedAvatar.addClone(0, avatarCard);
       // active deck button
       cardsB.disabled = false;
       // hide avatar board
       playerSelector.setVisibility(false);
-      // change info
+      // show commands
+      disableCmd(false);
+      hideCmd(false);
+      // display info
       displayInfo(3);
       console.log('Received avatarok : ' + message.accepted);
     }
@@ -72,14 +87,21 @@ function safeConnect() {
   })
   socket.on('deckok', function(message) {
     if (message.accepted) {
-      // hide
+      // hide the deck builder
       showDeckBuilder(false);
-      // active and show commands
-      disableCommands(false);
-      hideCommands(false);
-      // show info
+      // show commands
+      disableCmd(false);
+      hideCmd(false);
+      // display info
       displayInfo(4);
-      infoDiv.visible(true);
+      console.log('Received deckok : ' + message.accepted);
+    }
+    else {
+      console.log('Received deckok : ' + message.accepted);
+    }
+  })
+  socket.on('savedeckok', function(message) {
+    if (message.accepted) {
       console.log('Received deckok : ' + message.accepted);
     }
     else {
@@ -90,7 +112,7 @@ function safeConnect() {
     if (message.accepted) {
       gameName = message.game;
       currentTime = message.time;
-      disableCommands(true);
+      disableCmd(true);
       // show info
       displayInfo(5);
       console.log('Received newgameok : ' + message.validated);
@@ -103,7 +125,7 @@ function safeConnect() {
     gameName = message.game;
     currentTime = message.time;
     createT.value = gameName;
-    disableCommands(true);
+    disableCmd(true);
     console.log('Received joingameok : ' + message.validated + gameName + ' player : ' + message.first + ' start the game!');
   })
   socket.on('opengame', function(message) {
@@ -132,17 +154,17 @@ function safeConnect() {
     // who is opponent ?
     if (creator) {
       opponentName = message.player2; // set the name
-      srvCardOp = allAvatarsCartes[message.imgid2]; // set the carte
-      srvCardPl = allAvatarsCartes[message.imgid1];
-      srvPowerOp = allPowerCartes[message.imgid2];
-      srvPowerPl = allPowerCartes[message.imgid1];
+      srvCardOp = allAvatarsCartes[message.avatarId2]; // set the carte
+      srvCardPl = allAvatarsCartes[message.avatarId1];
+      srvPowerOp = allPowerCartes[message.avatarId2];
+      srvPowerPl = allPowerCartes[message.avatarId1];
     }
     else {
       opponentName = message.player1;
-      srvCardOp = allAvatarsCartes[message.imgid1];
-      srvCardPl = allAvatarsCartes[message.imgid2];
-      srvPowerOp = allPowerCartes[message.imgid1];
-      srvPowerPl = allPowerCartes[message.imgid2];
+      srvCardOp = allAvatarsCartes[message.avatarId1];
+      srvCardPl = allAvatarsCartes[message.avatarId2];
+      srvPowerOp = allPowerCartes[message.avatarId1];
+      srvPowerPl = allPowerCartes[message.avatarId2];
     }
     // add avatar to the board
     opponent.addClone(0, srvCardOp);
@@ -203,6 +225,8 @@ function safeConnect() {
     console.log('Received showgame : ' + data.message + data.game + ' from player : ' + data.player);
     // hide the info
     infoDiv.visible(false);
+    // hide the selected objects
+    selectedAvatar.setVisibility(false);
     // show commands
     gameCommandsDiv.visible(true);
     timeCommandDiv.visible(true);
@@ -382,10 +406,10 @@ function createArrayCarte(srvCarteArray, cltCarteArray) {
     else {
       var cltCardEffect = new Effet();
     }
-    if (srvCard.etat != undefined) {
-      var cltCardEtat = new Etat(srvCard.etat.provocator, srvCard.etat.charge, srvCard.etat.silent, 
-      srvCard.etat.fury, srvCard.etat.divine, srvCard.etat.stun, srvCard.etat.rage, srvCard.etat.hide, 
-      srvCard.etat.hide, srvCard.etat.maxfury);
+    if (srvCard.etat != undefined) { // provoke, charge, silent, fury, divine, stun, replace, hide
+      var cltCardEtat = new Etat(srvCard.etat.provoke, srvCard.etat.charge, srvCard.etat.silent, 
+      srvCard.etat.fury, srvCard.etat.divine, srvCard.etat.stun, srvCard.etat.replace, srvCard.etat.hide, 
+      srvCard.etat.maxfury);
     }
     else {
       var cltCardEtat = new Etat();
@@ -398,9 +422,13 @@ function createArrayCarte(srvCarteArray, cltCarteArray) {
     else {
       var cltCardEquipment = new Equipement();
     }
+    // create the card
     var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
     srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
     srvCard.selected, srvCard.special, cltCardEffect, cltCardEtat, cltCardEquipment);
+    // set the description
+    cltCard.setDescription();
+    // add it
     cltCarteArray.push(cltCard);
   }
 }

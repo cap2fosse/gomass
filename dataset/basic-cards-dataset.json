@@ -1,0 +1,70 @@
+{"id": 0, "typeimg": "Normal", "type": "Invocation", "imgid": 0, "visible": true, "cout": 1, "attaque": 1, "defense": 1, "vie": 1, "titre": "Gasfess"}
+{"id": 1, "typeimg": "Normal", "type": "Invocation", "imgid": 0, "visible": true, "cout": 1, "attaque": 1, "defense": 1, "vie": 1, "titre": "Drajenol"}
+{"id": 2, "typeimg": "Normal", "type": "Invocation", "imgid": 0, "visible": true, "cout": 1, "attaque": 1, "defense": 1, "vie": 1, "titre": "Azagal"}
+{"id": 3, "typeimg": "Normal", "type": "Invocation", "imgid": 0, "visible": true, "cout": 1, "attaque": 1, "defense": 0, "vie": 1, "titre": "Nelpera", "etat": {"charge": true}}
+{"id": 4, "typeimg": "Normal", "type": "Invocation", "imgid": 0, "visible": true, "cout": 1, "attaque": 1, "defense": 1, "vie": 1, "titre": "Balkhagal"}
+{"id": 5, "typeimg": "Normal", "type": "Invocation", "imgid": 0, "visible": true, "cout": 1, "attaque": 1, "defense": 0, "vie": 1, "titre": "Remil", "effet": {"zone": "Single", "impact": "mySelf", "declencheur": "Played", "modifDefense": 1}}
+{"id": 6, "typeimg": "Normal", "type": "Invocation", "imgid": 0, "visible": true, "cout": 1, "attaque": 1, "defense": 1, "vie": 1, "titre": "Rela"}
+{"id": 7, "typeimg": "Normal", "type": "Spell", "imgid": 0, "visible": true, "cout": 1, "attaque": 0, "defense": -1, "vie": 0, "titre": "Byrad", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifDefense": -1}}
+{"id": 8, "typeimg": "Normal", "type": "Spell", "imgid": 0, "visible": true, "cout": 1, "attaque": 0, "defense": 0, "vie": -1, "titre": "Urukog", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifVie": -1}}
+{"id": 9, "typeimg": "Normal", "type": "Equipment", "imgid": 0, "visible": true, "cout": 1, "attaque": 0, "defense": 1, "vie": 0, "titre": "Ghashgar", "equipement": {"type": "Armor", "impact": "player", "durability": 0, "modifDefense": 1}}
+{"id": 10, "typeimg": "Normal", "type": "Invocation", "imgid": 1, "visible": true, "cout": 2, "attaque": 2, "defense": 1, "vie": 2, "titre": "Elsard"}
+{"id": 11, "typeimg": "Normal", "type": "Invocation", "imgid": 1, "visible": true, "cout": 2, "attaque": 2, "defense": 1, "vie": 2, "titre": "Luzagal"}
+{"id": 12, "typeimg": "Normal", "type": "Invocation", "imgid": 1, "visible": true, "cout": 2, "attaque": 2, "defense": 0, "vie": 2, "titre": "Balkhubal", "effet": {"zone": "Single", "impact": "mySelf", "declencheur": "Played", "modifVie": 1}}
+{"id": 13, "typeimg": "Normal", "type": "Invocation", "imgid": 1, "visible": true, "cout": 2, "attaque": 2, "defense": 1, "vie": 2, "titre": "Daevalia"}
+{"id": 14, "typeimg": "Normal", "type": "Invocation", "imgid": 1, "visible": true, "cout": 2, "attaque": 1, "defense": 1, "vie": 2, "titre": "Urgnarb", "etat": {"provoke": true}}
+{"id": 15, "typeimg": "Normal", "type": "Invocation", "imgid": 1, "visible": true, "cout": 2, "attaque": 2, "defense": 1, "vie": 2, "titre": "Fastalth"}
+{"id": 16, "typeimg": "Normal", "type": "Invocation", "imgid": 1, "visible": true, "cout": 2, "attaque": 2, "defense": 1, "vie": 2, "titre": "Gaskanan"}
+{"id": 17, "typeimg": "Normal", "type": "Spell", "imgid": 1, "visible": true, "cout": 2, "attaque": 1, "defense": 0, "vie": 0, "titre": "Goghywan", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifAttack": 1}}
+{"id": 18, "typeimg": "Normal", "type": "Spell", "imgid": 1, "visible": true, "cout": 2, "attaque": 0, "defense": 0, "vie": 2, "titre": "Hornfird", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifVie": 2}}
+{"id": 19, "typeimg": "Normal", "type": "Equipment", "imgid": 1, "visible": true, "cout": 2, "attaque": 1, "defense": 0, "vie": 0, "titre": "Kithander", "equipement": {"type": "Weapon", "impact": "player", "durability": 1, "modifAttack": 1}}
+{"id": 20, "typeimg": "Normal", "type": "Invocation", "imgid": 2, "visible": true, "cout": 3, "attaque": 3, "defense": 1, "vie": 3, "titre": "Airest"}
+{"id": 21, "typeimg": "Normal", "type": "Invocation", "imgid": 2, "visible": true, "cout": 3, "attaque": 2, "defense": 0, "vie": 3, "titre": "Sallen", "effet": {"zone": "Single", "impact": "playerBoard", "declencheur": "Defense", "modifDefense": 2}}
+{"id": 22, "typeimg": "Normal", "type": "Invocation", "imgid": 2, "visible": true, "cout": 3, "attaque": 3, "defense": 1, "vie": 3, "titre": "Raured"}
+{"id": 23, "typeimg": "Normal", "type": "Invocation", "imgid": 2, "visible": true, "cout": 3, "attaque": 3, "defense": 1, "vie": 3, "titre": "Volagal"}
+{"id": 24, "typeimg": "Normal", "type": "Invocation", "imgid": 2, "visible": true, "cout": 3, "attaque": 3, "defense": 1, "vie": 3, "titre": "Luzog"}
+{"id": 25, "typeimg": "Normal", "type": "Invocation", "imgid": 2, "visible": true, "cout": 3, "attaque": 3, "defense": 0, "vie": 3, "titre": "Linra", "etat": {"silent": true}}
+{"id": 26, "typeimg": "Normal", "type": "Invocation", "imgid": 2, "visible": true, "cout": 3, "attaque": 3, "defense": 1, "vie": 3, "titre": "Skelusa"}
+{"id": 27, "typeimg": "Normal", "type": "Spell", "imgid": 2, "visible": true, "cout": 3, "attaque": 1, "defense": 0, "vie": 1, "titre": "Hissmon", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifAttack": 1, "modifVie": 1}}
+{"id": 28, "typeimg": "Normal", "type": "Spell", "imgid": 2, "visible": true, "cout": 3, "attaque": 0, "defense": -1, "vie": -2, "titre": "Amaleron", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifDefense": -1, "modifVie": -2}}
+{"id": 29, "typeimg": "Normal", "type": "Equipment", "imgid": 2, "visible": true, "cout": 3, "attaque": 0, "defense": 3, "vie": 0, "titre": "Ogmog", "equipement": {"type": "Armor", "impact": "player", "durability": 0, "modifDefense": 3}}
+{"id": 30, "typeimg": "Normal", "type": "Invocation", "imgid": 3, "visible": true, "cout": 4, "attaque": 4, "defense": 1, "vie": 4, "titre": "Marsthan"}
+{"id": 31, "typeimg": "Normal", "type": "Invocation", "imgid": 3, "visible": true, "cout": 4, "attaque": 3, "defense": 0, "vie": 3, "titre": "Tespoy", "etat": {"fury": true, "maxfury": 2}}
+{"id": 32, "typeimg": "Normal", "type": "Invocation", "imgid": 3, "visible": true, "cout": 4, "attaque": 4, "defense": 1, "vie": 4, "titre": "Lurgog"}
+{"id": 33, "typeimg": "Normal", "type": "Invocation", "imgid": 3, "visible": true, "cout": 4, "attaque": 4, "defense": 1, "vie": 4, "titre": "Minynd"}
+{"id": 34, "typeimg": "Normal", "type": "Invocation", "imgid": 3, "visible": true, "cout": 4, "attaque": 3, "defense": 0, "vie": 4, "titre": "Haftram", "effet": {"zone": "Single", "impact": "playerBoard", "declencheur": "Attack", "modifAttack": 1, "modifVie": 1}}
+{"id": 35, "typeimg": "Normal", "type": "Invocation", "imgid": 3, "visible": true, "cout": 4, "attaque": 4, "defense": 1, "vie": 4, "titre": "Durbagar"}
+{"id": 36, "typeimg": "Normal", "type": "Invocation", "imgid": 3, "visible": true, "cout": 4, "attaque": 4, "defense": 1, "vie": 4, "titre": "Tajdulthon"}
+{"id": 37, "typeimg": "Normal", "type": "Spell", "imgid": 3, "visible": true, "cout": 4, "attaque": 2, "defense": 0, "vie": 0, "titre": "Redsard", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifAttack": 2}}
+{"id": 38, "typeimg": "Normal", "type": "Spell", "imgid": 3, "visible": true, "cout": 4, "attaque": 0, "defense": -2, "vie": 0, "titre": "Rina", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifDefense": -2}}
+{"id": 39, "typeimg": "Normal", "type": "Equipment", "imgid": 3, "visible": true, "cout": 4, "attaque": 2, "defense": 0, "vie": 0, "titre": "Muffwood", "equipement": {"type": "Weapon", "impact": "player", "durability": 1, "modifAttack": 2}}
+{"id": 40, "typeimg": "Normal", "type": "Invocation", "imgid": 4, "visible": true, "cout": 5, "attaque": 4, "defense": 0, "vie": 5, "titre": "Boastridge", "etat": {"divine": true}}
+{"id": 41, "typeimg": "Normal", "type": "Invocation", "imgid": 4, "visible": true, "cout": 5, "attaque": 5, "defense": 1, "vie": 5, "titre": "Oddshall"}
+{"id": 42, "typeimg": "Normal", "type": "Invocation", "imgid": 4, "visible": true, "cout": 5, "attaque": 5, "defense": 1, "vie": 5, "titre": "Illonor"}
+{"id": 43, "typeimg": "Normal", "type": "Invocation", "imgid": 4, "visible": true, "cout": 5, "attaque": 5, "defense": 0, "vie": 4, "titre": "Shagix", "etat": {"replace": true}}
+{"id": 44, "typeimg": "Normal", "type": "Invocation", "imgid": 4, "visible": true, "cout": 5, "attaque": 5, "defense": 1, "vie": 5, "titre": "Faealle"}
+{"id": 45, "typeimg": "Normal", "type": "Invocation", "imgid": 4, "visible": true, "cout": 5, "attaque": 5, "defense": 1, "vie": 5, "titre": "Dwarfsard", "effet": {"zone": "Single", "impact": "opponentBoard", "declencheur": "Attack", "modifAttack": -2, "modifVie": -1}}
+{"id": 46, "typeimg": "Normal", "type": "Invocation", "imgid": 4, "visible": true, "cout": 5, "attaque": 5, "defense": 1, "vie": 5, "titre": "Shamramai"}
+{"id": 47, "typeimg": "Normal", "type": "Spell", "imgid": 4, "visible": true, "cout": 5, "attaque": 2, "defense": 1, "vie": 0, "titre": "Erinshara", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifAttack": 2, "modifDefense": 1}}
+{"id": 48, "typeimg": "Normal", "type": "Spell", "imgid": 4, "visible": true, "cout": 5, "attaque": 0, "defense": -2, "vie": -3, "titre": "Robbrand", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifDefense": -2, "modifVie": -3}}
+{"id": 49, "typeimg": "Normal", "type": "Equipment", "imgid": 4, "visible": true, "cout": 5, "attaque": 0, "defense": 5, "vie": 0, "titre": "Boylisle", "equipement": {"type": "Armor", "impact": "player", "durability": 0, "modifDefense": 5}}
+{"id": 50, "typeimg": "Normal", "type": "Invocation", "imgid": 5, "visible": true, "cout": 6, "attaque": 6, "defense": 1, "vie": 6, "titre": "Swarbald"}
+{"id": 51, "typeimg": "Normal", "type": "Invocation", "imgid": 5, "visible": true, "cout": 6, "attaque": 5, "defense": 0, "vie": 4, "titre": "Whisrine", "effet": {"zone": "Single", "impact": "opponent", "declencheur": "Die", "modifVie": -3}}
+{"id": 52, "typeimg": "Normal", "type": "Invocation", "imgid": 5, "visible": true, "cout": 6, "attaque": 6, "defense": 1, "vie": 6, "titre": "Sishea"}
+{"id": 53, "typeimg": "Normal", "type": "Invocation", "imgid": 5, "visible": true, "cout": 6, "attaque": 6, "defense": 1, "vie": 6, "titre": "Azmog"}
+{"id": 54, "typeimg": "Normal", "type": "Invocation", "imgid": 5, "visible": true, "cout": 6, "attaque": 5, "defense": 0, "vie": 4, "titre": "Gaewyrr", "effet": {"zone": "Multi", "impact": "opponentBoard", "declencheur": "Played", "modifVie": -1}}
+{"id": 55, "typeimg": "Normal", "type": "Invocation", "imgid": 5, "visible": true, "cout": 6, "attaque": 6, "defense": 1, "vie": 6, "titre": "Palehard"}
+{"id": 56, "typeimg": "Normal", "type": "Invocation", "imgid": 5, "visible": true, "cout": 6, "attaque": 5, "defense": 0, "vie": 6, "titre": "Zhosmyr", "etat": {"hide": true}}
+{"id": 57, "typeimg": "Normal", "type": "Spell", "imgid": 5, "visible": true, "cout": 6, "attaque": 3, "defense": 0, "vie": 0, "titre": "Arndonam", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifAttack": 3}}
+{"id": 58, "typeimg": "Normal", "type": "Spell", "imgid": 5, "visible": true, "cout": 6, "attaque": 0, "defense": 3, "vie": 3, "titre": "Ivenril", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifDefense": 3, "modifVie": 3}}
+{"id": 59, "typeimg": "Normal", "type": "Equipment", "imgid": 6, "visible": true, "cout": 7, "attaque": 4, "defense": 0, "vie": 0, "titre": "Rinzon", "equipement": {"type": "Weapon", "impact": "player", "durability": 1, "modifAttack": 3}}
+{"id": 60, "typeimg": "Normal", "type": "Invocation", "imgid": 6, "visible": true, "cout": 7, "attaque": 7, "defense": 1, "vie": 6, "titre": "Suargalg"}
+{"id": 61, "typeimg": "Normal", "type": "Invocation", "imgid": 6, "visible": true, "cout": 7, "attaque": 7, "defense": 0, "vie": 4, "titre": "Whysryne", "effet": {"zone": "Single", "impact": "opponent", "declencheur": "Die", "modifVie": -3}}
+{"id": 62, "typeimg": "Normal", "type": "Invocation", "imgid": 6, "visible": true, "cout": 7, "attaque": 6, "defense": 1, "vie": 7, "titre": "Sycheo"}
+{"id": 63, "typeimg": "Normal", "type": "Invocation", "imgid": 6, "visible": true, "cout": 7, "attaque": 6, "defense": 1, "vie": 7, "titre": "Aymok"}
+{"id": 64, "typeimg": "Normal", "type": "Invocation", "imgid": 6, "visible": true, "cout": 7, "attaque": 5, "defense": 0, "vie": 5, "titre": "Gaevir", "effet": {"zone": "Multi", "impact": "opponentBoard", "declencheur": "Played", "modifVie": -1}}
+{"id": 65, "typeimg": "Normal", "type": "Invocation", "imgid": 6, "visible": true, "cout": 7, "attaque": 6, "defense": 1, "vie": 7, "titre": "Palord"}
+{"id": 66, "typeimg": "Normal", "type": "Invocation", "imgid": 6, "visible": true, "cout": 7, "attaque": 5, "defense": 0, "vie": 7, "titre": "Yhosmia", "etat": {"hide": true}}
+{"id": 67, "typeimg": "Normal", "type": "Spell", "imgid": 6, "visible": true, "cout": 7, "attaque": 4, "defense": 0, "vie": 0, "titre": "Orndan", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifAttack": 3}}
+{"id": 68, "typeimg": "Normal", "type": "Spell", "imgid": 6, "visible": true, "cout": 7, "attaque": 0, "defense": 4, "vie": 3, "titre": "Ivanr", "effet": {"zone": "Single", "impact": "any", "declencheur": "Immediat", "modifDefense": 3, "modifVie": 3}}
+{"id": 69, "typeimg": "Normal", "type": "Equipment", "imgid": 6, "visible": true, "cout": 7, "attaque": 4, "defense": 0, "vie": 0, "titre": "Gealop", "equipement": {"type": "Weapon", "impact": "player", "durability": 1, "modifAttack": 3}}
