@@ -973,6 +973,7 @@ carteCollection.selectCard = function(on, caseId, cardId){
   }
   if (caseId != undefined) {this.getCase(caseId).draw()};
 }
+
 var pageBoard = new gestionPage(200, 620);
 pageBoard.create();
 document.body.appendChild(pageBoard);
@@ -993,16 +994,40 @@ pageBoard.onclick = function() {
   }
 }
 
-var deckBuilderCommandsDiv = new gomassDiv(550, 620, 150, 5*34, 'builderCommands');
+var deckBuilderCommandsDiv = new gomassDiv(900, 150, 150, 6*34, 'builderCommands');
 
 var nameDeckT = new gomassButton("text", nameOfButton[17]);
 nameDeckT.style.visibility = "hidden";
 deckBuilderCommandsDiv.addElement(nameDeckT);
 
-var createDeckB = new gomassButton("button", nameOfButton[16]);
-createDeckB.style.visibility = "hidden";
-createDeckB.onclick = function() {}
-deckBuilderCommandsDiv.addElement(createDeckB);
+var listDecks = new gomassCombo("deckList");
+listDecks.onchange = function() {
+  // change deck name value
+  nameDeckT.value = listDecks.getOption(listDecks.selectedIndex);
+  // change deck
+  playerDeck.change(listDecks.selectedIndex);
+} 
+listDecks.fill = function() {
+  var i = 0;
+  while (i < allDecks.length) {
+    listDecks.addOption(allDecks[i].name);
+    i++;
+  }
+  listDecks.selectedIndex = 0;
+}
+listDecks.addDeck = function(adeckname, deckid) {
+  listDecks.addOption(adeckname);
+}
+deckBuilderCommandsDiv.addElement(listDecks);
+
+var newB = new gomassButton("button", nameOfButton[11]);
+newB.style.visibility = "hidden";
+newB.onclick = function() {
+  playerDeck.clearAll();
+  carteCollection.selectAll(false);
+  carteCollection.display();
+}
+deckBuilderCommandsDiv.addElement(newB);
 
 var saveDeckB = new gomassButton("button", nameOfButton[18]);
 saveDeckB.style.visibility = "hidden";
@@ -1020,10 +1045,26 @@ saveDeckB.onclick = function() {
   socket.emit('savedeck', {
     player: playerName,
     deck: myDeck,
-    deckname: nameDeckT.value,
+    deckname: nameDeckT.value
   });
 }
 deckBuilderCommandsDiv.addElement(saveDeckB);
+
+var delDeckB = new gomassButton("button", nameOfButton[19]);
+delDeckB.style.visibility = "hidden";
+delDeckB.onclick = function() {
+  var ideckid = listDecks.selectedIndex;
+  var ideckname = nameDeckT.value;
+  // unselect all
+  playerDeck.selectAll(false);
+  // send deck to server
+  socket.emit('deldeck', {
+    player: playerName,
+    deckid: ideckid,
+    deckname: ideckname
+  });
+}
+deckBuilderCommandsDiv.addElement(delDeckB);
 
 var finishDeckB = new gomassButton("button", nameOfButton[10]);
 finishDeckB.style.visibility = "hidden";
@@ -1044,23 +1085,16 @@ finishDeckB.onclick = function() {
   });
   // hide finish and clear buttons
   this.hide(true);
-  clearB.hide(true);
+  newB.hide(true);
 }
 deckBuilderCommandsDiv.addElement(finishDeckB);
 
-var clearB = new gomassButton("button", nameOfButton[11]);
-clearB.style.visibility = "hidden";
-clearB.onclick = function() {
-  playerDeck.clearAll();
-  carteCollection.selectAll(false);
-  carteCollection.display();
-}
-deckBuilderCommandsDiv.addElement(clearB);
 deckBuilderCommandsDiv.visible(false);
 
 var playerDeck = new Board('playerDeck', 750, 150, 100, 20);
 playerDeck.create(1, maxDeckCarte, 1);
 document.body.appendChild(playerDeck);
+// remove card from deck
 playerDeck.onclick = function() {
   if (selectedCarte.visible) {
     var carteid = selectedCarte.id;
@@ -1109,6 +1143,34 @@ playerDeck.set = function(isDraw) {
     caseId = carteCollection.getCaseByCarteId(miniCard.id);
     carteCollection.selectCard(true, caseId, miniCard.id);
     fid++;
+  }
+}
+playerDeck.change = function(deckid) {
+  var fid = 0;
+  if (deckid <= allDecks.length) {
+    var currentDeck = allDecks[deckid];
+    var csvdeck = currentDeck.cardIdList;
+    var arraydeck = csvdeck.split(";");
+    var currentCardId = 0;
+    var currentCaseId = 0;
+    var currentCard;
+    var miniCard;
+    // clear
+    this.clearAll();
+    carteCollection.selectAll(false);
+    carteCollection.display();
+    // add
+    if (arraydeck.length > 0) {
+      for (var i = 0; i < arraydeck.length; i++) {
+        currentCardId = arraydeck[i];
+        currentCard = allCollectionCartes[currentCardId];
+        miniCard = currentCard.clone();
+        miniCard.toMini();
+        this.addLast(miniCard);
+        currentCaseId = carteCollection.getCaseByCarteId(currentCardId);
+        carteCollection.selectCard(true, currentCaseId, currentCardId);
+      }
+    }
   }
 }
 
@@ -1219,6 +1281,8 @@ function showDeckBuilder(on) {
   pageBoard.visible(on);
   deckBuilderCommandsDiv.visible(on);
   if (on) {
+    nameDeckT.value = currentPlayerDeckName;
+    listDecks.fill();
     carteCollection.fill(0);
   }
 }

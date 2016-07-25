@@ -26,14 +26,17 @@ function safeConnect() {
       createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes);
       createArrayCarte(srvAllPowerCartes, allPowerCartes);
       createArrayCarte(srvAllManaCartes, allManaCartes);
+      // set all player decks
+      allDecks = message.alldeck;
+      // set player deck name
+      currentPlayerDeckName = message.deckname;
       // get last avatar and set it
       var lastAvatar = allAvatarsCartes[message.avatarId];
       selectedAvatar.addClone(0, lastAvatar);
       //set all cartes in boards
       allCarte.setAll(allGameCartes);
       carteCollection.setAll(allCollectionCartes);
-      //enable player selection
-      //playersB.disabled = false;
+      // active main commands
       disableMainCmd(false);
       // change info
       displayInfo(2);
@@ -86,6 +89,7 @@ function safeConnect() {
     }
   })
   socket.on('deckok', function(message) {
+      console.log('Received deckok : ' + message.accepted);
     if (message.accepted) {
       // hide the deck builder
       showDeckBuilder(false);
@@ -94,31 +98,46 @@ function safeConnect() {
       hideCmd(false);
       // display info
       displayInfo(4);
-      console.log('Received deckok : ' + message.accepted);
-    }
-    else {
-      console.log('Received deckok : ' + message.accepted);
     }
   })
   socket.on('savedeckok', function(message) {
+    console.log('Received savedeckok : ' + message.accepted);
     if (message.accepted) {
-      console.log('Received deckok : ' + message.accepted);
+      if (message.saved) {
+        currentPlayerDeckName = message.deckname;
+        allDecks.push(message.deck);
+        listDecks.addOption(currentPlayerDeckName);
+        console.log('Deck saved : ' + message.saved);
+      }
+      else {
+        console.log('Deck not saved, capacity exceded : ' + message.saved);
+      }
     }
     else {
-      console.log('Received deckok : ' + message.accepted);
+      console.log('Deck already exist : ' + message.accepted);
+    }
+  })
+  socket.on('deldeckok', function(message) {
+    console.log('Received deldeckok : ' + message.accepted);
+    if (message.accepted) {
+      // remove option
+      listDecks.delOption(message.deckid);
+    }
+    else {
+      console.log("Can't delete deck : " + message.accepted);
     }
   })
   socket.on('newgameok', function(message) {
+  console.log('Received newgameok : ' + message.validated);
     if (message.accepted) {
       gameName = message.game;
       currentTime = message.time;
       disableCmd(true);
       // show info
       displayInfo(5);
-      console.log('Received newgameok : ' + message.validated);
     }
     else {
-      console.log('Received newgameok : ' + message.validated);
+      console.log('Received newgameko : ' + message.validated);
     }
   })
   socket.on('joingameok', function(message) {
@@ -129,7 +148,7 @@ function safeConnect() {
     console.log('Received joingameok : ' + message.validated + gameName + ' player : ' + message.first + ' start the game!');
   })
   socket.on('opengame', function(message) {
-    gomassListGame.addOpt(message.game);
+    gomassListGame.addOption(message.game);
     console.log('Received openGame : ' + message.validated);
   })
   socket.on('closegame', function(message) {

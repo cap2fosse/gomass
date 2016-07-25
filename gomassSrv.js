@@ -66,7 +66,6 @@ var loadAvatars = function(db, callback) {
   cursor.each(function(err, anavatar) {
     assert.equal(err, null);
     if (anavatar != null) {
-      //console.dir(anavatar);
       allAvatars.push(anavatar);
     } else {
       callback();
@@ -183,28 +182,36 @@ var updatePlayerInfos = function(db, playerName, callback) {
       {$set: { "playedGame": allPlayers[playerId].playedGame, 
                "nbWinGame": allPlayers[playerId].nbWinGame,
                "currentAvatarId": allPlayers[playerId].avatarId,
-               "currentCollectionId": allPlayers[playerId].currentCollectionId,
-               "currentDeckId": allPlayers[playerId].currentDeckId}},
+               "currentCollectionId": allPlayers[playerId].collectionId,
+               "currentDeckId": allPlayers[playerId].deckId}},
       function(err, results) {
-      console.log(results);
       callback();
     });
   }
 };
-// update player infos stored in allPlayers array
+// add player deck
 var addPlayerDeck = function(db, playerName, deckId, deckName, cardList, callback) {
   console.log('addPlayerDeck');
   var playerId = playerExist(playerName);
   if (playerId != -1) {
-    db.collection('deck').insertOne(
-      {"id": deckId, 
+    var adeck = {"id": deckId, 
        "name": deckName,
        "playername": playerName,
-       "cardIdList": cardList},
+       "cardIdList": cardList};
+    currentPlayerDecks.push(adeck);
+    db.collection('deck').insertOne(
+      adeck,
       function(err, results) {
-      console.log(results);
       callback();
     });
+  }
+};
+// remove player deck
+var delPlayerDeck = function(db, playerName, deckId, callback) {
+  console.log('delPlayerDeck : ' + playerName + '  ' + deckId);
+  var playerId = playerExist(playerName);
+  if (playerId != -1) {
+    db.collection('deck').remove( {"id": deckId, "playername": playerName} );
   }
 };
 ////////AUTH////////
@@ -300,18 +307,20 @@ sio.sockets
       var p1Id = playerExist(user.name);
       // get avatarId, collection and deck
       var avatar_id = allPlayers[p1Id].avatarId;
+      var playerdeckname = allPlayers[p1Id].deckStruct.name;
       var playerdeck = allPlayers[p1Id].deck;
       var playercollection = allPlayers[p1Id].collection;
       // emit welcome
       socket.emit('login', {
         accepted: true,
         player: user.name,
-        // send last avatar
         avatarId: avatar_id,
         numUsers: allUsers.length,
         cartes: allCartes,
         collection: playercollection,
+        alldeck: currentPlayerDecks,
         deck: playerdeck,
+        deckname: playerdeckname,
         avatar: allAvatars,
         power: allPowers,
         mana: allManas
@@ -369,27 +378,70 @@ sio.sockets
   
   // when the client emits 'deck'
   socket.on('savedeck', function (theDeck) {
-    console.log('received cmd deck : ' + theDeck.player);
+    console.log('received cmd savedeck : ' + theDeck.player);
+    var ok = false;
+    var issaved = false;
+    var lastId = currentPlayerDecks.length;
     // get id of player
     var idP = playerExist(theDeck.player);
     if (idP != -1) {
-      // build deck
-      var csvDeck = '';
-      var i = 0;
-      while (i < theDeck.deck.length) {
-        csvDeck = theDeck.deck[i].id + ";"
+      var deckname = theDeck.deckname;
+      var idD = deckExist(deckname);
+      // if deck don't exist
+      if (idD == -1) {
+        ok = true;
+        // build deck
+        var csvDeck = '';
+        var i = 0;
+        while (i < theDeck.deck.length) {
+          csvDeck = csvDeck + theDeck.deck[i].id + ';';
+          i++;
+        }
+        var deckStruct = {"id": lastId, "name": theDeck.deckname, "playername": theDeck.player, "cardIdList": csvDeck};
+        var playername = theDeck.player;
+        if (lastId < maxDeck) {
+          GomassClient.connect(url, function(err, db) {
+            assert.equal(null, err);
+            addPlayerDeck(db, playername, lastId, deckname, csvDeck, function() {
+            db.close();
+            });
+          });
+          issaved = true;
+        }
       }
-      var lastId = currentPlayerDecks.length
+      socket.emit('savedeckok', {
+        accepted: ok,
+        saved: issaved,
+        player: theDeck.player,
+        deckname: theDeck.deckname,
+        deck: deckStruct,
+        deckid: lastId
+      });
+    }
+  });
+  
+  // when the client emits 'deck'
+  socket.on('deldeck', function (theDeck) {
+    console.log('received cmd deldeck : ' + theDeck.player);
+    // get id of player
+    var idP = playerExist(theDeck.player);
+    if (idP != -1) {
+      // get infos
+      var ideckid = theDeck.deckid;
+      var ideckname = theDeck.deckname;
+      var iplayername = theDeck.player;
+      // delete deck from db
       GomassClient.connect(url, function(err, db) {
         assert.equal(null, err);
-        addPlayerDeck(db, theDeck.player, lastId, theDeck.deckname, csvDeck, function() {
+        delPlayerDeck(db, iplayername, ideckid, function() {
         db.close();
         });
       });
-      console.log('original Deck : ' + theDeck.deck);
-      socket.emit('savedeckok', {
+      socket.emit('deldeckok', {
         accepted: true,
-        player: theDeck.player
+        player: theDeck.player,
+        deckid: ideckid,
+        deckname: ideckname
       });
     }
   });
@@ -1001,6 +1053,7 @@ function Player(name, collectionid, deckid, avatarid, nbwin, nbplay) {
 ///////////////////////////GLOBALE PART//////////////////////////
 var maxCartes = 120;
 var maxPlayer = 4;
+var maxDeck = 8;
 // from collection user
 var allPlayers = [];
 // from collection card-collection
@@ -1093,6 +1146,15 @@ function playerExist(playername) {
 function gameExist(gamename) {
   for (var i = 0; i < allGames.length; i++) {
     if (allGames[i].name == gamename) {
+      console.log('Game exist at index : ' + i);
+      return i;
+    }
+  }
+  return -1;
+}
+function deckExist(deckname) {
+  for (var i = 0; i < currentPlayerDecks.length; i++) {
+    if (currentPlayerDecks[i].name == deckname) {
       console.log('Game exist at index : ' + i);
       return i;
     }

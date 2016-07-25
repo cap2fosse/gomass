@@ -15,6 +15,7 @@ var allDeckCartes = [];
 var allAvatarsCartes = [];
 var allPowerCartes = [];
 var allManaCartes = [];
+var allDecks = [];
 var selectedButton = 0; // id of the clicked button
 // create a new Board at posx, posy absolute position
 function Board(name, posx, posy, caseW, caseH) {
