@@ -26,8 +26,10 @@ function safeConnect() {
       createArrayCarte(srvAllAvatarsCartes, allAvatarsCartes);
       createArrayCarte(srvAllPowerCartes, allPowerCartes);
       createArrayCarte(srvAllManaCartes, allManaCartes);
+      // set all player collections
+      allCollections = message.allcollections;
       // set all player decks
-      allDecks = message.alldeck;
+      allDecks = message.alldecks;
       // set player deck name
       currentPlayerDeckName = message.deckname;
       // get last avatar and set it

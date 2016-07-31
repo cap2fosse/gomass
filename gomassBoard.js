@@ -1,5 +1,8 @@
 'use strict';
 console.log('Start gomasBoard.js');
+
+///////////////////////////GAME BOARDS////////////////////////////
+
 var opponentHand = new Board('opponentHand', 250, 150, 100, 150);
 opponentHand.create(6, 1, 0);
 opponentHand.type = 'Opponent';
@@ -734,64 +737,6 @@ opponentPower.activateAll = function(){
   this.getCase(powerIdx).draw();
 }
 
-var timeCommandDiv = new gomassDiv(900, 400, 200, 40, 'timeCommand');
-var timeText = document.createElement("h3");
-timeCommandDiv.addElement(timeText);
-timeCommandDiv.visible(false);
-timeCommandDiv.set = function(sec) {
-  timeText.innerHTML = sec;
-}
-var timeInter = setInterval(function () {setTextTime()}, 1000);
-function setTextTime() {
-  if (startTime) {
-    if (currentTime > 0) {
-      timeText.innerHTML = nameOfText[5] + ' : ' + currentTime;
-      currentTime -= 1;
-    }
-    else { // time ended
-      startTime = false;
-      currentTime = 0;
-      window.clearInterval(timeInter);
-      // force end turn
-      socket.emit('endturn', {
-        name: gameName,
-        player: playerName,
-        opponent: opponentName
-      });
-      endTurnB.disabled = true;
-      // reload
-      timeInter = setInterval(function () {setTextTime()}, 1000);
-    }
-  }
-}
-
-var gameCommandsDiv = new gomassDiv(900, 480, 100, 70, 'gameCommands');
-var endTurnB = new gomassButton("button",  nameOfButton[12]);
-endTurnB.style.visibility = "hidden";
-endTurnB.onclick = function() {
-  socket.emit('endturn', {
-    name: gameName,
-    player: playerName,
-    opponent: opponentName
-  });
-  endTurnB.disabled = true;
-}
-gameCommandsDiv.addElement(endTurnB);
-var capitulB = new gomassButton("button",  nameOfButton[13]);
-capitulB.style.visibility = "hidden";
-capitulB.onclick = function() {
-  socket.emit('surrender', {
-    name: gameName,
-    player: playerName
-  });
-  capitulB.disabled = true;
-  startTime = false;
-}
-gameCommandsDiv.addElement(capitulB);
-gameCommandsDiv.visible(false);
-var manaBoardText = document.createElement("h4");
-gameCommandsDiv.addElement(manaBoardText);
-
 var manaBoard = new Board('manaBoard', 900, 580, 20, 20);
 manaBoard.create(10, 1, 3);
 document.body.appendChild(manaBoard);
@@ -894,6 +839,123 @@ defausseDefense.addFirst = function(card){
   });
 }
 
+var timeCommandDiv = new gomassDiv(900, 400, 200, 40, 'timeCommand');
+var timeText = document.createElement("h3");
+timeCommandDiv.addElement(timeText);
+timeCommandDiv.visible(false);
+timeCommandDiv.set = function(sec) {
+  timeText.innerHTML = sec;
+}
+var timeInter = setInterval(function () {setTextTime()}, 1000);
+function setTextTime() {
+  if (startTime) {
+    if (currentTime > 0) {
+      timeText.innerHTML = nameOfText[5] + ' : ' + currentTime;
+      currentTime -= 1;
+    }
+    else { // time ended
+      startTime = false;
+      currentTime = 0;
+      window.clearInterval(timeInter);
+      // force end turn
+      socket.emit('endturn', {
+        name: gameName,
+        player: playerName,
+        opponent: opponentName
+      });
+      endTurnB.disabled = true;
+      // reload
+      timeInter = setInterval(function () {setTextTime()}, 1000);
+    }
+  }
+}
+
+var gameCommandsDiv = new gomassDiv(900, 480, 100, 70, 'gameCommands');
+var endTurnB = new gomassButton("button",  nameOfButton[12]);
+endTurnB.style.visibility = "hidden";
+endTurnB.onclick = function() {
+  socket.emit('endturn', {
+    name: gameName,
+    player: playerName,
+    opponent: opponentName
+  });
+  endTurnB.disabled = true;
+}
+gameCommandsDiv.addElement(endTurnB);
+var capitulB = new gomassButton("button",  nameOfButton[13]);
+capitulB.style.visibility = "hidden";
+capitulB.onclick = function() {
+  socket.emit('surrender', {
+    name: gameName,
+    player: playerName
+  });
+  capitulB.disabled = true;
+  startTime = false;
+}
+gameCommandsDiv.addElement(capitulB);
+gameCommandsDiv.visible(false);
+var manaBoardText = document.createElement("h4");
+gameCommandsDiv.addElement(manaBoardText);
+
+/////////////////////INITIAL CARD SELECTION BOARD/////////////////
+
+var cardSelector = new Board('cardSelector', 300, 150, 100, 150);
+cardSelector.create(3, 1, 0);
+document.body.appendChild(cardSelector);
+cardSelector.numberOfCardAsked = 0;
+cardSelector.onclick = function() {
+  if (selectedCarte.visible) {
+    // remove the card
+    this.remove(selectedCaseId);
+    this.numberOfCardAsked++; // used by removedhandcard message
+    console.log("Removed card : " + selectedCarte);
+  }
+  selectedCarte.init();
+  selectedCaseId = -1;
+}
+cardSelector.fill = function(cardList){
+  var card;
+  for (var id = 0; id < cardList.length; id++) {
+    card = cardList[id];
+    this.add(id, card);
+  }
+  this.setVisibility(true);
+}
+
+var cardSelectorCommandsDiv = new gomassDiv(480, 320, 120, 34, 'cardSelectorCommands');
+var finishSelectB = new gomassButton("button", nameOfButton[8]);
+finishSelectB.style.visibility = "hidden";
+finishSelectB.onclick = function() {
+  socket.emit('removedhandcard', {
+    player: playerName,
+    iscreator: creator,
+    myturn: myTurn,
+    numbercard: cardSelector.numberOfCardAsked,
+    room: gameName
+  });
+  console.log('ask for new cards');
+}
+cardSelectorCommandsDiv.addElement(finishSelectB);
+var finishAllSelectB = new gomassButton("button", nameOfButton[9]);
+finishAllSelectB.style.visibility = "hidden";
+finishAllSelectB.onclick = function() {
+  // clean selector
+  cardSelector.clearAll();
+  // ask for 3 cards
+  socket.emit('removedhandcard', {
+    player: playerName,
+    iscreator: creator,
+    myturn: myTurn,
+    numbercard: 3,
+    room: gameName
+  });
+  console.log('ask for all new cards');
+}
+cardSelectorCommandsDiv.addElement(finishAllSelectB);
+cardSelectorCommandsDiv.visible(false);
+
+///////////////////////DECK BUILDER BOARDS////////////////////////
+
 var allCarte = new Board('allCarte', 200, 150, 100, 150);
 allCarte.create(5, 2, 0);
 document.body.appendChild(allCarte);
@@ -940,14 +1002,16 @@ document.body.appendChild(carteCollection);
 carteCollection.cardsByPage = 15;
 carteCollection.onclick = function() {
   if (selectedCarte.visible && !selectedCarte.selected) { // player select a carte to put on deck
-    this.selectedCarte = selectedCarte.clone();
-    // draw the selection
-    this.selectCard(true, selectedCaseId, selectedCarte.id);
-    // cast to mini & show
-    var myMini = selectedCarte.clone();
-    myMini.toMini();
-    playerDeck.addLast(myMini);
-    console.log("Select carte : " + this.selectedCarte);
+    if (playerDeck.getNumberOfCards() < maxDeckCarte) { // no more cards to add
+      this.selectedCarte = selectedCarte.clone();
+      // draw the selection
+      this.selectCard(true, selectedCaseId, selectedCarte.id);
+      // cast to mini & show
+      var myMini = selectedCarte.clone();
+      myMini.toMini();
+      playerDeck.addLast(myMini);
+      console.log("Select carte : " + this.selectedCarte);
+    }
   }
   selectedCarte.init();
   selectedCaseId = -1;
@@ -973,123 +1037,12 @@ carteCollection.selectCard = function(on, caseId, cardId){
   }
   if (caseId != undefined) {this.getCase(caseId).draw()};
 }
-
-var pageBoard = new gestionPage(200, 620);
-pageBoard.create();
-document.body.appendChild(pageBoard);
-pageBoard.currentPage = 0;
-pageBoard.onclick = function() {
-  var cardNum = carteCollection.getNumberOfCards();
-  if (selectedButton == buttonNameFr[14]) { // Next button
-    if (cardNum > this.currentPage * carteCollection.cardsByPage + carteCollection.cardsByPage) {
-      this.currentPage++;
-      carteCollection.fill(this.currentPage);
-    }
-  }
-  if (selectedButton == buttonNameFr[15]) { // Back button
-    if (this.currentPage > 0) {
-      this.currentPage--;
-      carteCollection.fill(this.currentPage);
-    }
-  }
-}
-
-var deckBuilderCommandsDiv = new gomassDiv(900, 150, 150, 6*34, 'builderCommands');
-
-var nameDeckT = new gomassButton("text", nameOfButton[17]);
-nameDeckT.style.visibility = "hidden";
-deckBuilderCommandsDiv.addElement(nameDeckT);
-
-var listDecks = new gomassCombo("deckList");
-listDecks.onchange = function() {
-  // change deck name value
-  nameDeckT.value = listDecks.getOption(listDecks.selectedIndex);
-  // change deck
-  playerDeck.change(listDecks.selectedIndex);
-} 
-listDecks.fill = function() {
-  var i = 0;
-  while (i < allDecks.length) {
-    listDecks.addOption(allDecks[i].name);
-    i++;
-  }
-  listDecks.selectedIndex = 0;
-}
-listDecks.addDeck = function(adeckname, deckid) {
-  listDecks.addOption(adeckname);
-}
-deckBuilderCommandsDiv.addElement(listDecks);
-
-var newB = new gomassButton("button", nameOfButton[11]);
-newB.style.visibility = "hidden";
-newB.onclick = function() {
-  playerDeck.clearAll();
-  carteCollection.selectAll(false);
-  carteCollection.display();
-}
-deckBuilderCommandsDiv.addElement(newB);
-
-var saveDeckB = new gomassButton("button", nameOfButton[18]);
-saveDeckB.style.visibility = "hidden";
-saveDeckB.onclick = function() {
-    // check if deck is complete
-  if (!playerDeck.isComplete()) {
-    playerDeck.fill(false);
-  }
-  // unselect all
-  playerDeck.selectAll(false);
-  // get all and change type
-  var myDeck = playerDeck.changeCardType('Normal');
-  console.log(myDeck);
-  // send deck to server
-  socket.emit('savedeck', {
-    player: playerName,
-    deck: myDeck,
-    deckname: nameDeckT.value
-  });
-}
-deckBuilderCommandsDiv.addElement(saveDeckB);
-
-var delDeckB = new gomassButton("button", nameOfButton[19]);
-delDeckB.style.visibility = "hidden";
-delDeckB.onclick = function() {
-  var ideckid = listDecks.selectedIndex;
-  var ideckname = nameDeckT.value;
-  // unselect all
-  playerDeck.selectAll(false);
-  // send deck to server
-  socket.emit('deldeck', {
-    player: playerName,
-    deckid: ideckid,
-    deckname: ideckname
-  });
-}
-deckBuilderCommandsDiv.addElement(delDeckB);
-
-var finishDeckB = new gomassButton("button", nameOfButton[10]);
-finishDeckB.style.visibility = "hidden";
-finishDeckB.onclick = function() {
-  // check if deck is complete
-  if (!playerDeck.isComplete()) {
-    playerDeck.fill(false);
-  }
-  // unselect all
-  playerDeck.selectAll(false);
-  // get all and change type
-  var myDeck = playerDeck.changeCardType('Normal');
-  console.log(myDeck);
-  // send deck to server
-  socket.emit('deck', {
-    player: playerName,
-    deck: myDeck
-  });
-  // hide finish and clear buttons
-  this.hide(true);
-  newB.hide(true);
-}
-deckBuilderCommandsDiv.addElement(finishDeckB);
-
-deckBuilderCommandsDiv.visible(false);
+carteCollection.addEventListener('mousemove', function(evt) {
+    bigCardView.addClone(0, onEnterCarte);
+  }, false);
+carteCollection.addEventListener('mouseleave', function(evt) {
+    bigCardView.remove(0);
+  }, false);
 
 var playerDeck = new Board('playerDeck', 750, 150, 100, 20);
 playerDeck.create(1, maxDeckCarte, 1);
@@ -1174,6 +1127,122 @@ playerDeck.change = function(deckid) {
   }
 }
 
+var bigCardView = new Board('bigCardView', 900, 350, 200, 300);
+bigCardView.create(1, 1, 4);
+document.body.appendChild(bigCardView);
+
+var pageBoard = new gestionPage(200, 620);
+pageBoard.create();
+document.body.appendChild(pageBoard);
+pageBoard.currentPage = 0;
+pageBoard.onclick = function() {
+  var cardNum = carteCollection.getNumberOfCards();
+  if (selectedButton == buttonNameFr[14]) { // Next button
+    if (cardNum > this.currentPage * carteCollection.cardsByPage + carteCollection.cardsByPage) {
+      this.currentPage++;
+      carteCollection.fill(this.currentPage);
+    }
+  }
+  if (selectedButton == buttonNameFr[15]) { // Back button
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      carteCollection.fill(this.currentPage);
+    }
+  }
+}
+
+var deckBuilderCommandsDiv = new gomassDiv(900, 150, 150, 6*34, 'builderCommands');
+var nameDeckT = new gomassButton("text", nameOfButton[17]);
+nameDeckT.style.visibility = "hidden";
+deckBuilderCommandsDiv.addElement(nameDeckT);
+var listDecks = new gomassCombo("deckList");
+listDecks.onchange = function() {
+  // change deck name value
+  nameDeckT.value = listDecks.getOption(listDecks.selectedIndex);
+  // change deck
+  playerDeck.change(listDecks.selectedIndex);
+} 
+listDecks.fill = function() {
+  var i = 0;
+  while (i < allDecks.length) {
+    listDecks.addOption(allDecks[i].name);
+    i++;
+  }
+  listDecks.selectedIndex = 0;
+}
+listDecks.addDeck = function(adeckname, deckid) {
+  listDecks.addOption(adeckname);
+}
+deckBuilderCommandsDiv.addElement(listDecks);
+var newB = new gomassButton("button", nameOfButton[11]);
+newB.style.visibility = "hidden";
+newB.onclick = function() {
+  playerDeck.clearAll();
+  carteCollection.selectAll(false);
+  carteCollection.display();
+}
+deckBuilderCommandsDiv.addElement(newB);
+var saveDeckB = new gomassButton("button", nameOfButton[18]);
+saveDeckB.style.visibility = "hidden";
+saveDeckB.onclick = function() {
+    // check if deck is complete
+  if (!playerDeck.isComplete()) {
+    playerDeck.fill(false);
+  }
+  // unselect all
+  playerDeck.selectAll(false);
+  // get all and change type
+  var myDeck = playerDeck.changeCardType('Normal');
+  console.log(myDeck);
+  // send deck to server
+  socket.emit('savedeck', {
+    player: playerName,
+    deck: myDeck,
+    deckname: nameDeckT.value
+  });
+}
+deckBuilderCommandsDiv.addElement(saveDeckB);
+var delDeckB = new gomassButton("button", nameOfButton[19]);
+delDeckB.style.visibility = "hidden";
+delDeckB.onclick = function() {
+  var ideckid = listDecks.selectedIndex;
+  var ideckname = nameDeckT.value;
+  // unselect all
+  playerDeck.selectAll(false);
+  // send deck to server
+  socket.emit('deldeck', {
+    player: playerName,
+    deckid: ideckid,
+    deckname: ideckname
+  });
+}
+deckBuilderCommandsDiv.addElement(delDeckB);
+var finishDeckB = new gomassButton("button", nameOfButton[10]);
+finishDeckB.style.visibility = "hidden";
+finishDeckB.onclick = function() {
+  // check if deck is complete
+  if (!playerDeck.isComplete()) {
+    playerDeck.fill(false);
+  }
+  // unselect all
+  playerDeck.selectAll(false);
+  // get all and change type
+  var myDeck = playerDeck.changeCardType('Normal');
+  console.log(myDeck);
+  // send deck to server
+  socket.emit('deck', {
+    player: playerName,
+    deck: myDeck
+  });
+  // hide finish and clear buttons
+  this.hide(true);
+  newB.hide(true);
+}
+deckBuilderCommandsDiv.addElement(finishDeckB);
+deckBuilderCommandsDiv.visible(false);
+
+//////////////////////PLAYER SELECTION BOARD////////////////////////
+
 var playerSelector = new Board('playerSelector', 250, 150, 100, 150);
 playerSelector.create(4, 1, 0);
 document.body.appendChild(playerSelector);
@@ -1197,62 +1266,8 @@ playerSelector.fill = function(){
   this.setVisibility(true);
 }
 
-var cardSelector = new Board('cardSelector', 300, 150, 100, 150);
-cardSelector.create(3, 1, 0);
-document.body.appendChild(cardSelector);
-cardSelector.numberOfCardAsked = 0;
-cardSelector.onclick = function() {
-  if (selectedCarte.visible) {
-    // remove the card
-    this.remove(selectedCaseId);
-    this.numberOfCardAsked++; // used by removedhandcard message
-    console.log("Removed card : " + selectedCarte);
-  }
-  selectedCarte.init();
-  selectedCaseId = -1;
-}
-cardSelector.fill = function(cardList){
-  var card;
-  for (var id = 0; id < cardList.length; id++) {
-    card = cardList[id];
-    this.add(id, card);
-  }
-  this.setVisibility(true);
-}
+///////////////////////USEFULL FUNCTION////////////////////////////
 
-var cardSelectorCommandsDiv = new gomassDiv(480, 320, 120, 34, 'cardSelectorCommands');
-var finishSelectB = new gomassButton("button", nameOfButton[8]);
-finishSelectB.style.visibility = "hidden";
-finishSelectB.onclick = function() {
-  socket.emit('removedhandcard', {
-    player: playerName,
-    iscreator: creator,
-    myturn: myTurn,
-    numbercard: cardSelector.numberOfCardAsked,
-    room: gameName
-  });
-  console.log('ask for new cards');
-}
-cardSelectorCommandsDiv.addElement(finishSelectB);
-var finishAllSelectB = new gomassButton("button", nameOfButton[9]);
-finishAllSelectB.style.visibility = "hidden";
-finishAllSelectB.onclick = function() {
-  // clean selector
-  cardSelector.clearAll();
-  // ask for 3 cards
-  socket.emit('removedhandcard', {
-    player: playerName,
-    iscreator: creator,
-    myturn: myTurn,
-    numbercard: 3,
-    room: gameName
-  });
-  console.log('ask for all new cards');
-}
-cardSelectorCommandsDiv.addElement(finishAllSelectB);
-cardSelectorCommandsDiv.visible(false);
-
-//////////////////////////////Useful functions////////////////////////////
 // return 0 if no card on hand
 function cardOnHand() {
   if (player.selectedCarte.visible) return 1;
@@ -1278,6 +1293,7 @@ function showDeckBuilder(on) {
   carteCollection.setVisibility(on);
   playerDeck.set(on);
   playerDeck.setVisibility(on);
+  bigCardView.setVisibility(on);
   pageBoard.visible(on);
   deckBuilderCommandsDiv.visible(on);
   if (on) {

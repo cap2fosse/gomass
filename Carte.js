@@ -39,69 +39,52 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.typeimg = typeImg;
     if (typeImg == 'Normal') {
       if (this.type == 'Invocation') {
-        this.image1 = allCartesImages[this.imgid];
-        this.image2 = allCartesImages[this.imgid];
         this.activeColor = allCartesColorsOn[this.imgid];
         this.inactiveColor = allCartesColorsOn[this.imgid];
       }
       else if (this.type == 'Spell') {
-        this.image1 = allCartesImages[this.imgid];
-        this.image2 = allCartesImages[this.imgid];
         this.activeColor = allCartesColorsOn[this.imgid];
         this.inactiveColor = allCartesColorsOn[this.imgid];
       }
       else if (this.type == 'Equipment') {
-        this.image1 = allCartesImages[this.imgid];
-        this.image2 = allCartesImages[this.imgid];
         this.activeColor = allCartesColorsOn[this.imgid];
         this.inactiveColor = allCartesColorsOn[this.imgid];
       }
       else if (this.type == 'Player') {
-        this.image1 = allPlayersImages[this.imgid];
-        this.image2 = allPlayersImages[this.imgid];
         this.activeColor = allPlayersColorsOn[this.imgid];
         this.inactiveColor = allPlayersColorsOn[this.imgid];
       }
       else if (this.type == 'PlayerSpell') {
-        this.image1 = allPlayerSpellImagesOn[this.imgid];
-        this.image2 = allPlayerSpellImagesOff[this.imgid];
         this.activeColor = allPlayersColorsOn[this.imgid];
         this.inactiveColor = allPlayersColorsOff[this.imgid];
       }
       else if (this.type == 'Mana') {
-        this.image1 = Carte.prototype.image1;
-        this.image2 = Carte.prototype.image2;
         this.activeColor = manaColorsOn[this.imgid];
         this.inactiveColor = manaColorsOff[this.imgid];
       }
       else {
-        this.image1 = Carte.prototype.image1;
-        this.image2 = Carte.prototype.image2;
         this.activeColor = Carte.prototype.activeColor;
         this.inactiveColor = Carte.prototype.inactiveColor;
       }
     }
     else if (typeImg == 'Mini') {
-      this.image1 = allImagesMini[this.imgid];
-      this.image2 = allImagesMini[this.imgid];
       this.activeColor = allCartesColorsOn[this.imgid];
       this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (typeImg == 'Black') {
-      this.image1 = blackImage;
-      this.image2 = blackImage;
       this.activeColor = "rgb(77,77,77)";
       this.inactiveColor = "rgb(77,77,77)";
     }
     else if (typeImg == 'White') {
-      this.image1 = whiteImage;
-      this.image2 = whiteImage;
       this.activeColor = "white";
       this.inactiveColor = "white";
     }
   }
   else {this.typeimg = Carte.prototype.typeimg;}
-  
+  // set card gradien
+  this.gradieny1 = Math.floor(Math.random() * 150);  // [0, 149]
+  this.gradieny2 = Math.floor(Math.random() * 150);  // [0, 149]
+
   this.clone = function() {
     var copy = this.constructor();
     for (var attr in this) {
@@ -135,8 +118,6 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   this.init = function() {
     this.id = -1;
     this.visible = false;
-    this.image1 = whiteImage;
-    this.image2 = whiteImage;
     this.activeColor = "white";
     this.inactiveColor = "white";
     this.imgid = 0;
@@ -160,8 +141,6 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   };
   this.toMini = function() {
     this.typeimg = 'Mini';
-    this.image1 = allImagesMini[this.imgid];
-    this.image2 = allImagesMini[this.imgid];
     this.activeColor = allCartesColorsOn[this.imgid];
     this.inactiveColor = allCartesColorsOn[this.imgid];
   };
@@ -200,32 +179,22 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   this.toNormal = function() {
     this.typeimg = 'Normal';
     if (this.type == 'Invocation') {
-      this.image1 = allInvocationImages[this.imgid];
-      this.image2 = allInvocationImages[this.imgid];
       this.activeColor = allCartesColorsOn[this.imgid];
       this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (this.type == 'Spell') {
-      this.image1 = allSpellImages[this.imgid];
-      this.image2 = allSpellImages[this.imgid];
       this.activeColor = allCartesColorsOn[this.imgid];
       this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (this.type == 'Equipment') {
-      this.image1 = allEquipmentImages[this.imgid];
-      this.image2 = allEquipmentImages[this.imgid];
       this.activeColor = allCartesColorsOn[this.imgid];
       this.inactiveColor = allCartesColorsOn[this.imgid];
     }
     else if (this.type == 'Player') {
-      this.image1 = allPlayersImages[imgid];
-      this.image2 = allPlayersImages[imgid];
       this.activeColor = allPlayersColorsOn[this.imgid];
       this.inactiveColor = allPlayersColorsOn[this.imgid];
     }
     else {
-      this.image1 = Carte.prototype.image1;
-      this.image2 = Carte.prototype.image2;
       this.activeColor = Carte.prototype.activeColor;
       this.inactiveColor = Carte.prototype.inactiveColor;
     }
@@ -236,25 +205,36 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   };
   this.setDescription = function() {
     if (this.type == 'Invocation') {
-      // line 1
-      if (this.effet.declencheur == 'Attack') {this.description += 'On Attack;';}
-      else if (this.effet.declencheur == 'Die') {this.description += 'On Die;';}
-      else if (this.effet.declencheur == 'Defense') {this.description += 'On Defense;';}
-      else if (this.effet.declencheur == 'Activated') {this.description += 'On Activated;';}
-      else if (this.effet.declencheur == 'Played') {this.description += 'On Played;';}
-      // line 2
-      if (this.effet.zone == 'Single') {this.description += 'Zone Single;';}
-      else if (this.effet.zone == 'Multi') {this.description += 'Zone Multi;';}
-      if (this.effet.impact == 'playerBoard') {this.description += 'on playBoard;';}
-      else if (this.effet.impact == 'opponentBoard') {this.description += 'on oppoBoard;';}
-      else if (this.effet.impact == 'player') {this.description += 'on player;';}
-      else if (this.effet.impact == 'opponent') {this.description += 'on opponent;';}
-      else if (this.effet.impact == 'any') {this.description += 'on any;';}
-      else if (this.effet.impact == 'mySelf') {this.description += 'on myself;';}
-      // line 3, 4 & 5
-      if (this.effet.modifAttack != 0) {this.description += ' Attack : ' + this.effet.modifAttack + ';';}
-      if (this.effet.modifDefense != 0) {this.description += ' Defense : ' + this.effet.modifDefense + ';';}
-      if (this.effet.modifVie != 0) {this.description += ' Life : ' + this.effet.modifVie + ';';}
+      // line 1-2
+      if (this.effet.declencheur != '') {
+        this.description += 'Event : ;';
+        if (this.effet.declencheur == 'Attack') {this.description += 'On Attack;';}
+        else if (this.effet.declencheur == 'Die') {this.description += 'On Die;';}
+        else if (this.effet.declencheur == 'Defense') {this.description += 'On Defense;';}
+        else if (this.effet.declencheur == 'Activated') {this.description += 'On Activated;';}
+        else if (this.effet.declencheur == 'Played') {this.description += 'On Played;';}
+      }
+      // line 3-4
+      if (this.effet.zone != '') {
+        this.description += 'Type of zone : ;';
+        if (this.effet.zone == 'Single') {this.description += 'Zone Single;';}
+        else if (this.effet.zone == 'Multi') {this.description += 'Zone Multi;';}
+      }
+      // line 5-6
+      if (this.effet.impact != '') {
+        this.description += 'Impacted zone : ;';
+        if (this.effet.impact == 'playerBoard') {this.description += 'on playBoard;';}
+        else if (this.effet.impact == 'opponentBoard') {this.description += 'on oppoBoard;';}
+        else if (this.effet.impact == 'player') {this.description += 'on player;';}
+        else if (this.effet.impact == 'opponent') {this.description += 'on opponent;';}
+        else if (this.effet.impact == 'any') {this.description += 'on any;';}
+        else if (this.effet.impact == 'mySelf') {this.description += 'on myself;';}
+        // line 7-8-9
+        this.description += 'Impact : ;';
+        if (this.effet.modifAttack != 0) {this.description += ' Attack : ' + this.effet.modifAttack + ';';}
+        if (this.effet.modifDefense != 0) {this.description += ' Defense : ' + this.effet.modifDefense + ';';}
+        if (this.effet.modifVie != 0) {this.description += ' Life : ' + this.effet.modifVie + ';';}
+      }
     }
     if (this.type == 'Spell') {
       if (this.effet.zone == 'Single') {this.description = 'Single';}
@@ -288,8 +268,6 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
 }
 Carte.prototype = {
   id : -1,
-  image1 : whiteImage,
-  image2 : whiteImage,
   activeColor : "white",
   inactiveColor : "white",
   imgid : 0,

@@ -299,15 +299,16 @@ sio.sockets
     // check
     if (idx != -1) {
       console.log('add new player : ' + user.name);
-      // load list of player decks
-      loadPlayerListDecks(user.name);
       // create and load player infos
       createPlayer(user.name);
       // get ID of player
       var p1Id = playerExist(user.name);
       // get avatarId, collection and deck
       var avatar_id = allPlayers[p1Id].avatarId;
-      var playerdeckname = allPlayers[p1Id].deckStruct.name;
+      var playercollectionname = allPlayers[p1Id].collectionName;
+      var playerdeckname = allPlayers[p1Id].deckName;
+      var allplayercollections = allPlayers[p1Id].collectionStruct;
+      var allplayerdecks = allPlayers[p1Id].deckStruct;
       var playerdeck = allPlayers[p1Id].deck;
       var playercollection = allPlayers[p1Id].collection;
       // emit welcome
@@ -317,8 +318,9 @@ sio.sockets
         avatarId: avatar_id,
         numUsers: allUsers.length,
         cartes: allCartes,
+        allcollections: allplayercollections,
         collection: playercollection,
-        alldeck: currentPlayerDecks,
+        alldecks: allplayerdecks,
         deck: playerdeck,
         deckname: playerdeckname,
         avatar: allAvatars,
@@ -994,11 +996,21 @@ function Player(name, collectionid, deckid, avatarid, nbwin, nbplay) {
   this.isFirst = false;
   this.myTurn = false;
   this.cardSelectDone = false;
+  // default collection id
   this.collectionId = collectionid;
+  // default deck id
   this.deckId = deckid;
-  this.collectionStruct = allPlayersCollection[this.collectionId];
-  this.deckStruct = currentPlayerDecks[this.deckId];
+  // default collection name
+  this.collectionName = "";
+  // default deck name
+  this.deckName = "";
+  // all player collections struct
+  this.collectionStruct = [];
+  // all player decks struct
+  this.deckStruct = [];
+  // current player collection cards
   this.collection = [];
+  // current player deck cards
   this.deck = [];
   this.avatarId = avatarid;
   this.playedGame = nbplay;
@@ -1014,18 +1026,10 @@ function Player(name, collectionid, deckid, avatarid, nbwin, nbplay) {
     }
     return carte;
   }
-  this.initCards = function() {
-    // initialize collection and deck array
-    var pId = playerExist(playerName);
-    if (pId != -1) {
-      allPlayers[pId].initCardsCollection();
-      allPlayers[pId].initCardsDeck();
-    }
-  }
-  // init player deck
-  this.initCardsDeck = function() {
-    var csvdeck = this.deckStruct.cardIdList;
-    console.log("csvdeck : " + csvdeck);
+  // init default player deck
+  this.initDefaultDeck = function() {
+    console.log("initDefaultDeck");
+    var csvdeck = this.deckStruct[this.deckId].cardIdList;
     var arraydeck = csvdeck.split(";");
     var currentId = 0;
     if (arraydeck.length > 0) {
@@ -1034,11 +1038,12 @@ function Player(name, collectionid, deckid, avatarid, nbwin, nbplay) {
         this.deck[i] = allCartes[currentId];
       }
     }
+    this.deckName = this.deckStruct[this.deckId].name;
   }
   // init player collection
-  this.initCardsCollection = function() {
-    var csvcollection = this.collectionStruct.cardIdList;
-    console.log("csvcollection : " + csvcollection);
+  this.initDefaultCollection = function() {
+    console.log("initDefaultCollection");
+    var csvcollection = this.collectionStruct[this.collectionId].cardIdList;
     var arraycollection = csvcollection.split(";");
     var currentId = 0;
     if (arraycollection.length > 0) {
@@ -1046,6 +1051,39 @@ function Player(name, collectionid, deckid, avatarid, nbwin, nbplay) {
         currentId = arraycollection[i];
         this.collection[i] = allCartes[currentId];
       }
+    }
+    this.collectionName = this.collectionStruct[this.collectionId].name;
+  }
+  // load current player decks
+  this.loadPlayerListDecks = function () {
+    console.log("loadPlayerListDecks");
+    var idxad = 0;
+    var idxd = 0;
+    var thedeck;
+    while (idxad < allPlayersDeck.length) {
+      thedeck = allPlayersDeck[idxad];
+      if (thedeck.playername == this.name) {
+        this.deckStruct[idxd] = thedeck;
+        idxd++;
+        console.log("load deck : " + thedeck.name);
+      }
+      idxad++;
+    }
+  }
+  // load current player collections
+  this.loadPlayerListCollections = function () {
+    console.log("loadPlayerListCollections");
+    var idxac = 0;
+    var idxc = 0;
+    var thecollection;
+    while (idxac < allPlayersCollection.length) {
+      thecollection = allPlayersCollection[idxac];
+      if (thecollection.playername == this.name) {
+        this.collectionStruct[idxc] = thecollection;
+        idxc++;
+        console.log("load collection : " + thecollection.name);
+      }
+      idxac++;
     }
   }
 }
@@ -1075,23 +1113,6 @@ var allGames = [];
 // internal list of move : not used
 var allMoves = [];
 
-// load current player decks
-function loadPlayerListDecks(playerName) {
-  console.log("loadPlayerListDecks");
-  loadAvatarsPower
-  var auserid = userExist(playerName);
-  if (auserid != -1) {
-    var i = 0;
-    var thedeck;
-    while (i < allPlayersDeck.length) {
-      thedeck = allPlayersDeck[i];
-      if (thedeck.playername == playerName) {
-        currentPlayerDecks[i] = thedeck;
-      }
-      i++;
-    }
-  }
-}
 // create a new player and load all infos from db
 function createPlayer(playerName) {
   console.log("createPlayer");
@@ -1104,8 +1125,10 @@ function createPlayer(playerName) {
     var nbplay = allUsers[auserid].playedGame;
     var newplayer = new Player(playerName, collectionid, deckid, avatarid, nbwin, nbplay);
     // initialize collection and deck array
-    newplayer.initCardsCollection();
-    newplayer.initCardsDeck();
+    newplayer.loadPlayerListCollections();
+    newplayer.loadPlayerListDecks();
+    newplayer.initDefaultCollection();
+    newplayer.initDefaultDeck();
     allPlayers.push(newplayer);
   }
 }

@@ -8,14 +8,19 @@ var backCard = new Carte(-1, 'Black', '', 0, true);
 var invocusCard = new Carte(200, 'Normal', 'Invocation', 0, true, 2, 1, 0, 1, 'invocusSpell');
 // the current selected carte
 var selectedCarte = emptyCarte;
+// the current on enter carte
+var onEnterCarte = emptyCarte;
 // store all cartes send by server
 var allGameCartes = [];
+// current collection cards
 var allCollectionCartes = [];
+// current deck cards
 var allDeckCartes = [];
 var allAvatarsCartes = [];
 var allPowerCartes = [];
 var allManaCartes = [];
-var allDecks = [];
+var allDecks = []; 
+var allCollections = [];
 var selectedButton = 0; // id of the clicked button
 // create a new Board at posx, posy absolute position
 function Board(name, posx, posy, caseW, caseH) {
@@ -38,7 +43,7 @@ function Board(name, posx, posy, caseW, caseH) {
   /* create all cases and cartes
    * largeur : number of case on x
    * hauteur : number of case on y 
-   * type : type of case normal=0, small=1, spell=2*/
+   * type : type of case normal=0, small=1, spell=2, mana=3, big=4*/
   objBoard.create = function(largeur, hauteur, type) {
     this.nbCasesx = largeur;
     this.nbCasesy = hauteur;
@@ -58,6 +63,9 @@ function Board(name, posx, posy, caseW, caseH) {
         }
         else if (type == 3) {
           var caseInstance = new ManaCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
+        }
+        else if (type == 4) {
+          var caseInstance = new bigCase(x, y, id, this.id, this.caseWidth, this.caseHeight);
         }
         else {
           console.log('not a correct case type!');
@@ -365,8 +373,6 @@ function Case(casex, casey, id, boardName, width, height) {
   canvasCase.y = casey;
   canvasCase.boardName = boardName;
   canvasCase.carte = emptyCarte;
-  canvasCase.y1 = Math.floor(Math.random() * 150);  // [0, 149]
-  canvasCase.y2 = Math.floor(Math.random() * 150);  // [0, 149]
   // overwrite canvas properties
   canvasCase.ctx = canvasCase.getContext("2d");
   canvasCase.id = id;
@@ -405,11 +411,11 @@ function Case(casex, casey, id, boardName, width, height) {
       // clear all first
       this.ctx.clearRect(0, 0, this.width, this.height);
       // background
-      var grd = this.ctx.createLinearGradient(0, this.y1, 100, this.y2);
+      var grd = this.ctx.createLinearGradient(0, this.carte.gradieny1, 100, this.carte.gradieny2);
       grd.addColorStop(0, "white");
       grd.addColorStop(1, this.carte.activeColor);
       this.ctx.fillStyle = grd;
-      this.ctx.fillRect(2, 2, 98, 148);
+      this.ctx.fillRect(2, 2, this.width-2, this.height-2);
       // shadows params
       this.ctx.shadowOffsetX = 2;
       this.ctx.shadowOffsetY = 2;
@@ -457,23 +463,23 @@ function Case(casex, casey, id, boardName, width, height) {
           var desc = this.carte.description.split(';');
           this.ctx.font = "10px serif";
           this.ctx.fillStyle = "rgb(77,77,77)";
-          if (desc[0] != undefined) { // declencheur || spell effect || equipment effect
-            this.ctx.fillText(desc[0], 8, this.height-100);
+          if (desc[1] != undefined) { // declencheur || spell effect || equipment effect
+            this.ctx.fillText(desc[1], 8, this.height-100);
           }
-          if (desc[1] != undefined && desc[1] != 0) { // zone || durability
-            this.ctx.fillText(desc[1], 8, this.height-85);
+          if (desc[3] != undefined && desc[3] != 0) { // zone || durability
+            this.ctx.fillText(desc[3], 8, this.height-85);
           }
-          if (desc[2] != undefined && desc[2] != 0) { // impact
-            this.ctx.fillText(desc[2], 8, this.height-70);
+          if (desc[5] != undefined && desc[5] != 0) { // impact
+            this.ctx.fillText(desc[5], 8, this.height-70);
           }
-          if (desc[3] != undefined) { // Attack
-            this.ctx.fillText(desc[3], 8, this.height-55);
+          if (desc[6] != undefined) { // Attack
+            this.ctx.fillText(desc[6], 8, this.height-55);
           }
-          if (desc[4] != undefined) { // Defense
-            this.ctx.fillText(desc[4], 8, this.height-40);
+          if (desc[7] != undefined) { // Defense
+            this.ctx.fillText(desc[7], 8, this.height-40);
           }
-          if (desc[5] != undefined) { // Life
-            this.ctx.fillText(desc[5], 8, this.height-25);
+          if (desc[8] != undefined) { // Life
+            this.ctx.fillText(desc[8], 8, this.height-25);
           }
         }
         // draw a rect depending of the state card
@@ -500,49 +506,260 @@ function Case(casex, casey, id, boardName, width, height) {
       this.ctx.strokeStyle = "rgb(44,35,218)"; // blue
       this.ctx.fillStyle = "rgb(44,35,218)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 30, 8, 8);
+      this.ctx.fillRect(this.width-20, 30, 8, 8);
     }
     if (this.carte.etat.charge) {
       this.ctx.strokeStyle = "rgb(210,35,210)"; // purple
       this.ctx.fillStyle = "rgb(210,35,210)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 40, 8, 8);
+      this.ctx.fillRect(this.width-20, 40, 8, 8);
     }
     if (this.carte.etat.fury > 0) {
       this.ctx.strokeStyle = "rgb(207,27,0)"; // red
       this.ctx.fillStyle = "rgb(207,27,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 50, 8, 8);
+      this.ctx.fillRect(this.width-20, 50, 8, 8);
     }
     if (this.carte.etat.divine) {
       this.ctx.strokeStyle = "rgb(205,205,0)"; // yellow
       this.ctx.fillStyle = "rgb(205,205,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 60, 8, 8);
+      this.ctx.fillRect(this.width-20, 60, 8, 8);
     }
     if (this.carte.etat.hide) {
       this.ctx.strokeStyle = "rgb(20,33,0)"; // black
       this.ctx.fillStyle = "rgb(20,33,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 70, 8, 8);
+      this.ctx.fillRect(this.width-20, 70, 8, 8);
     }
     if (this.carte.etat.silent) {
       this.ctx.strokeStyle = "rgb(250,250,250)"; // white
       this.ctx.fillStyle = "rgb(250,250,250)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 80, 8, 8);
+      this.ctx.fillRect(this.width-20, 80, 8, 8);
     }
     if (this.carte.etat.stun) {
       this.ctx.strokeStyle = "rgb(153,153,153)"; // grey
       this.ctx.fillStyle = "rgb(153,153,153)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 90, 8, 8);
+      this.ctx.fillRect(this.width-20, 90, 8, 8);
     }
     if (this.carte.etat.replace) {
       this.ctx.strokeStyle = "rgb(90,230,100)"; // green
       this.ctx.fillStyle = "rgb(90,230,100)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(80, 100, 8, 8);
+      this.ctx.fillRect(this.width-20, 100, 8, 8);
+    }
+  };
+  canvasCase.setVisibility = function(visible) {
+    if (visible) {
+      this.style.visibility = "visible";
+    }
+    else {
+      this.style.visibility = "hidden";
+    }
+  };
+  canvasCase.getTarget = function(canvas, evt) {
+    var rect = this.getBoundingClientRect();
+    return {
+      x: evt.clientX - rect.left, // mouse pos in canvas
+      y: evt.clientY - rect.top,
+      target: evt.target
+    };
+  };
+  canvasCase.showBig = function(msg) {
+    onEnterCarte = msg.carte;
+    console.log(msg.carte);
+  };
+  canvasCase.toString = function() {
+    var caseString = "Case :" + "id : " + this.id + " - " + "boardName : " + this.boardName + " - " + "x : " + this.x + " - " + "y : " + this.y + " - " + "ctx : " + this.ctx;
+    caseString = caseString + " - " + "width : " + this.width + " - " + "height : " + this.height;
+    return caseString + "\n" + this.carte.toString();
+  };
+  // add event listener mouseenter to the canvas
+  canvasCase.addEventListener('mouseenter', function(evt) {
+    var mouseTarget = this.getTarget(this, evt);
+    //var message = 'Mouse Target: ' + mouseTarget.x + ',' + mouseTarget.y + "\n-->" + mouseTarget.target;
+    this.showBig(mouseTarget.target);
+  }, false);
+
+  return canvasCase;
+}
+
+/*
+
+*/
+function bigCase(casex, casey, id, boardName, width, height) {
+  var canvasCase = document.createElement('canvas');
+  // new properties
+  canvasCase.x = casex;
+  canvasCase.y = casey;
+  canvasCase.boardName = boardName;
+  canvasCase.carte = emptyCarte;
+  // overwrite canvas properties
+  canvasCase.ctx = canvasCase.getContext("2d");
+  canvasCase.id = id;
+  canvasCase.width = width;
+  canvasCase.height = height;
+  canvasCase.style.position = "absolute";
+  canvasCase.style.left = casex * width;
+  canvasCase.style.top = casey * height;
+  //canvasCase.style.border = "1px solid grey";
+  canvasCase.style.visibility = "hidden";
+  canvasCase.clear = function() {
+    this.remove();
+    this.ctx.clearRect(0, 0, this.width, this.height);
+  };
+  // try to add carte
+  canvasCase.add = function(carte) {
+    if (!this.carte.equal(carte)) {
+      this.carte = carte;
+      return true;
+    }
+    else {
+      return false;
+    }
+  };
+  canvasCase.remove = function() {
+    this.carte.init();
+  };
+  canvasCase.draw = function() {
+    // don't draw if no carte
+    if (this.carte.visible) {
+      // clear all first
+      this.ctx.clearRect(0, 0, this.width, this.height);
+      // background
+      var grd = this.ctx.createLinearGradient(0, this.carte.gradieny1, 100, this.carte.gradieny2);
+      grd.addColorStop(0, "white");
+      grd.addColorStop(1, this.carte.activeColor);
+      this.ctx.fillStyle = grd;
+      this.ctx.fillRect(2, 2, this.width-2, this.height-2);
+      // shadows params
+      this.ctx.shadowOffsetX = 2;
+      this.ctx.shadowOffsetY = 2;
+      this.ctx.shadowBlur = 2;
+      this.ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      // informations
+      if (this.carte.isPlayable()) {
+        // cout
+        this.ctx.font = "bold 20px serif";
+        this.ctx.fillStyle = "rgb(255,255,0)";
+        this.ctx.fillText(this.carte.cout, 8, 20);
+        // vie
+        this.ctx.font = "bold 20px serif";
+        this.ctx.fillStyle = "rgb(255,51,51)";
+        this.ctx.fillText(this.carte.vie, this.width-25, this.height-8);
+        // attack
+        this.ctx.font = "bold 20px serif";
+        this.ctx.fillStyle = "rgb(128,255,0)";
+        this.ctx.fillText(this.carte.attaque, 8, this.height-8);
+        // defense
+        this.ctx.font = "bold 20px serif";
+        this.ctx.fillStyle = "rgb(235,80,0)";
+        this.ctx.fillText(this.carte.defense, this.width-25, 20);
+
+        if (this.carte.titre != '') {
+          this.ctx.font = "bold 16px serif";
+          this.ctx.fillStyle = "rgb(77,77,77)";
+          this.ctx.fillText(this.carte.titre, 10, 45);
+        }
+        if (this.carte.type != '') {
+          this.ctx.font = "14px serif";
+          this.ctx.fillStyle = "rgb(77,77,77)";
+          this.ctx.fillText(this.carte.type, 30, 18);
+        }
+        if (this.carte.description != '') {
+          var desc = this.carte.description.split(';');
+          this.ctx.font = "14px serif";
+          this.ctx.fillStyle = "rgb(77,77,77)";
+          if (desc[0] != undefined) { // 'Event'
+            this.ctx.fillText(desc[0], 10, this.height-200);
+          }
+          if (desc[1] != undefined && desc[1] != 0) { // Event Name
+            this.ctx.fillText(desc[1], 20, this.height-180);
+          }
+          if (desc[2] != undefined && desc[2] != 0) { // Type of zone
+            this.ctx.fillText(desc[2], 10, this.height-160);
+          }
+          if (desc[3] != undefined) { // Type of zone name
+            this.ctx.fillText(desc[3], 20, this.height-140);
+          }
+          if (desc[4] != undefined) { // Impacted zone
+            this.ctx.fillText(desc[4], 10, this.height-120);
+          }
+          if (desc[5] != undefined) { // Impacted zone name
+            this.ctx.fillText(desc[5], 20, this.height-100);
+          }
+          if (desc[6] != undefined) { // Impact
+            this.ctx.fillText(desc[6], 10, this.height-80);
+          }
+          if (desc[7] != undefined) { // Attack
+            this.ctx.fillText(desc[7], 20, this.height-60);
+          }
+          if (desc[8] != undefined) { // Defense
+            this.ctx.fillText(desc[8], 20, this.height-40);
+          }
+          if (desc[9] != undefined) { // Life
+            this.ctx.fillText(desc[9], 20, this.height-40);
+          }
+        }
+        // draw a rect depending of the state card
+        this.drawEtatCarte();
+      }
+    }
+    else {
+      this.clear();
+    }
+  };
+  canvasCase.drawEtatCarte = function() {
+    var lineW = 2;
+    if (this.carte.etat.provoke) {
+      this.ctx.strokeStyle = "rgb(44,35,218)"; // blue
+      this.ctx.fillStyle = "rgb(44,35,218)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 50, 8, 8);
+    }
+    if (this.carte.etat.charge) {
+      this.ctx.strokeStyle = "rgb(210,35,210)"; // purple
+      this.ctx.fillStyle = "rgb(210,35,210)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 60, 8, 8);
+    }
+    if (this.carte.etat.fury > 0) {
+      this.ctx.strokeStyle = "rgb(207,27,0)"; // red
+      this.ctx.fillStyle = "rgb(207,27,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 70, 8, 8);
+    }
+    if (this.carte.etat.divine) {
+      this.ctx.strokeStyle = "rgb(205,205,0)"; // yellow
+      this.ctx.fillStyle = "rgb(205,205,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 80, 8, 8);
+    }
+    if (this.carte.etat.hide) {
+      this.ctx.strokeStyle = "rgb(20,33,0)"; // black
+      this.ctx.fillStyle = "rgb(20,33,0)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 90, 8, 8);
+    }
+    if (this.carte.etat.silent) {
+      this.ctx.strokeStyle = "rgb(250,250,250)"; // white
+      this.ctx.fillStyle = "rgb(250,250,250)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 100, 8, 8);
+    }
+    if (this.carte.etat.stun) {
+      this.ctx.strokeStyle = "rgb(153,153,153)"; // grey
+      this.ctx.fillStyle = "rgb(153,153,153)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 110, 8, 8);
+    }
+    if (this.carte.etat.replace) {
+      this.ctx.strokeStyle = "rgb(90,230,100)"; // green
+      this.ctx.fillStyle = "rgb(90,230,100)";
+      this.ctx.lineWidth = lineW;
+      this.ctx.fillRect(this.width-30, 120, 8, 8);
     }
   };
   canvasCase.setVisibility = function(visible) {
