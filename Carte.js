@@ -200,8 +200,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     }
   };
   this.isNull = function() {
-    if (this.id == -1 && !visible) {return true;}
-  else {return false;}
+    if (this.id == -1) {return true;}
+    else {return false;}
   };
   this.setDescription = function() {
     if (this.type == 'Invocation') {

@@ -137,41 +137,19 @@ var loadDeckCards = function(db, callback) {
     }
   });
 }
-// load all current player decks cards
-var loadPlayerDeckCards = function(db, playerName, callback) {
+// load all players decks cards
+var loadPlayerDeckCards = function(db, playername, callback) {
   console.log('loadPlayerDeckCards');
-  var cursor = db.collection('deck').find( {"playername": playerName} ).sort({id: 1});
+  var cursor = db.collection('deck').find(playername).sort({id: 1});
   cursor.each(function(err, adeck) {
     assert.equal(err, null);
     if (adeck != null) {
-      currentPlayerDecks.push(adeck);
+      allPlayersDeck.push(adeck);
     } else {
       callback();
     }
   });
 }
-// get number of played and wins games and store it in allPlayers array
-var loadPlayerInfos = function(db, playerName, callback) {
-  console.log('loadPlayerInfos');
-  var cursor = db.collection('user').find({"name": playerName});
-  cursor.each(function(err, auser) {
-    assert.equal(err, null);
-    if (auser != null) {
-      var playerId = playerExist(playerName);
-      if (playerId != -1) {
-        allPlayers[playerId].playedGame = auser.playedGame;
-        allPlayers[playerId].nbWinGame = auser.nbWinGame;
-        allPlayers[playerId].avatarId = auser.currentAvatarId;
-        allPlayers[playerId].currentCollectionId = auser.currentCollectionId;
-        allPlayers[playerId].currentDeckId = auser.currentDeckId;
-        allPlayers[playerId].collectionStruct = allPlayersCollection[auser.currentCollectionId];
-        allPlayers[playerId].deckStruct = currentPlayerDecks[auser.currentDeckId];
-      }
-    } else {
-      callback();
-    }
-  });
-};
 // update player infos stored in allPlayers array
 var updatePlayerInfos = function(db, playerName, callback) {
   console.log('updatePlayerInfos');
@@ -189,16 +167,45 @@ var updatePlayerInfos = function(db, playerName, callback) {
     });
   }
 };
+// update player infos stored in allPlayers array
+var updatePlayerDeckId = function(db, playerName, callback) {
+  console.log('updatePlayerDeckId');
+  var playerId = playerExist(playerName);
+  if (playerId != -1) {
+    db.collection('user').updateOne(
+      {"name": playerName},
+      {$set: { "currentDeckId": allPlayers[playerId].deckId }},
+      function(err, results) {
+      callback();
+    });
+  }
+};
+// update player infos stored in allPlayers array
+var updatePlayerAvatarId = function(db, playerName, callback) {
+  console.log('updatePlayerAvatarId');
+  var playerId = playerExist(playerName);
+  if (playerId != -1) {
+    db.collection('user').updateOne(
+      {"name": playerName},
+      {$set: { "currentAvatarId": allPlayers[playerId].avatarId }},
+      function(err, results) {
+      callback();
+    });
+  }
+};
 // add player deck
 var addPlayerDeck = function(db, playerName, deckId, deckName, cardList, callback) {
   console.log('addPlayerDeck');
   var playerId = playerExist(playerName);
   if (playerId != -1) {
+    // prepare deck
     var adeck = {"id": deckId, 
        "name": deckName,
        "playername": playerName,
        "cardIdList": cardList};
-    currentPlayerDecks.push(adeck);
+    // add to player
+    allPlayers[playerId].deckStruct.push(adeck);
+    // insert in db
     db.collection('deck').insertOne(
       adeck,
       function(err, results) {
@@ -211,7 +218,25 @@ var delPlayerDeck = function(db, playerName, deckId, callback) {
   console.log('delPlayerDeck : ' + playerName + '  ' + deckId);
   var playerId = playerExist(playerName);
   if (playerId != -1) {
+    // remove from player
+    var deckid = allPlayers[playerId].deckStruct[deckId];
+    allPlayers[playerId].deckStruct.splice(deckId, 1);
+    // remove from db
     db.collection('deck').remove( {"id": deckId, "playername": playerName} );
+  }
+};
+// update player infos stored in allPlayers array
+var updatePlayerDeck = function(db, playerName, deckName, csvDeck, callback) {
+  console.log('updatePlayerDeck');
+  var playerId = playerExist(playerName);
+  var deckId = allPlayers[playerId].deckExist(deckName);
+  if (playerId != -1 && deckId != -1) {
+    db.collection('deck').updateOne(
+      {"name": deckName, "playername": playerName},
+      {$set: { "cardIdList": csvDeck }},
+      function(err, results) {
+      callback();
+    });
   }
 };
 ////////AUTH////////
@@ -285,36 +310,32 @@ sio.use(socketio_jwt.authorize({
 sio.sockets
   .on('connection', function (socket) {
     var token = socket.decoded_token;
+    // if a player was already connected, reconnect it
     console.log(token.name, 'connected');
-
-    // when the client emits 'connectgomass'
-  socket.on('connectgomass', function (user) {
-    console.log('received cmd connectgomass : ' + user.name);
-    // we store the username in the socket session for this client
-    socket.username = user.name;
-    socket.register = true;
-    // add the client's username to the global list
-    // and send all collection cards 
-    var idx = userExist(user.name);
-    // check
+    var idx = userExist(token.name);
+    // user exist ?
     if (idx != -1) {
-      console.log('add new player : ' + user.name);
-      // create and load player infos
-      createPlayer(user.name);
-      // get ID of player
-      var p1Id = playerExist(user.name);
+      // player exist ?
+      var idxP = playerExist(token.name);
+      if (idxP == -1) { // no, create it
+        console.log('add new player : ' + token.name);
+        // create and load player infos
+        createPlayer(token.name);
+        idxP = allPlayers.length-1;
+      }
+      else {console.log('player already connected : ' + token.name);}
       // get avatarId, collection and deck
-      var avatar_id = allPlayers[p1Id].avatarId;
-      var playercollectionname = allPlayers[p1Id].collectionName;
-      var playerdeckname = allPlayers[p1Id].deckName;
-      var allplayercollections = allPlayers[p1Id].collectionStruct;
-      var allplayerdecks = allPlayers[p1Id].deckStruct;
-      var playerdeck = allPlayers[p1Id].deck;
-      var playercollection = allPlayers[p1Id].collection;
-      // emit welcome
+      var avatar_id = allPlayers[idxP].avatarId;
+      var playercollectionname = allPlayers[idxP].collectionName;
+      var playerdeckname = allPlayers[idxP].deckName;
+      var allplayercollections = allPlayers[idxP].collectionStruct;
+      var allplayerdecks = allPlayers[idxP].deckStruct;
+      var playerdeck = allPlayers[idxP].deck;
+      var playercollection = allPlayers[idxP].collection;
+      // emit login
       socket.emit('login', {
         accepted: true,
-        player: user.name,
+        player: token.name,
         avatarId: avatar_id,
         numUsers: allUsers.length,
         cartes: allCartes,
@@ -327,14 +348,28 @@ sio.sockets
         power: allPowers,
         mana: allManas
       });
-      // echo globally (all clients) that a person has connected
-      socket.broadcast.emit('userjoined', {
-        accepted: true,
-        player: user.name,
-        numUsers: allUsers.length
-      });
     }
-    // user name already exist
+
+  // when the client emits 'connectgomass'
+  socket.on('connectgomass', function (user) {
+    console.log('received cmd connectgomass : ' + user.name);
+    socket.username = user.name;
+    socket.register = true;
+    var idx = userExist(user.name);
+    // user exist
+    if (idx != -1) {
+      // player exist ?
+      var idxP = playerExist(user.name);
+      if (idxP != -1) {
+        // echo globally (all clients) that a person has connected
+        socket.broadcast.emit('userjoined', {
+          accepted: true,
+          player: user.name,
+          numUsers: allUsers.length
+        });
+      }
+    }
+    // user name doesn't exist
     else {
       socket.emit('login', {
         accepted: false,
@@ -352,6 +387,14 @@ sio.sockets
     if (idP != -1) {
       // store the player image
       allPlayers[idP].avatarId = message.id;
+      // update players infos in db
+      GomassClient.connect(url, function(err, db) {
+        assert.equal(null, err);
+        updatePlayerAvatarId(db, allPlayers[idP].name, function() {
+        db.close();
+        });
+      });
+      // emit answer message
       socket.emit('avatarok', {
         accepted: true,
         player: message.player,
@@ -369,6 +412,8 @@ sio.sockets
       // store the randomize deck
       var randomize = randomDeck(theDeck.deck);
       allPlayers[idP].deck = randomize;
+      // update current deck id
+      allPlayers[idP].deckName = theDeck.deckname;
       console.log('original Deck : ' + theDeck.deck);
       console.log('random Deck : ' + randomize);
       socket.emit('deckok', {
@@ -378,46 +423,59 @@ sio.sockets
     }
   });
   
-  // when the client emits 'deck'
+  // when the client emits 'savedeck'
   socket.on('savedeck', function (theDeck) {
     console.log('received cmd savedeck : ' + theDeck.player);
     var ok = false;
     var issaved = false;
-    var lastId = currentPlayerDecks.length;
     // get id of player
     var idP = playerExist(theDeck.player);
     if (idP != -1) {
+      var playername = theDeck.player;
       var deckname = theDeck.deckname;
-      var idD = deckExist(deckname);
+      var lastDeckId = allPlayers[idP].deckStruct.length;
+      var idD = allPlayers[idP].deckExist(deckname);
+      // build deck
+      var csvDeck = '';
+      var i = 0;
+      while (i < theDeck.deck.length-1) {
+        csvDeck = csvDeck + theDeck.deck[i].id + ';';
+        i++;
+      }
+      csvDeck = csvDeck + theDeck.deck[i].id;
       // if deck don't exist
       if (idD == -1) {
         ok = true;
-        // build deck
-        var csvDeck = '';
-        var i = 0;
-        while (i < theDeck.deck.length) {
-          csvDeck = csvDeck + theDeck.deck[i].id + ';';
-          i++;
-        }
-        var deckStruct = {"id": lastId, "name": theDeck.deckname, "playername": theDeck.player, "cardIdList": csvDeck};
-        var playername = theDeck.player;
-        if (lastId < maxDeck) {
+        if (lastDeckId < maxDeck) {
+          var deckStruct = {"id": lastDeckId, "name": deckname, "playername": playername, "cardIdList": csvDeck};
+          // add deck to player
+          allPlayers[idP].deckStruct[deckStruct.length - 1] = (deckStruct);
+          // add deck to db
           GomassClient.connect(url, function(err, db) {
             assert.equal(null, err);
-            addPlayerDeck(db, playername, lastId, deckname, csvDeck, function() {
+            addPlayerDeck(db, playername, lastDeckId, deckname, csvDeck, function() {
             db.close();
             });
           });
           issaved = true;
         }
       }
+      else {
+        GomassClient.connect(url, function(err, db) {
+          assert.equal(null, err);
+          updatePlayerDeck(db, playername, deckname, csvDeck, function() {
+          db.close();
+          });
+        });
+        issaved = true;
+      }
       socket.emit('savedeckok', {
         accepted: ok,
         saved: issaved,
-        player: theDeck.player,
-        deckname: theDeck.deckname,
+        player: playername,
+        deckname: deckname,
         deck: deckStruct,
-        deckid: lastId
+        deckid: lastDeckId
       });
     }
   });
@@ -1086,6 +1144,15 @@ function Player(name, collectionid, deckid, avatarid, nbwin, nbplay) {
       idxac++;
     }
   }
+  this.deckExist = function (deckname) {
+    for (var i = 0; i < this.deckStruct.length; i++) {
+      if (this.deckStruct[i].name == deckname) {
+        console.log('Deck exist at index : ' + i);
+        return i;
+      }
+    }
+    return -1;
+  }
 }
 
 ///////////////////////////GLOBALE PART//////////////////////////
@@ -1106,8 +1173,6 @@ var allManas = [];
 var allPlayersCollection = [];
 // from collection deck
 var allPlayersDeck = [];
-// internal list of current player decks
-var currentPlayerDecks = [];
 // internal list of current games
 var allGames = [];
 // internal list of move : not used
@@ -1169,15 +1234,6 @@ function playerExist(playername) {
 function gameExist(gamename) {
   for (var i = 0; i < allGames.length; i++) {
     if (allGames[i].name == gamename) {
-      console.log('Game exist at index : ' + i);
-      return i;
-    }
-  }
-  return -1;
-}
-function deckExist(deckname) {
-  for (var i = 0; i < currentPlayerDecks.length; i++) {
-    if (currentPlayerDecks[i].name == deckname) {
       console.log('Game exist at index : ' + i);
       return i;
     }

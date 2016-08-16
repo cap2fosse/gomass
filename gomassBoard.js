@@ -1002,7 +1002,7 @@ document.body.appendChild(carteCollection);
 carteCollection.cardsByPage = 15;
 carteCollection.onclick = function() {
   if (selectedCarte.visible && !selectedCarte.selected) { // player select a carte to put on deck
-    if (playerDeck.getNumberOfCards() < maxDeckCarte) { // no more cards to add
+    if (playerDeck.getNumberOfCardsVisible() < maxDeckCarte) { // no more cards to add
       this.selectedCarte = selectedCarte.clone();
       // draw the selection
       this.selectCard(true, selectedCaseId, selectedCarte.id);
@@ -1194,7 +1194,7 @@ saveDeckB.onclick = function() {
   // get all and change type
   var myDeck = playerDeck.changeCardType('Normal');
   console.log(myDeck);
-  // send deck to server
+  // save deck
   socket.emit('savedeck', {
     player: playerName,
     deck: myDeck,
@@ -1209,7 +1209,7 @@ delDeckB.onclick = function() {
   var ideckname = nameDeckT.value;
   // unselect all
   playerDeck.selectAll(false);
-  // send deck to server
+  // delete deck
   socket.emit('deldeck', {
     player: playerName,
     deckid: ideckid,
@@ -1229,10 +1229,17 @@ finishDeckB.onclick = function() {
   // get all and change type
   var myDeck = playerDeck.changeCardType('Normal');
   console.log(myDeck);
+  // save deck
+  socket.emit('savedeck', {
+    player: playerName,
+    deck: myDeck,
+    deckname: nameDeckT.value
+  });
   // send deck to server
   socket.emit('deck', {
     player: playerName,
-    deck: myDeck
+    deck: myDeck,
+    deckname: nameDeckT
   });
   // hide finish and clear buttons
   this.hide(true);

@@ -1,10 +1,10 @@
 'use strict';
 console.log('Start Board.js');
 // default empty carte (empty = -1)
-var emptyCarte = new Carte(-1, 'White');
+var emptyCarte = new Carte(-2, 'White');
 var emptyEffet = new Effet();
-var emptyMiniCarte = new Carte(-1, 'Mini', '', 0);
-var backCard = new Carte(-1, 'Black', '', 0, true);
+var emptyMiniCarte = new Carte(-3, 'Mini', '', 0);
+var backCard = new Carte(-4, 'Black', '', 0, true);
 var invocusCard = new Carte(200, 'Normal', 'Invocation', 0, true, 2, 1, 0, 1, 'invocusSpell');
 // the current selected carte
 var selectedCarte = emptyCarte;
@@ -181,6 +181,18 @@ function Board(name, posx, posy, caseW, caseH) {
   // get the number of card
   objBoard.getNumberOfCards = function() {
     return this.cartes.length;
+  };
+  // get the number of card
+  objBoard.getNumberOfCardsVisible = function() {
+    var idx = 0;
+    var nbCard = 0;
+    while (idx < this.cases.length) {
+      if (!this.cases[idx].carte.isNull()) {
+        nbCard++;
+      }
+      idx++;
+    }
+    return nbCard;
   };
   // change typeimg on all carte from board 'Normal' | 'Mini'
   objBoard.changeCardType = function(typeimg) {
@@ -387,6 +399,7 @@ function Case(casex, casey, id, boardName, width, height) {
   canvasCase.onclick = function() {
     selectedCarte = this.carte.clone();
     selectedCaseId = this.id;
+    console.log("on click card : " + selectedCarte);
   };
   canvasCase.clear = function() {
     this.remove();
@@ -569,7 +582,7 @@ function Case(casex, casey, id, boardName, width, height) {
   };
   canvasCase.showBig = function(msg) {
     onEnterCarte = msg.carte;
-    console.log(msg.carte);
+    console.log("mouse enter card : " + msg.carte);
   };
   canvasCase.toString = function() {
     var caseString = "Case :" + "id : " + this.id + " - " + "boardName : " + this.boardName + " - " + "x : " + this.x + " - " + "y : " + this.y + " - " + "ctx : " + this.ctx;
@@ -713,53 +726,72 @@ function bigCase(casex, casey, id, boardName, width, height) {
   };
   canvasCase.drawEtatCarte = function() {
     var lineW = 2;
+    var sizex = 12;
+    var sizey = 12;
+    this.ctx.font = "14px serif";
     if (this.carte.etat.provoke) {
       this.ctx.strokeStyle = "rgb(44,35,218)"; // blue
       this.ctx.fillStyle = "rgb(44,35,218)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 50, 8, 8);
+      this.ctx.fillRect(this.width-30, 50, sizex, sizey);
+      this.ctx.fillStyle = "rgb(44,35,218)";
+      this.ctx.fillText(nameOfEtatCarte[0], 50, this.height-50);
     }
     if (this.carte.etat.charge) {
       this.ctx.strokeStyle = "rgb(210,35,210)"; // purple
       this.ctx.fillStyle = "rgb(210,35,210)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 60, 8, 8);
+      this.ctx.fillRect(this.width-30, 60, sizex, sizey);
+      this.ctx.fillStyle = "rgb(210,35,210)";
+      this.ctx.fillText(nameOfEtatCarte[1], 50, this.height-50);
     }
     if (this.carte.etat.fury > 0) {
       this.ctx.strokeStyle = "rgb(207,27,0)"; // red
       this.ctx.fillStyle = "rgb(207,27,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 70, 8, 8);
+      this.ctx.fillRect(this.width-30, 70, sizex, sizey);
+      this.ctx.fillStyle = "rgb(207,27,0)";
+      this.ctx.fillText(nameOfEtatCarte[2], 50, this.height-50);
     }
     if (this.carte.etat.divine) {
       this.ctx.strokeStyle = "rgb(205,205,0)"; // yellow
       this.ctx.fillStyle = "rgb(205,205,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 80, 8, 8);
+      this.ctx.fillRect(this.width-30, 80, sizex, sizey);
+      this.ctx.fillStyle = "rgb(205,205,0)";
+      this.ctx.fillText(nameOfEtatCarte[3], 50, this.height-50);
     }
     if (this.carte.etat.hide) {
       this.ctx.strokeStyle = "rgb(20,33,0)"; // black
       this.ctx.fillStyle = "rgb(20,33,0)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 90, 8, 8);
+      this.ctx.fillRect(this.width-30, 90, sizex, sizey);
+      this.ctx.fillStyle = "rgb(20,33,0)";
+      this.ctx.fillText(nameOfEtatCarte[4], 50, this.height-50);
     }
     if (this.carte.etat.silent) {
       this.ctx.strokeStyle = "rgb(250,250,250)"; // white
       this.ctx.fillStyle = "rgb(250,250,250)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 100, 8, 8);
+      this.ctx.fillRect(this.width-30, 100, sizex, sizey);
+      this.ctx.fillStyle = "rgb(250,250,250)";
+      this.ctx.fillText(nameOfEtatCarte[5], 50, this.height-50);
     }
     if (this.carte.etat.stun) {
       this.ctx.strokeStyle = "rgb(153,153,153)"; // grey
       this.ctx.fillStyle = "rgb(153,153,153)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 110, 8, 8);
+      this.ctx.fillRect(this.width-30, 110, sizex, sizey);
+      this.ctx.fillStyle = "rgb(153,153,153)";
+      this.ctx.fillText(nameOfEtatCarte[6], 50, this.height-50);
     }
     if (this.carte.etat.replace) {
       this.ctx.strokeStyle = "rgb(90,230,100)"; // green
       this.ctx.fillStyle = "rgb(90,230,100)";
       this.ctx.lineWidth = lineW;
-      this.ctx.fillRect(this.width-30, 120, 8, 8);
+      this.ctx.fillRect(this.width-30, 120, sizex, sizey);
+      this.ctx.fillStyle = "rgb(90,230,100)";
+      this.ctx.fillText(nameOfEtatCarte[7], 50, this.height-50);
     }
   };
   canvasCase.setVisibility = function(visible) {

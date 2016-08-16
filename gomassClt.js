@@ -124,6 +124,7 @@ function safeConnect() {
     if (message.accepted) {
       // remove option
       listDecks.delOption(message.deckid);
+      nameDeckT = listDecks.getOption(0);
     }
     else {
       console.log("Can't delete deck : " + message.accepted);
