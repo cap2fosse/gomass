@@ -1,7 +1,7 @@
 'use strict';
 console.log('Start srvCarte.js');
 // Carte prototype.
-function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, special, effet, etat, equipement) {
+function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, showInBig, special, effet, etat, equipement) {
   if (id != undefined){this.id = id;}
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
@@ -28,6 +28,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.active = Carte.prototype.active;}
   if (selected != undefined){this.selected = selected;}
   else {this.selected = Carte.prototype.selected;}
+  if (showInBig != undefined){this.showInBig = showInBig;}
+  else {this.showInBig = Carte.prototype.showInBig;}
   if (effet != undefined){this.effet = effet;}
   else {this.effet = new Effet();}
   if (etat != undefined){this.etat = etat;}
@@ -56,11 +58,12 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.titre = "";
     this.description = "";
     this.special = "";
+    this.active = false;
+    this.selected = false;
+    this.showInBig = false;
     this.effet = new Effet();
     this.etat = new Etat();
     this.equipement = new Equipement();
-    this.active = false;
-    this.selected = false;
   };
   this.activate = function(on) {
     this.active = on;
@@ -130,6 +133,7 @@ Carte.prototype = {
   description : '',
   active : false,
   selected : false,
+	showInBig : false,
   special : '',
   effet : Effet.prototype,
   etat : Etat.prototype,

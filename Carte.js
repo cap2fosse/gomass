@@ -1,7 +1,7 @@
 'use strict';
 console.log('Start Carte.js');
 // Carte prototype.
-function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, special, effet, etat, equipement) {
+function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, desc, active, selected, showInBig, special, effet, etat, equipement) {
   if (id != undefined){this.id = id;}
   else {this.id = Carte.prototype.id;}
   if (imgid != undefined){this.imgid = imgid;}
@@ -28,6 +28,8 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
   else {this.active = Carte.prototype.active;}
   if (selected != undefined){this.selected = selected;}
   else {this.selected = Carte.prototype.selected;}
+  if (showInBig != undefined){this.showInBig = showInBig;}
+  else {this.showInBig = Carte.prototype.showInBig;}
   if (effet != undefined){this.effet = effet;}
   else {this.effet = new Effet();}
   if (etat != undefined){this.etat = etat;}
@@ -132,12 +134,16 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     this.special = "";
     this.active = false;
     this.selected = false;
+    this.showInBig = false;
     this.effet = new Effet();
     this.etat = new Etat();
     this.equipement = new Equipement();
   };
   this.activate = function(on) {
     this.active = on;
+  };
+  this.setBig = function(on) {
+    this.showInBig = on;
   };
   this.toMini = function() {
     this.typeimg = 'Mini';
@@ -204,8 +210,9 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
     else {return false;}
   };
   this.setDescription = function() {
+    this.description = "";
     if (this.type == 'Invocation') {
-      // line 1-2
+      // line 0&1
       if (this.effet.declencheur != '') {
         this.description += 'Event : ;';
         if (this.effet.declencheur == 'Attack') {this.description += 'On Attack;';}
@@ -214,13 +221,13 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
         else if (this.effet.declencheur == 'Activated') {this.description += 'On Activated;';}
         else if (this.effet.declencheur == 'Played') {this.description += 'On Played;';}
       }
-      // line 3-4
+      // line 2&3
       if (this.effet.zone != '') {
         this.description += 'Type of zone : ;';
         if (this.effet.zone == 'Single') {this.description += 'Zone Single;';}
         else if (this.effet.zone == 'Multi') {this.description += 'Zone Multi;';}
       }
-      // line 5-6
+      // line 4&5
       if (this.effet.impact != '') {
         this.description += 'Impacted zone : ;';
         if (this.effet.impact == 'playerBoard') {this.description += 'on playBoard;';}
@@ -229,11 +236,11 @@ function Carte(id, typeImg, type, imgid, visible, cout, att, def, vie, titre, de
         else if (this.effet.impact == 'opponent') {this.description += 'on opponent;';}
         else if (this.effet.impact == 'any') {this.description += 'on any;';}
         else if (this.effet.impact == 'mySelf') {this.description += 'on myself;';}
-        // line 7-8-9
+        // line 6&7&8&9
         this.description += 'Impact : ;';
-        if (this.effet.modifAttack != 0) {this.description += ' Attack : ' + this.effet.modifAttack + ';';}
-        if (this.effet.modifDefense != 0) {this.description += ' Defense : ' + this.effet.modifDefense + ';';}
-        if (this.effet.modifVie != 0) {this.description += ' Life : ' + this.effet.modifVie + ';';}
+        this.description += ' Attack : ' + this.effet.modifAttack + ';';
+        this.description += ' Defense : ' + this.effet.modifDefense + ';';
+        this.description += ' Life : ' + this.effet.modifVie + ';';
       }
     }
     if (this.type == 'Spell') {
@@ -282,6 +289,7 @@ Carte.prototype = {
   description : '',
   active : false,
   selected : false,
+	showInBig : false,
   special : '',
   effet : Effet.prototype,
   etat : Etat.prototype,

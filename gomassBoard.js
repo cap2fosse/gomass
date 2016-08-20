@@ -1000,19 +1000,16 @@ var carteCollection = new Board('carteCollection', 200, 150, 100, 150);
 carteCollection.create(5, 3, 0);
 document.body.appendChild(carteCollection);
 carteCollection.cardsByPage = 15;
+// show card in big
 carteCollection.onclick = function() {
-  if (selectedCarte.visible && !selectedCarte.selected) { // player select a carte to put on deck
-    if (playerDeck.getNumberOfCardsVisible() < maxDeckCarte) { // no more cards to add
-      this.selectedCarte = selectedCarte.clone();
-      // draw the selection
-      this.selectCard(true, selectedCaseId, selectedCarte.id);
-      // cast to mini & show
-      var myMini = selectedCarte.clone();
-      myMini.toMini();
-      playerDeck.addLast(myMini);
-      console.log("Select carte : " + this.selectedCarte);
-    }
-  }
+	console.log('carteCollection onclick');
+  if (selectedCarte.visible) {
+		bigCardView.clean();
+		bigCardView.addClone(0, selectedCarte);
+		// change carte to big
+		var caseIdCarteCollection = this.getCaseByCarteId(selectedCarte.id);
+		this.get(caseIdCarteCollection).setBig(true);
+	}
   selectedCarte.init();
   selectedCaseId = -1;
 }
@@ -1037,24 +1034,45 @@ carteCollection.selectCard = function(on, caseId, cardId){
   }
   if (caseId != undefined) {this.getCase(caseId).draw()};
 }
-carteCollection.addEventListener('mousemove', function(evt) {
-    bigCardView.addClone(0, onEnterCarte);
-  }, false);
-carteCollection.addEventListener('mouseleave', function(evt) {
-    bigCardView.remove(0);
-  }, false);
+// to remove a card from playerDeck
+carteCollection.addEventListener('drop', function(evt) {
+	console.log('carteCollection drop');
+  evt.preventDefault(); // drop is possible
+  if (dragStartBoardName == "playerDeck" & dragCarte.visible) { // player select a card to remove from deck
+		var carteId = dragCarte.id;
+		var caseIdPlayerDeck = playerDeck.getCaseByCarteId(carteId);
+		var caseIdCollectionDeck = this.getCaseByCarteId(carteId);
+		// remove card from player deck
+		playerDeck.remove(caseIdPlayerDeck);
+		// unselect it
+		this.selectCard(false, caseIdCollectionDeck, carteId);
+	}
+	dragCarte.init();
+	dragStartBoardName = "";
+});
+carteCollection.addEventListener('dragend', function(evt) {
+	console.log('carteCollection dragend');
+	evt.preventDefault(); // drop is possible
+	dragCarte.init();
+	dragStartBoardName = "";
+  });
+carteCollection.addEventListener('dragover', function(evt) {
+	console.log('carteCollection dragover');
+    evt.preventDefault(); // drop is possible
+  });
 
 var playerDeck = new Board('playerDeck', 750, 150, 100, 20);
 playerDeck.create(1, maxDeckCarte, 1);
 document.body.appendChild(playerDeck);
-// remove card from deck
+// show card selected card in big
 playerDeck.onclick = function() {
+	console.log('playerDeck onclick');
   if (selectedCarte.visible) {
-    var carteid = selectedCarte.id;
-    var caseId = carteCollection.getCaseByCarteId(carteid);
-    carteCollection.selectCard(false, caseId, carteid);
-    this.remove(selectedCaseId);
-    console.log("Select carte : " + selectedCarte);
+		bigCardView.clean();
+		bigCardView.addClone(0, selectedCarte);
+		// change carte to big
+		var caseIdPlayerDeck = this.getCaseByCarteId(selectedCarte.id);
+		this.get(caseIdPlayerDeck).setBig(true);
   }
   selectedCarte.init();
   selectedCaseId = -1;
@@ -1126,10 +1144,53 @@ playerDeck.change = function(deckid) {
     }
   }
 }
-
+playerDeck.addEventListener('dragend', function(evt) {
+	console.log('playerDeck dragend');
+	evt.preventDefault(); // drop is possible
+	dragCarte.init();
+	dragStartBoardName = "";
+  });
+playerDeck.addEventListener('dragover', function(evt) {
+	console.log('playerDeck dragover');
+    evt.preventDefault(); // drop is possible
+  });
+// to add card to playerDeck
+playerDeck.addEventListener('drop', function(evt) {
+	console.log('playerDeck drop');
+  evt.preventDefault(); // drop is possible
+  if (dragStartBoardName == "carteCollection" & dragCarte.visible && !dragCarte.selected) { // player select a carte to put on deck
+    if (this.getNumberOfCardsVisible() < maxDeckCarte) { // no more cards to add
+			var carteId = dragCarte.id;
+			var miniCard = dragCarte.clone();
+			// add card to playerDeck
+			miniCard.toMini();
+			this.addLast(miniCard);
+			// select card from carteCollection
+			var caseIdCarteCollection = carteCollection.getCaseByCarteId(carteId);
+			carteCollection.selectCard(true, caseIdCarteCollection, carteId);
+		}
+	}
+  dragCarte.init();
+	dragStartBoardName = "";
+});
+	
 var bigCardView = new Board('bigCardView', 900, 350, 200, 300);
 bigCardView.create(1, 1, 4);
 document.body.appendChild(bigCardView);
+bigCardView.clean = function() {
+	var bigCarte = this.get(0);
+	if (!bigCarte.isNull()) {
+		// set big property to false
+		if (this.boardName == "playerDeck") {
+			playerDeck.get(bigCarte.id).setBig(false);
+		}
+		if (this.boardName == "carteCollection") {
+			carteCollection.get(bigCarte.id).setBig(false);
+		}
+	}
+	// remove the card
+	this.remove(0);
+}
 
 var pageBoard = new gestionPage(200, 620);
 pageBoard.create();
@@ -1239,7 +1300,7 @@ finishDeckB.onclick = function() {
   socket.emit('deck', {
     player: playerName,
     deck: myDeck,
-    deckname: nameDeckT
+    deckname: nameDeckT.value
   });
   // hide finish and clear buttons
   this.hide(true);
@@ -1708,7 +1769,7 @@ function fromSrvCarte(srvCard) {
   // create the card
   var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
   srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
-  srvCard.selected, srvCard.special, cltCardEffect, cltCardEtat, cltCardEquipment);
+  srvCard.selected, srvCard.showInBig, srvCard.special, cltCardEffect, cltCardEtat, cltCardEquipment);
   // set the description
   cltCard.setDescription();
   return cltCard;

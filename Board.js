@@ -10,6 +10,10 @@ var invocusCard = new Carte(200, 'Normal', 'Invocation', 0, true, 2, 1, 0, 1, 'i
 var selectedCarte = emptyCarte;
 // the current on enter carte
 var onEnterCarte = emptyCarte;
+// the current dragged card
+var dragCarte = emptyCarte;
+// the current drag start board name
+var dragStartBoardName = "";
 // store all cartes send by server
 var allGameCartes = [];
 // current collection cards
@@ -393,6 +397,8 @@ function Case(casex, casey, id, boardName, width, height) {
   canvasCase.style.position = "absolute";
   canvasCase.style.left = casex * width;
   canvasCase.style.top = casey * height;
+  canvasCase.draggable = true;
+	canvasCase.cardImg = new Image();
   //canvasCase.style.border = "1px solid grey";
   canvasCase.style.visibility = "hidden";
   // overwrite canvas on click method
@@ -418,6 +424,13 @@ function Case(casex, casey, id, boardName, width, height) {
   canvasCase.remove = function() {
     this.carte.init();
   };
+  canvasCase.toImage = function() {
+		var toImage = new Image();
+		toImage.id = this.id;
+		toImage.src = this.toDataURL();
+		this.cardImg = toImage;
+		return toImage;
+  }
   canvasCase.draw = function() {
     // don't draw if no carte
     if (this.carte.visible) {
@@ -485,15 +498,6 @@ function Case(casex, casey, id, boardName, width, height) {
           if (desc[5] != undefined && desc[5] != 0) { // impact
             this.ctx.fillText(desc[5], 8, this.height-70);
           }
-          if (desc[6] != undefined) { // Attack
-            this.ctx.fillText(desc[6], 8, this.height-55);
-          }
-          if (desc[7] != undefined) { // Defense
-            this.ctx.fillText(desc[7], 8, this.height-40);
-          }
-          if (desc[8] != undefined) { // Life
-            this.ctx.fillText(desc[8], 8, this.height-25);
-          }
         }
         // draw a rect depending of the state card
         this.drawEtatCarte();
@@ -508,6 +512,8 @@ function Case(casex, casey, id, boardName, width, height) {
         this.ctx.lineTo(20,100);
         this.ctx.stroke();
       }
+			// build image
+			this.toImage();
     }
     else {
       this.clear();
@@ -580,21 +586,25 @@ function Case(casex, casey, id, boardName, width, height) {
       target: evt.target
     };
   };
-  canvasCase.showBig = function(msg) {
-    onEnterCarte = msg.carte;
-    console.log("mouse enter card : " + msg.carte);
-  };
   canvasCase.toString = function() {
     var caseString = "Case :" + "id : " + this.id + " - " + "boardName : " + this.boardName + " - " + "x : " + this.x + " - " + "y : " + this.y + " - " + "ctx : " + this.ctx;
     caseString = caseString + " - " + "width : " + this.width + " - " + "height : " + this.height;
     return caseString + "\n" + this.carte.toString();
   };
-  // add event listener mouseenter to the canvas
-  canvasCase.addEventListener('mouseenter', function(evt) {
-    var mouseTarget = this.getTarget(this, evt);
-    //var message = 'Mouse Target: ' + mouseTarget.x + ',' + mouseTarget.y + "\n-->" + mouseTarget.target;
-    this.showBig(mouseTarget.target);
-  }, false);
+  // add event listener dragstart to the canvas
+  canvasCase.addEventListener('dragstart', function(evt) {
+		console.log("Case dragstart");
+		// get mouse position
+		var mouseTarget = this.getTarget(this, evt);
+		// get canvas image
+		var canvasImg = this.cardImg;
+		evt.dataTransfer.setData('text/plain', ''); // required for firefox
+		// set drag image
+		evt.dataTransfer.setDragImage(canvasImg, mouseTarget.target.x, mouseTarget.target.y);
+		// save dragged card & boardName
+		dragCarte = this.carte.clone();
+		dragStartBoardName = this.boardName;
+  });
 
   return canvasCase;
 }
@@ -686,31 +696,31 @@ function bigCase(casex, casey, id, boardName, width, height) {
           this.ctx.font = "14px serif";
           this.ctx.fillStyle = "rgb(77,77,77)";
           if (desc[0] != undefined) { // 'Event'
-            this.ctx.fillText(desc[0], 10, this.height-200);
+            this.ctx.fillText(desc[0], 10, this.height-220);
           }
           if (desc[1] != undefined && desc[1] != 0) { // Event Name
-            this.ctx.fillText(desc[1], 20, this.height-180);
+            this.ctx.fillText(desc[1], 20, this.height-200);
           }
           if (desc[2] != undefined && desc[2] != 0) { // Type of zone
-            this.ctx.fillText(desc[2], 10, this.height-160);
+            this.ctx.fillText(desc[2], 10, this.height-180);
           }
           if (desc[3] != undefined) { // Type of zone name
-            this.ctx.fillText(desc[3], 20, this.height-140);
+            this.ctx.fillText(desc[3], 20, this.height-160);
           }
           if (desc[4] != undefined) { // Impacted zone
-            this.ctx.fillText(desc[4], 10, this.height-120);
+            this.ctx.fillText(desc[4], 10, this.height-140);
           }
           if (desc[5] != undefined) { // Impacted zone name
-            this.ctx.fillText(desc[5], 20, this.height-100);
+            this.ctx.fillText(desc[5], 20, this.height-120);
           }
           if (desc[6] != undefined) { // Impact
-            this.ctx.fillText(desc[6], 10, this.height-80);
+            this.ctx.fillText(desc[6], 10, this.height-100);
           }
           if (desc[7] != undefined) { // Attack
-            this.ctx.fillText(desc[7], 20, this.height-60);
+            this.ctx.fillText(desc[7], 20, this.height-80);
           }
           if (desc[8] != undefined) { // Defense
-            this.ctx.fillText(desc[8], 20, this.height-40);
+            this.ctx.fillText(desc[8], 20, this.height-60);
           }
           if (desc[9] != undefined) { // Life
             this.ctx.fillText(desc[9], 20, this.height-40);
@@ -834,6 +844,8 @@ function MiniCase(casex, casey, id, boardName, width, height) {
         this.ctx.fillStyle = "rgb(77,77,77)";
         this.ctx.fillText(this.carte.titre, 15, 15);
       }
+			// build image
+			this.toImage();
     }
     else {
       this.clear();

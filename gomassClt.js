@@ -447,7 +447,7 @@ function createArrayCarte(srvCarteArray, cltCarteArray) {
     // create the card
     var cltCard = new Carte(srvCard.id, srvCard.typeimg, srvCard.type, srvCard.imgid, srvCard.visible,
     srvCard.cout, srvCard.attaque, srvCard.defense, srvCard.vie, srvCard.titre, srvCard.description, srvCard.active, 
-    srvCard.selected, srvCard.special, cltCardEffect, cltCardEtat, cltCardEquipment);
+    srvCard.selected, srvCard.showInBig, srvCard.special, cltCardEffect, cltCardEtat, cltCardEquipment);
     // set the description
     cltCard.setDescription();
     // add it

@@ -409,13 +409,11 @@ sio.sockets
     // get id of player
     var idP = playerExist(theDeck.player);
     if (idP != -1) {
-      // store the randomize deck
-      var randomize = randomDeck(theDeck.deck);
-      allPlayers[idP].deck = randomize;
+      // store the deck
+      allPlayers[idP].deck = theDeck.deck;
       // update current deck id
       allPlayers[idP].deckName = theDeck.deckname;
       console.log('original Deck : ' + theDeck.deck);
-      console.log('random Deck : ' + randomize);
       socket.emit('deckok', {
         accepted: true,
         player: theDeck.player
@@ -1076,9 +1074,11 @@ function Player(name, collectionid, deckid, avatarid, nbwin, nbplay) {
   // get carte from current deck
   this.getCarte = function(nbCarte) {
     var carte = [];
-    if (this.deck.length > 0) {
+    if (this.deck.length > nbCarte) {
       for (var i = 0; i < nbCarte; i++) {
-        carte[i] = this.deck.pop();
+        var randomCarte = Math.floor((Math.random() * this.deck.length-1));
+        carte[i] = this.deck[randomCarte];
+        this.deck.splice(randomCarte, 1);
         console.log('it left ' + this.deck.length + ' on player : ' + this.name + ' hand.\n');
       }
     }
