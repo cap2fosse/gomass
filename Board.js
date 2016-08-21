@@ -6,10 +6,16 @@ var emptyEffet = new Effet();
 var emptyMiniCarte = new Carte(-3, 'Mini', '', 0);
 var backCard = new Carte(-4, 'Black', '', 0, true);
 var invocusCard = new Carte(200, 'Normal', 'Invocation', 0, true, 2, 1, 0, 1, 'invocusSpell');
+// store the current selected case id
+var selectedCaseId = -1;
 // the current selected carte
 var selectedCarte = emptyCarte;
 // the current on enter carte
 var onEnterCarte = emptyCarte;
+// store the current dragged case id
+var dragCaseId = -1;
+// store the current dropped case id
+var dropCaseId = -1;
 // the current dragged card
 var dragCarte = emptyCarte;
 // the current drag start board name
@@ -604,6 +610,7 @@ function Case(casex, casey, id, boardName, width, height) {
 		// save dragged card & boardName
 		dragCarte = this.carte.clone();
 		dragStartBoardName = this.boardName;
+		dragCaseId = this.id;
   });
 
   return canvasCase;

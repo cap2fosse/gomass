@@ -3,7 +3,7 @@ console.log('Start gomasBoard.js');
 
 ///////////////////////////GAME BOARDS////////////////////////////
 
-var opponentHand = new Board('opponentHand', 250, 150, 100, 150);
+var opponentHand = new Board(nameOfBordName[0], 250, 150, 100, 150);
 opponentHand.create(6, 1, 0);
 opponentHand.type = 'Opponent';
 document.body.appendChild(opponentHand);
@@ -21,7 +21,7 @@ opponentHand.fill = function(cardList){
   //this.setVisibility(true);
 }
 
-var opponentBoard = new Board('opponentBoard', 250, 320, 100, 150);
+var opponentBoard = new Board(nameOfBordName[1], 250, 320, 100, 150);
 opponentBoard.create(6, 1, 0);
 opponentBoard.type = 'Opponent';
 opponentBoard.setBorder(true);
@@ -37,7 +37,7 @@ opponentBoard.onclick = function() {
         console.log(player.selectedCarte + '\n' + 'Attack ' + this.selectedCarte + '\n' + 
             'From case : ' + player.selectedCaseId + '\n' + 'To case : ' + this.selectedCaseId);
         // resolve attack here
-        var attackerBoard  = player.id;
+        var attackerBoard = player.id;
         var defenderBoard = this.id;
         var attackerCaseId = player.selectedCaseId;
         var defenderCaseId = selectedCaseId;
@@ -179,8 +179,65 @@ opponentBoard.activateAll = function(){
     this.getCase(caseid).draw();
   }
 }
+// to remove a card from playerDeck
+opponentBoard.addEventListener('drop', function(evt) {
+	console.log('opponentBoard drop');
+	evt.preventDefault(); // drop is possible
+  if (dragCarte.visible && myTurn) {
+	switch (dragStartBoardName) {
+		case nameOfBordName[0] : // opponentHand
+			console.log(nameOfBordName[0] + " on " + nameOfBordName[1]);
+			break;
+		case nameOfBordName[2] : // playerBoard
+		console.log(nameOfBordName[2] + " on " + nameOfBordName[1]);
+		break;
+		case nameOfBordName[3] : // playerHand
+		console.log(nameOfBordName[3] + " on " + nameOfBordName[1]);
+		break;
+		case nameOfBordName[4] : // opponent
+		console.log(nameOfBordName[4] + " on " + nameOfBordName[1]);
+		break;
+		case nameOfBordName[5] : // player
+			console.log(nameOfBordName[5] + " on " + nameOfBordName[1]);
+			// resolve attack here
+			var attackerBoard = player.id;
+			var defenderBoard = this.id;
+			var attackerCaseId = dragCaseId;
+			var defenderCaseId = dropCaseId;
+			if (player.selectedCarte.visible && player.selectedCarte.active) {
+				// no provocate on board & not hide
+				if (!this.provocate() && !this.selectedCarte.etat.hide) {
+					resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
+					// fill defausse boards
+					defausseAttack.addFirst(player.selectedCarte);
+					defausseDefense.addFirst(this.selectedCarte);
+				}
+				// attack not hide provoke
+				else if (this.selectedCarte.etat.provoke && !this.selectedCarte.etat.hide) {
+					resolveAttackDefense(attackerBoard, attackerCaseId , defenderBoard, defenderCaseId);
+					// fill defausse boards
+					defausseAttack.addFirst(player.selectedCarte);
+					defausseDefense.addFirst(this.selectedCarte);
+				}
+				else {console.log("Can't attack Provocation on board!");}
+			}
+			break;
+	}
+	}
+	dragCarte.init();
+	dragStartBoardName = "";
+});
+opponentBoard.addEventListener('dragend', function(evt) {
+	console.log('opponentBoard dragend');
+	dragCarte.init();
+	dragStartBoardName = "";
+  });
+opponentBoard.addEventListener('dragover', function(evt) {
+	console.log('opponentBoard dragover');
+    evt.preventDefault(); // drop is possible
+  });
 
-var playerBoard = new Board('playerBoard', 250, 470, 100, 150);
+var playerBoard = new Board(nameOfBordName[2], 250, 470, 100, 150);
 playerBoard.create(6, 1, 0);
 playerBoard.type = 'Allie';
 playerBoard.setBorder(false);
@@ -360,8 +417,41 @@ playerBoard.activateAll = function(){
     this.getCase(caseid).draw();
   }
 }
+playerBoard.addEventListener('drop', function(evt) {
+	console.log('playerBoard drop');
+  evt.preventDefault(); // drop is possible
+	switch (dragStartBoardName) {
+		case nameOfBordName[0] : // opponentHand
+		console.log(nameOfBordName[0] + " on " + nameOfBordName[2]);
+		break;
+		case nameOfBordName[1] : // opponentBoard
+		console.log(nameOfBordName[1] + " on " + nameOfBordName[2]);
+		break;
+		case nameOfBordName[3] : // playerHand
+		console.log(nameOfBordName[3] + " on " + nameOfBordName[2]);
+		break;
+		case nameOfBordName[4] : // opponent
+		console.log(nameOfBordName[4] + " on " + nameOfBordName[2]);
+		break;
+		case nameOfBordName[5] : // player
+		console.log(nameOfBordName[5] + " on " + nameOfBordName[2]);
+		break;
+	}
+	dragCarte.init();
+	dragStartBoardName = "";
+});
+playerBoard.addEventListener('dragend', function(evt) {
+	console.log('playerBoard dragend');
+	evt.preventDefault(); // drop is possible
+	dragCarte.init();
+	dragStartBoardName = "";
+  });
+playerBoard.addEventListener('dragover', function(evt) {
+	console.log('playerBoard dragover');
+    evt.preventDefault(); // drop is possible
+  });
 
-var playerHand = new Board('playerHand', 250, 640, 100, 150);
+var playerHand = new Board(nameOfBordName[3], 250, 640, 100, 150);
 playerHand.create(6, 1, 0);
 playerHand.type = 'Allie';
 document.body.appendChild(playerHand);
@@ -436,7 +526,7 @@ playerHand.activateAll = function(){
   }
 }
 
-var opponent = new Board('opponent', 1050, 150, 100, 150);
+var opponent = new Board(nameOfBordName[4], 1050, 150, 100, 150);
 opponent.create(1, 1, 0);
 opponent.type = 'Opponent';
 document.body.appendChild(opponent);
@@ -573,8 +663,42 @@ opponent.activateAll = function() {
   }
   this.getCase(0).draw();
 }
+// to remove a card from playerDeck
+opponent.addEventListener('drop', function(evt) {
+	console.log('opponent drop');
+  evt.preventDefault(); // drop is possible
+	switch (dragStartBoardName) {
+		case nameOfBordName[0] : // opponentHand
+		console.log(nameOfBordName[0] + " on " + nameOfBordName[4]);
+		break;
+		case nameOfBordName[1] : // opponentBoard
+		console.log(nameOfBordName[1] + " on " + nameOfBordName[4]);
+		break;
+		case nameOfBordName[2] : // playerBoard
+		console.log(nameOfBordName[2] + " on " + nameOfBordName[4]);
+		break;
+		case nameOfBordName[3] : // playerHand
+		console.log(nameOfBordName[3] + " on " + nameOfBordName[4]);
+		break;
+		case nameOfBordName[5] : // player
+		console.log(nameOfBordName[5] + " on " + nameOfBordName[4]);
+		break;
+	}
+	dragCarte.init();
+	dragStartBoardName = "";
+});
+opponent.addEventListener('dragend', function(evt) {
+	console.log('opponent dragend');
+	evt.preventDefault(); // drop is possible
+	dragCarte.init();
+	dragStartBoardName = "";
+  });
+opponent.addEventListener('dragover', function(evt) {
+	console.log('opponent dragover');
+    evt.preventDefault(); // drop is possible
+  });
 
-var player = new Board('player', 1050, 640, 100, 150);
+var player = new Board(nameOfBordName[5], 1050, 640, 100, 150);
 player.create(1, 1, 0);
 player.type = 'Allie';
 document.body.appendChild(player);
@@ -676,12 +800,46 @@ player.activateAll = function() {
   }
   this.getCase(0).draw();
 }
+// to remove a card from playerDeck
+player.addEventListener('drop', function(evt) {
+	console.log('player drop');
+  evt.preventDefault(); // drop is possible
+	switch (dragStartBoardName) {
+		case nameOfBordName[0] : // opponentHand
+		console.log(nameOfBordName[0] + " on " + nameOfBordName[5]);
+		break;
+		case nameOfBordName[1] : // opponentBoard
+		console.log(nameOfBordName[1] + " on " + nameOfBordName[5]);
+		break;
+		case nameOfBordName[2] : // playerBoard
+		console.log(nameOfBordName[2] + " on " + nameOfBordName[5]);
+		break;
+		case nameOfBordName[3] : // playerHand
+		console.log(nameOfBordName[3] + " on " + nameOfBordName[5]);
+		break;
+		case nameOfBordName[4] : // opponent
+		console.log(nameOfBordName[4] + " on " + nameOfBordName[5]);
+		break;
+	}
+	dragCarte.init();
+	dragStartBoardName = "";
+});
+player.addEventListener('dragend', function(evt) {
+	console.log('player dragend');
+	evt.preventDefault(); // drop is possible
+	dragCarte.init();
+	dragStartBoardName = "";
+  });
+player.addEventListener('dragover', function(evt) {
+	console.log('player dragover');
+    evt.preventDefault(); // drop is possible
+  });
 
-var select = new Board('select', 1050, 400, 100, 150);
+var select = new Board(nameOfBordName[6], 1050, 400, 100, 150);
 select.create(1, 1, 0);
 document.body.appendChild(select);
 
-var playerPower = new Board('playerPower', 900, 680, 60, 60);
+var playerPower = new Board(nameOfBordName[7], 900, 680, 60, 60);
 playerPower.create(1, 1, 2);
 document.body.appendChild(playerPower);
 playerPower.onclick = function() {
@@ -723,7 +881,7 @@ playerPower.activateAll = function(){
   this.getCase(powerIdx).draw();
 }
 
-var opponentPower = new Board('opponentPower', 900, 190, 60, 60);
+var opponentPower = new Board(nameOfBordName[8], 900, 190, 60, 60);
 opponentPower.create(1, 1, 2);
 document.body.appendChild(opponentPower);
 opponentPower.activateAll = function(){
@@ -737,7 +895,7 @@ opponentPower.activateAll = function(){
   this.getCase(powerIdx).draw();
 }
 
-var manaBoard = new Board('manaBoard', 900, 580, 20, 20);
+var manaBoard = new Board(nameOfBordName[9], 900, 580, 20, 20);
 manaBoard.create(10, 1, 3);
 document.body.appendChild(manaBoard);
 manaBoard.max = 0;
@@ -797,7 +955,7 @@ manaBoard.getMana = function() {
   return myMana;
 };
 
-var defausseAttack = new Board('defausseAttack', 0, 150, 100, 150);
+var defausseAttack = new Board(nameOfBordName[10], 0, 150, 100, 150);
 defausseAttack.create(1, 4, 0);
 document.body.appendChild(defausseAttack);
 defausseAttack.onclick = function() {
@@ -818,7 +976,7 @@ defausseAttack.addFirst = function(card){
   });
 }
 
-var defausseDefense = new Board('defausseDefense', 100, 150, 100, 150);
+var defausseDefense = new Board(nameOfBordName[11], 100, 150, 100, 150);
 defausseDefense.create(1, 4, 0);
 document.body.appendChild(defausseDefense);
 defausseDefense.onclick = function() {
@@ -899,7 +1057,7 @@ gameCommandsDiv.addElement(manaBoardText);
 
 /////////////////////INITIAL CARD SELECTION BOARD/////////////////
 
-var cardSelector = new Board('cardSelector', 300, 150, 100, 150);
+var cardSelector = new Board(nameOfBordName[12], 300, 150, 100, 150);
 cardSelector.create(3, 1, 0);
 document.body.appendChild(cardSelector);
 cardSelector.numberOfCardAsked = 0;
@@ -956,7 +1114,7 @@ cardSelectorCommandsDiv.visible(false);
 
 ///////////////////////DECK BUILDER BOARDS////////////////////////
 
-var allCarte = new Board('allCarte', 200, 150, 100, 150);
+var allCarte = new Board(nameOfBordName[13], 200, 150, 100, 150);
 allCarte.create(5, 2, 0);
 document.body.appendChild(allCarte);
 allCarte.onclick = function() {
@@ -996,7 +1154,7 @@ allCarte.selectCard = function(on, caseId, cardId){
   this.getCase(caseId).draw();
 }
 
-var carteCollection = new Board('carteCollection', 200, 150, 100, 150);
+var carteCollection = new Board(nameOfBordName[14], 200, 150, 100, 150);
 carteCollection.create(5, 3, 0);
 document.body.appendChild(carteCollection);
 carteCollection.cardsByPage = 15;
@@ -1037,8 +1195,8 @@ carteCollection.selectCard = function(on, caseId, cardId){
 // to remove a card from playerDeck
 carteCollection.addEventListener('drop', function(evt) {
 	console.log('carteCollection drop');
-  evt.preventDefault(); // drop is possible
-  if (dragStartBoardName == "playerDeck" & dragCarte.visible) { // player select a card to remove from deck
+	evt.preventDefault(); // drop is possible
+  if (dragStartBoardName == nameOfBordName[15] && dragCarte.visible) { // card must come from playerDeck board
 		var carteId = dragCarte.id;
 		var caseIdPlayerDeck = playerDeck.getCaseByCarteId(carteId);
 		var caseIdCollectionDeck = this.getCaseByCarteId(carteId);
@@ -1046,6 +1204,8 @@ carteCollection.addEventListener('drop', function(evt) {
 		playerDeck.remove(caseIdPlayerDeck);
 		// unselect it
 		this.selectCard(false, caseIdCollectionDeck, carteId);
+		// update card number
+		nbCardText.set(playerDeck.getNumberOfCardsVisible());
 	}
 	dragCarte.init();
 	dragStartBoardName = "";
@@ -1058,10 +1218,10 @@ carteCollection.addEventListener('dragend', function(evt) {
   });
 carteCollection.addEventListener('dragover', function(evt) {
 	console.log('carteCollection dragover');
-    evt.preventDefault(); // drop is possible
+	evt.preventDefault(); // drop is possible
   });
 
-var playerDeck = new Board('playerDeck', 750, 150, 100, 20);
+var playerDeck = new Board(nameOfBordName[15], 750, 150, 100, 20);
 playerDeck.create(1, maxDeckCarte, 1);
 document.body.appendChild(playerDeck);
 // show card selected card in big
@@ -1152,13 +1312,13 @@ playerDeck.addEventListener('dragend', function(evt) {
   });
 playerDeck.addEventListener('dragover', function(evt) {
 	console.log('playerDeck dragover');
-    evt.preventDefault(); // drop is possible
+	evt.preventDefault(); // drop is possible
   });
 // to add card to playerDeck
 playerDeck.addEventListener('drop', function(evt) {
 	console.log('playerDeck drop');
-  evt.preventDefault(); // drop is possible
-  if (dragStartBoardName == "carteCollection" & dragCarte.visible && !dragCarte.selected) { // player select a carte to put on deck
+	evt.preventDefault(); // drop is possible
+  if (dragStartBoardName == nameOfBordName[14] && dragCarte.visible && !dragCarte.selected) { // player select a carte to put on deck
     if (this.getNumberOfCardsVisible() < maxDeckCarte) { // no more cards to add
 			var carteId = dragCarte.id;
 			var miniCard = dragCarte.clone();
@@ -1168,13 +1328,15 @@ playerDeck.addEventListener('drop', function(evt) {
 			// select card from carteCollection
 			var caseIdCarteCollection = carteCollection.getCaseByCarteId(carteId);
 			carteCollection.selectCard(true, caseIdCarteCollection, carteId);
+			// update card number
+			nbCardText.set(playerDeck.getNumberOfCardsVisible());
 		}
 	}
   dragCarte.init();
 	dragStartBoardName = "";
 });
 	
-var bigCardView = new Board('bigCardView', 900, 350, 200, 300);
+var bigCardView = new Board(nameOfBordName[16], 900, 380, 200, 300);
 bigCardView.create(1, 1, 4);
 document.body.appendChild(bigCardView);
 bigCardView.clean = function() {
@@ -1212,7 +1374,7 @@ pageBoard.onclick = function() {
   }
 }
 
-var deckBuilderCommandsDiv = new gomassDiv(900, 150, 150, 6*34, 'builderCommands');
+var deckBuilderCommandsDiv = new gomassDiv(900, 150, 150, 7*34, 'builderCommands');
 var nameDeckT = new gomassButton("text", nameOfButton[17]);
 nameDeckT.style.visibility = "hidden";
 deckBuilderCommandsDiv.addElement(nameDeckT);
@@ -1308,10 +1470,16 @@ finishDeckB.onclick = function() {
 }
 deckBuilderCommandsDiv.addElement(finishDeckB);
 deckBuilderCommandsDiv.visible(false);
+var nbCardText = document.createElement("p");
+nbCardText.set = function(nbcard) {
+	this.style.marginLeft = 6;
+  this.innerHTML = nameOfText[7] + " : <b>" + nbcard + "</b> / 30";
+}
+deckBuilderCommandsDiv.addElement(nbCardText);
 
 //////////////////////PLAYER SELECTION BOARD////////////////////////
 
-var playerSelector = new Board('playerSelector', 250, 150, 100, 150);
+var playerSelector = new Board(nameOfBordName[17], 250, 150, 100, 150);
 playerSelector.create(4, 1, 0);
 document.body.appendChild(playerSelector);
 playerSelector.onclick = function() {
@@ -1368,6 +1536,7 @@ function showDeckBuilder(on) {
     nameDeckT.value = currentPlayerDeckName;
     listDecks.fill();
     carteCollection.fill(0);
+		nbCardText.set(playerDeck.getNumberOfCardsVisible());
   }
 }
 
